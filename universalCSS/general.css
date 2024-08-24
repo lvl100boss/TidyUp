@@ -10,8 +10,8 @@
 }
 body {
     background-color: var(--bg-dark);
-
-}
+    padding-bottom: 2rem;
+}   
 :root {
     /* DARK MODE */
     --bg-dark: #0F0F0F;

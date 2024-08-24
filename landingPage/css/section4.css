@@ -1,0 +1,67 @@
+.section4 {
+    padding: 0 1.5rem;
+}  
+.section4 .title-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.shop-card {
+    background-color: var(--dark-medium);
+    display: grid;
+    grid-template-columns: 34.651vw 1fr;
+    border-radius: var(--round-corner);
+    overflow: hidden;
+    height: 7.75rem;
+    margin-bottom: 1rem;
+}
+
+.shop-info {
+    padding: 1rem;
+}
+
+.shop-photo {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; 
+}
+
+.shop-name {
+    font-size: 0.875rem;
+    font-weight: 450;
+}
+
+.shop-address {
+    font-size: 0.438rem;
+    color: var(--font-medium);
+    margin-bottom: 0.5rem;
+}
+
+.availability-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    color: var(--font-medium);
+    font-size: 0.625rem;
+    margin-bottom: 0.5rem;
+
+}
+
+.rating-container {
+    display: flex;
+    align-items: center;
+    gap: 0.5ch;
+}
+
+.shop-rating {
+    height: 0.531rem;
+ }
+ 
+ .rating-count {
+     font-size: 0.313rem;
+     color: var(--font-medium);
+     margin-top: 0.15rem;
+ }
+ 
