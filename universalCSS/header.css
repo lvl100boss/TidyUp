@@ -1,0 +1,30 @@
+.header {
+    padding: 1.5rem 1.5rem 1rem 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+}
+.left-part {
+    display: flex;
+    align-items: center;
+    gap: 0.1rem;
+}
+.logo {
+    font-weight: 450;
+    font-size: 2.5rem;
+    font-style: italic;
+}
+
+.up {
+    font-weight: 700;
+    color: var(--logo-accent);
+    font-style: normal;
+    font-size: 2.5rem;
+}
+
+.notification-bell {
+    width: 2.188rem;
+    height: 2.188rem;
+    
+}
