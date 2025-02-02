@@ -1,0 +1,10 @@
+@font-face {
+    font-family: "clash-display";
+    src: url("../fonts/clash_display/ClashDisplay-Variable.ttf")
+            format("truetype"),
+        url("../fonts/clash_display/ClashDisplay-Variable.woff2")
+            format("woff2"),
+        url("../fonts/clash_display/ClashDisplay-Variable.woff") format("woff"),
+        url("../fonts/clash_display/ClashDisplay-Variable.eot")
+            format("embedded-opentype");
+}
