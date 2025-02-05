@@ -13,16 +13,17 @@ class ShopController extends Controller
     //
     public function show($shop_id, $branch_id)
     {
-        $shop = Shop::find($shop_id);
+        $shop = Shop::find($shop_id)->with('branches')->where('id', $shop_id)->first();
+        $branch = ShopBranch::with(['gallery', 'services.serviceCategory', 'operationHours'])->where('id', $branch_id)->first();
 
-
-        $branch = ShopBranch::with(['gallery', 'services.serviceCategory'])->where('id', $branch_id)->first();
+        $randomShops = Shop::with('branches.gallery')->with('branches.branchCategories')->inRandomOrder()->limit(10)->get();
 
         $branchServices = $branch->services;
         return Inertia::render('Users/Shop', [
             'shop' => $shop,
             'branch' => $branch,
-            'branchServices' => $branchServices
+            'branchServices' => $branchServices,
+            'randomShops' => $randomShops
         ]);
     }
 }

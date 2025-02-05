@@ -20,7 +20,7 @@ const ShopCard = ({ shop, isLoading }) => {
                             <img
                                 src={shop.branches[0]?.gallery[0]?.url}
                                 alt={shop.shop_name}
-                                className={`object-cover rounded-lg h-full w-full ${
+                                className={`object-cover rounded-md h-full w-full ${
                                     isLoading ? "invisible" : ""
                                 }`}
                             />
@@ -39,7 +39,7 @@ const ShopCard = ({ shop, isLoading }) => {
                     )}
                 </div>
 
-                <div className="flex items-center gap-2 mt-2">
+                <div className="flex items-center gap-2 mt-2 flex-wrap">
                     {isLoading
                         ? Array(2)
                               .fill(0)
@@ -51,7 +51,11 @@ const ShopCard = ({ shop, isLoading }) => {
                               ))
                         : shop.branches[0]?.branch_categories.map(
                               (category, index) => (
-                                  <Badge key={index} variant="secondary">
+                                  <Badge
+                                      key={index}
+                                      variant="secondary"
+                                      className={"text-nowrap"}
+                                  >
                                       {category.name}
                                   </Badge>
                               )
