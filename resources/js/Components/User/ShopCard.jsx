@@ -4,8 +4,12 @@ import { Badge } from "@/Components/ui/badge";
 import { Skeleton } from "@/Components/ui/skeleton";
 
 const ShopCard = ({ shop, isLoading }) => {
+    console.log(shop);
     return (
-        <Link href={`/shops/${shop?.id}`}>
+        <Link
+            href={`shop/${shop.id}/${shop.branches[0].id}`}
+            className={isLoading ? "pointer-events-none" : ""}
+        >
             <div className="card">
                 <div className="card-body">
                     <div className="relative">
@@ -21,7 +25,7 @@ const ShopCard = ({ shop, isLoading }) => {
                                 }`}
                             />
                         </AspectRatio>
-                        <span className="absolute top-2 right-2 bg-white rounded-full py-1 px-4 scale-75 text-xs sm:text-sm z-20">
+                        <span className="absolute top-2 right-2 bg-white rounded-full py-1 px-4 scale-75 text-xs sm:text-sm ">
                             {!isLoading && shop.status}
                         </span>
                     </div>
@@ -32,14 +36,6 @@ const ShopCard = ({ shop, isLoading }) => {
                         <h5 className="mt-2 figtree-medium">
                             {shop.shop_name}
                         </h5>
-                    )}
-
-                    {isLoading ? (
-                        <Skeleton className="h-3 w-3/4 mt-2" />
-                    ) : (
-                        <p className="card-text text-sm text-muted-foreground">
-                            {shop.branches[0]?.detailed_address}
-                        </p>
                     )}
                 </div>
 
@@ -55,11 +51,7 @@ const ShopCard = ({ shop, isLoading }) => {
                               ))
                         : shop.branches[0]?.branch_categories.map(
                               (category, index) => (
-                                  <Badge
-                                      key={index}
-                                      className="rounded-full"
-                                      variant="outline"
-                                  >
+                                  <Badge key={index} variant="secondary">
                                       {category.name}
                                   </Badge>
                               )

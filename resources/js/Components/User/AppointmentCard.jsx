@@ -1,7 +1,5 @@
 import { AspectRatio } from "@/Components/ui/aspect-ratio";
 
-AspectRatio;
-
 const AppointmentCard = ({ appointment }) => {
     const branchImg = appointment.branch.gallery[0].url;
     const branchName = appointment.branch.branch_name;
@@ -24,27 +22,32 @@ const AppointmentCard = ({ appointment }) => {
         minute: "2-digit",
         hour12: true,
     });
+
     return (
-        <div className="card border p-4 rounded-lg flex gap-8 items-center justify-between">
-            <div className="flex items-center gap-4">
-                <div className="">
+        <div className="card border p-4 rounded-lg flex flex-col md:flex-row gap-4 md:gap-8 md:items-center md:justify-between">
+            <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
+                <div className="w-full md:w-[12rem]">
                     <img
-                        className="w-[12rem] h-[7rem] object-cover rounded-md"
+                        className="w-full h-[12rem] md:h-[7rem] object-cover rounded-md"
                         src={branchImg}
                         alt={branchName}
                     />
                 </div>
-                <div className="space-y-3">
+                <div className="space-y-2 md:space-y-3 w-full md:w-auto">
                     <h6 className="figtree-semibold text-lg">{shopName}</h6>
-                    <p className="text-sm">{branchName}</p>
-                    <p className="text-sm">{location}</p>
+                    <p className="text-sm text-muted-foreground">
+                        {branchName}
+                    </p>
+                    <p className="text-sm text-muted-foreground">{location}</p>
                 </div>
             </div>
 
-            <div className="space-y-3 text-right">
+            <div className="flex md:flex-col justify-between md:text-right mt-4 md:mt-0">
                 <h6 className="figtree-semibold text-lg">Php {totalPrice}</h6>
-                <p className="text-sm">{date}</p>
-                <p className="text-sm">{time}</p>
+                <div className="text-right md:mt-3">
+                    <p className="text-sm text-muted-foreground">{date}</p>
+                    <p className="text-sm text-muted-foreground">{time}</p>
+                </div>
             </div>
         </div>
     );

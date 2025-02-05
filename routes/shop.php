@@ -1,10 +1,10 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\ShopDashboard;
+use App\Http\Controllers\ShopDashboardController;
 use Inertia\Inertia;
 
-Route::get('/shop/dashboard', [ShopDashboard::class, 'index'])->middleware(['auth', 'verified'])->name('shop.dashboard');
+Route::get('/shop/dashboard', [ShopDashboardController::class, 'index'])->middleware(['auth', 'verified'])->name('shop.dashboard');
 Route::redirect('/shop', '/shop/dashboard')->middleware(['auth', 'verified']);
 
 Route::get('/shop/appointments', function () {

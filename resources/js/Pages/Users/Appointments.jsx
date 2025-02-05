@@ -1,7 +1,15 @@
 import UserLayout from "@/Layouts/UserLayout";
 import AppointmentCard from "@/Components/User/AppointmentCard";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/Components/ui/tabs";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/Components/ui/select";
 import { Head } from "@inertiajs/react";
+import { useState } from "react";
 
 export default function Appointments({
     pendingAppointments,
@@ -12,29 +20,42 @@ export default function Appointments({
     declinedAppointments,
     startedAppointments,
 }) {
-    console.log("appointments", pendingAppointments);
+    const [activeTab, setActiveTab] = useState("upcoming");
+
     return (
         <UserLayout>
             <Head title="Appointments" />
+            <h1 className="text-2xl figtree-semibold mt-2 lg:mb-3 lg:mt-0 uppercase">
+                My Appointments
+            </h1>
             <Tabs
-                defaultValue="upcoming"
+                value={activeTab}
+                onValueChange={setActiveTab}
                 className="overflow-x-auto whitespace-nowrap"
             >
-                {/* For Mobile View */}
-                <div className="sm:hidden">
-                    <TabsList className="mb-5 block w-min mx-auto">
-                        <TabsTrigger value="pending">Pending</TabsTrigger>
-                        <TabsTrigger value="upcoming">Upcoming</TabsTrigger>
-                        <TabsTrigger value="completed">Completed</TabsTrigger>
-                    </TabsList>
-                    <TabsList className="mb-5 block w-min mx-auto">
-                        <TabsTrigger value="cancelled">Cancelled</TabsTrigger>
-                        <TabsTrigger value="no-show">No-Show</TabsTrigger>
-                        <TabsTrigger value="declined">Declined</TabsTrigger>
-                        <TabsTrigger value="started">Started</TabsTrigger>
-                    </TabsList>
+                {/* Mobile View - Select Dropdown */}
+                <div className="sm:hidden w-full">
+                    <Select
+                        value={activeTab}
+                        onValueChange={setActiveTab}
+                        className="w-full "
+                    >
+                        <SelectTrigger className="mb-5 mt-2">
+                            <SelectValue placeholder="Select status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="pending">Pending</SelectItem>
+                            <SelectItem value="upcoming">Upcoming</SelectItem>
+                            <SelectItem value="completed">Completed</SelectItem>
+                            <SelectItem value="cancelled">Cancelled</SelectItem>
+                            <SelectItem value="no-show">No-Show</SelectItem>
+                            <SelectItem value="declined">Declined</SelectItem>
+                            <SelectItem value="started">Started</SelectItem>
+                        </SelectContent>
+                    </Select>
                 </div>
-                {/* For Large Screen */}
+
+                {/* Desktop View - Tabs */}
                 <div className="hidden sm:block">
                     <TabsList className="mb-5 block md:inline-flex w-min mx-auto lg:mx-0">
                         <TabsTrigger value="pending">Pending</TabsTrigger>
@@ -47,10 +68,9 @@ export default function Appointments({
                     </TabsList>
                 </div>
 
-                {/* TabsContent sections remain unchanged */}
                 <TabsContent
                     value="pending"
-                    className="grid lg:grid-cols-2 gap-5 mt-0"
+                    className="grid 2xl:grid-cols-2 gap-5 mt-0"
                 >
                     {pendingAppointments.length > 0 ? (
                         pendingAppointments.map((appointment) => (
@@ -82,7 +102,7 @@ export default function Appointments({
 
                 <TabsContent
                     value="completed"
-                    className="grid lg:grid-cols-2 gap-5 mt-0"
+                    className="grid 2xl:grid-cols-2 gap-5 mt-0"
                 >
                     {completedAppointments.length > 0 ? (
                         completedAppointments.map((appointment) => (
@@ -98,7 +118,7 @@ export default function Appointments({
 
                 <TabsContent
                     value="cancelled"
-                    className="grid lg:grid-cols-2 gap-5 mt-0"
+                    className="grid 2xl:grid-cols-2 gap-5 mt-0"
                 >
                     {cancelledAppointments.length > 0 ? (
                         cancelledAppointments.map((appointment) => (
@@ -114,7 +134,7 @@ export default function Appointments({
 
                 <TabsContent
                     value="no-show"
-                    className="grid lg:grid-cols-2 gap-5 mt-0"
+                    className="grid 2xl:grid-cols-2 gap-5 mt-0"
                 >
                     {noShowAppointments.length > 0 ? (
                         noShowAppointments.map((appointment) => (
@@ -130,7 +150,7 @@ export default function Appointments({
 
                 <TabsContent
                     value="declined"
-                    className="grid lg:grid-cols-2 gap-5 mt-0"
+                    className="grid 2xl:grid-cols-2 gap-5 mt-0"
                 >
                     {declinedAppointments.length > 0 ? (
                         declinedAppointments.map((appointment) => (
@@ -146,7 +166,7 @@ export default function Appointments({
 
                 <TabsContent
                     value="started"
-                    className="grid lg:grid-cols-2 gap-5 mt-0"
+                    className="grid 2xl:grid-cols-2 gap-5 mt-0"
                 >
                     {startedAppointments.length > 0 ? (
                         startedAppointments.map((appointment) => (

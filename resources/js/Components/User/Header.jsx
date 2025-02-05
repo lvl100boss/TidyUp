@@ -17,7 +17,7 @@ import {
     DropdownMenuSubTrigger,
     DropdownMenuTrigger,
 } from "@/Components/ui/dropdown-menu";
-import { Bell } from "lucide-react";
+import { Bell, Menu } from "lucide-react";
 
 const Header = ({ onClick, isDarkTheme }) => {
     const user = usePage().props.auth.user;
@@ -27,9 +27,9 @@ const Header = ({ onClick, isDarkTheme }) => {
             className="flex justify-between items-center mb-3
             "
         >
-            <div>
+            <div className="">
                 <Link href="/" className="flex items-center gap-2">
-                    <ApplicationLogo className="size-16 dark:invert" />
+                    <ApplicationLogo className="size-14 lg:size-16 dark:invert" />
                     <h1 className="text-xl font-medium clash-display">
                         TidyUp
                     </h1>
@@ -143,19 +143,40 @@ const Header = ({ onClick, isDarkTheme }) => {
                     </DropdownMenu>
                 </div>
             ) : (
-                <div className="flex items-center gap-2">
-                    <Link
-                        href="/register"
-                        className={`${buttonVariants({
-                            variant: "outline",
-                        })}`}
-                    >
-                        Sign Up
-                    </Link>
-                    <Button asChild>
-                        <Link href="/login">Sign In</Link>
-                    </Button>
-                </div>
+                <>
+                    <div className="lg:hidden">
+                        <DropdownMenu className="min-w-full">
+                            <DropdownMenuTrigger>
+                                <Button variant="outline">
+                                    <Menu size={30} />
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent className="sm:mr-7 " inset>
+                                <DropdownMenuItem>
+                                    <Link href={route("login")}>Sign In</Link>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem>
+                                    <Link href={route("register")}>
+                                        Sign Up
+                                    </Link>
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    </div>
+                    <div className="lg:flex items-center gap-2 hidden">
+                        <Link
+                            href="/register"
+                            className={`${buttonVariants({
+                                variant: "outline",
+                            })}`}
+                        >
+                            Sign Up
+                        </Link>
+                        <Button asChild>
+                            <Link href="/login">Sign In</Link>
+                        </Button>
+                    </div>
+                </>
             )}
         </header>
     );
