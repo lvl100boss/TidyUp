@@ -3,11 +3,13 @@
 use App\Http\Controllers\AppointmentController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\ShopController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
+Route::get('/shop/{shop_id}/{branch_id}', [ShopController::class, 'show'])->name('shop.show');
 
 Route::get('/explore', function () {
     return Inertia::render('Users/Explore');

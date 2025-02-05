@@ -5,6 +5,9 @@
 @tailwind utilities;
 
 @layer base {
+    html {
+        scroll-behavior: unset;
+    }
     body {
         font-family: "figtree", sans-serif;
         -webkit-font-smoothing: antialiased;
