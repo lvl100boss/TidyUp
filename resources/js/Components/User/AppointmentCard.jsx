@@ -42,12 +42,17 @@ const AppointmentCard = ({ appointment }) => {
                 </div>
             </div>
 
-            <div className="flex md:flex-col justify-between md:text-right mt-4 md:mt-0">
+            <div className="flex md:flex-col justify-between md:text-right mt-4 md:mt-0 md:hidden">
                 <h6 className="figtree-semibold text-lg">Php {totalPrice}</h6>
                 <div className="text-right md:mt-3">
                     <p className="text-sm text-muted-foreground">{date}</p>
                     <p className="text-sm text-muted-foreground">{time}</p>
                 </div>
+            </div>
+            <div className="space-y-2 md:space-y-3 w-full md:w-auto hidden md:block text-right">
+                <h6 className="figtree-semibold text-lg">Php {totalPrice}</h6>
+                <p className="text-sm text-muted-foreground">{date}</p>
+                <p className="text-sm text-muted-foreground">{time}</p>
             </div>
         </div>
     );

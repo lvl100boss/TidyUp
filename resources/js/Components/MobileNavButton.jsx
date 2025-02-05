@@ -12,7 +12,6 @@ import {
     DrawerTrigger,
 } from "@/Components/ui/drawer";
 import {
-    ChevronUp,
     Calendar,
     TrendingUp,
     Compass,
@@ -22,7 +21,7 @@ import {
     MessageCircleQuestion,
     MessageSquareWarning,
     House,
-    PanelBottomOpen,
+    SquareChevronUp,
 } from "lucide-react";
 
 const MobileNavButton = () => {
@@ -62,7 +61,7 @@ const MobileNavButton = () => {
                         size="icon"
                         variant=""
                     >
-                        <PanelBottomOpen />
+                        <SquareChevronUp />
                     </Button>
                 </DrawerTrigger>
                 <DrawerContent onCloseAutoFocus={(e) => e.preventDefault()}>
