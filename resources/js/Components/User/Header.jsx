@@ -151,15 +151,13 @@ const Header = ({ onClick, isDarkTheme }) => {
                                     <Menu size={30} />
                                 </Button>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent className="sm:mr-7 " inset>
-                                <DropdownMenuItem>
-                                    <Link href={route("login")}>Sign In</Link>
-                                </DropdownMenuItem>
-                                <DropdownMenuItem>
-                                    <Link href={route("register")}>
-                                        Sign Up
-                                    </Link>
-                                </DropdownMenuItem>
+                            <DropdownMenuContent className="mr-7 " inset>
+                                <Link href="/login">
+                                    <DropdownMenuItem>Sign In</DropdownMenuItem>
+                                </Link>
+                                <Link href="/register">
+                                    <DropdownMenuItem>Sign Up</DropdownMenuItem>
+                                </Link>
                             </DropdownMenuContent>
                         </DropdownMenu>
                     </div>

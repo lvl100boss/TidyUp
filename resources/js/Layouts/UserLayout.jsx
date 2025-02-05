@@ -40,13 +40,15 @@ export default function UserLayout({ children }) {
             <div>
                 <Footer />
             </div>
-            {!user ? (
-                <ThemeButton onClick={toggleTheme} isDarkTheme={isDarkTheme} />
-            ) : (
-                <div>
-                    <MobileNavButton />
-                </div>
-            )}
+            <div>
+                {!user && (
+                    <ThemeButton
+                        onClick={toggleTheme}
+                        isDarkTheme={isDarkTheme}
+                    />
+                )}
+                <MobileNavButton />
+            </div>
         </div>
     );
 }
