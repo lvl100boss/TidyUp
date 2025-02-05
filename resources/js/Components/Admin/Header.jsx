@@ -1,5 +1,5 @@
 import ApplicationLogo from "@/Components/ApplicationLogo";
-import { Notification } from "./Notification";
+import { Notification } from "@/Components/User/Notification";
 import { Link, usePage } from "@inertiajs/react";
 import { Button, buttonVariants } from "@/Components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/Components/ui/avatar";
@@ -106,7 +106,7 @@ const Header = ({ onClick, isDarkTheme }) => {
                                     <DropdownMenuItem>Profile</DropdownMenuItem>
                                 </Link>
                                 {role.role_id === 3 ? (
-                                    <Link href={route("shop.dashboard")}>
+                                    <Link>
                                         <DropdownMenuItem>
                                             Manage Shop
                                         </DropdownMenuItem>
