@@ -15,13 +15,13 @@ export default function ShopGallery({ branch }) {
                     <CarouselContent>
                         {branch.gallery.map((image, index) => (
                             <CarouselItem key={index}>
-                                <div className="bg-muted aspect-video rounded-md overflow-hidden">
+                                <div className="bg-muted  max-h-[30rem] rounded-md overflow-hidden">
                                     <img
                                         src={`${image.url}`}
                                         alt={`${branch.branch_name} Photo ${
                                             index + 1
                                         }`}
-                                        className="w-full h-full object-cover"
+                                        className="w-full h-full object-cover object-center"
                                         loading="lazy"
                                     />
                                 </div>
