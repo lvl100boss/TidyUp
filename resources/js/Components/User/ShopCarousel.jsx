@@ -32,7 +32,7 @@ export default function ShopCarousel({ shops }) {
                 {shops.map((shop, index) => (
                     <CarouselItem
                         key={index}
-                        className="basis-[100%] sm:basis-1/2 md:basis-1/3 lg:basis-1/4 xl:basis-1/5 "
+                        className="basis-[80%] sm:basis-1/2 md:basis-1/3 lg:basis-1/4 xl:basis-1/5 "
                     >
                         <Link href={`/shop/${shop.id}/${shop.branches[0].id}`}>
                             <div className="">

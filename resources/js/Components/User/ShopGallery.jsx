@@ -9,13 +9,13 @@ import { AspectRatio } from "@/Components/ui/aspect-ratio";
 
 export default function ShopGallery({ branch }) {
     return (
-        <div className="">
+        <div className="-mx-5 sm:mx-0">
             <Carousel>
                 <div className="relative">
                     <CarouselContent>
                         {branch.gallery.map((image, index) => (
                             <CarouselItem key={index}>
-                                <div className="bg-muted  max-h-[30rem] rounded-md overflow-hidden">
+                                <div className="bg-muted  aspect-video  sm:rounded-md overflow-hidden">
                                     <img
                                         src={`${image.url}`}
                                         alt={`${branch.branch_name} Photo ${
