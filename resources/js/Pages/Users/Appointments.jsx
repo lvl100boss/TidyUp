@@ -58,7 +58,7 @@ export default function Appointments({
                 ) : (
                     <>
                         <div>
-                            <ApplicationLogo className="size-48 mx-auto mb-1 opacity-40" />
+                            <ApplicationLogo className="size-48 mx-auto mb-1 opacity-40 dark:invert" />
                             <p className="text-center font-bold text-2xl opacity-40">
                                 No{" "}
                                 {type.charAt(0).toUpperCase() + type.slice(1)}{" "}

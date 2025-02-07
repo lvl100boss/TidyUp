@@ -27,7 +27,7 @@ import {
     Share2,
     TriangleAlert,
     RefreshCw,
-    Store,
+    MapPin,
     Phone,
     Mail,
 } from "lucide-react";
@@ -50,8 +50,6 @@ import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
@@ -90,16 +88,67 @@ function SelectBranch(props) {
             }}
         >
             <SelectTrigger className="w-full">
-                <SelectValue placeholder={props.branch_name} />
+                <SelectValue />
             </SelectTrigger>
             <SelectContent>
-                {props.shop.branches.map((branch) => (
-                    <SelectItem value={branch.id} key={branch.id}>
-                        {branch.branch_name}
-                    </SelectItem>
-                ))}
+                {props.shop.branches.map(
+                    (branch) =>
+                        (props.branch_name === branch.branch_name && (
+                            <SelectItem key={branch.id} disabled>
+                                {branch.branch_name}
+                            </SelectItem>
+                        )) || (
+                            <SelectItem value={branch.id} key={branch.id}>
+                                {branch.branch_name}
+                            </SelectItem>
+                        )
+                )}
             </SelectContent>
         </Select>
+    );
+}
+
+function MobileSelectBranch(props) {
+    return (
+        <DropdownMenu>
+            <DropdownMenuTrigger>
+                <RefreshCw size={18} className="" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+                {props.shop.branches.map(
+                    (branch) =>
+                        (props.branch.branch_name === branch.branch_name && (
+                            <DropdownMenuItem key={branch.id} disabled>
+                                {branch.branch_name}
+                            </DropdownMenuItem>
+                        )) || (
+                            <DropdownMenuItem
+                                key={branch.id}
+                                onClick={() => {
+                                    router.visit(
+                                        `/shop/${props.shop.id}/${branch.id}`
+                                    );
+                                }}
+                            >
+                                {branch.branch_name}
+                            </DropdownMenuItem>
+                        )
+                )}
+            </DropdownMenuContent>
+        </DropdownMenu>
+    );
+}
+
+function BookNowButton({ shop_id, branch_id }) {
+    return (
+        <Link
+            href={`/booking/${shop_id}/${branch_id}`}
+            className={`${buttonVariants({
+                variant: "default",
+            })} w-full rounded-sm mt-3 figtree-semibold `}
+        >
+            Book Now!
+        </Link>
     );
 }
 
@@ -140,36 +189,16 @@ export default function Shop({ shop, branch, branchServices, randomShops }) {
                         <div className="flex items-center justify-between">
                             <div className="inline-flex gap-2 items-center">
                                 <div className="inline-flex gap-1 items-center">
+                                    <MobileSelectBranch
+                                        shop={shop}
+                                        branch={branch}
+                                    ></MobileSelectBranch>
                                     <p className="text-sm">
                                         {branch.branch_name}
                                     </p>
-
-                                    <DropdownMenu>
-                                        <DropdownMenuTrigger>
-                                            <RefreshCw
-                                                size={15}
-                                                className="stroke-1"
-                                            />
-                                        </DropdownMenuTrigger>
-                                        <DropdownMenuContent>
-                                            <DropdownMenuLabel>
-                                                Select Branch
-                                            </DropdownMenuLabel>
-                                            <DropdownMenuSeparator />
-                                            <DropdownMenuItem>
-                                                Main Branch
-                                            </DropdownMenuItem>
-                                            <DropdownMenuItem>
-                                                Branch2
-                                            </DropdownMenuItem>
-                                            <DropdownMenuItem>
-                                                Branch3
-                                            </DropdownMenuItem>
-                                        </DropdownMenuContent>
-                                    </DropdownMenu>
                                 </div>
 
-                                <Badge className="bg-green-300 text-foreground dark:text-background">
+                                <Badge className="bg-green-300 pointer-events-none text-foreground dark:text-background">
                                     {branch.availability}
                                 </Badge>
                             </div>
@@ -182,7 +211,7 @@ export default function Shop({ shop, branch, branchServices, randomShops }) {
                     <div className="mb-3">
                         <Tabs defaultValue={categories[0]} className="">
                             {/* Tabs List */}
-                            <h1 className="figtree-semibold text-lg mb-2">
+                            <h1 className="figtree-semibold text-2xl mb-2">
                                 Services
                             </h1>
                             <TabsList className="flex  justify-start !bg-none mb-4">
@@ -235,56 +264,64 @@ export default function Shop({ shop, branch, branchServices, randomShops }) {
                         </Tabs>
                     </div>
                     <div className="my-10">
-                        <div className="figtree-bold text-2xl mb-2">
+                        <div className="figtree-bold text-2xl mb-3">
                             Branch Details
                         </div>
-                        <div className="">
-                            <div className="inline-flex gap-2 items-center">
-                                <div className="inline-flex items-center gap-3">
-                                    <Store size={18} className="mb-[0.1rem]" />
-                                    <h1 className="figtree-semibold text-lg">
-                                        Location
-                                    </h1>
+                        <div className="space-y-2">
+                            <div className="">
+                                <div className="inline-flex gap-2 items-center">
+                                    <div className="inline-flex items-center gap-3">
+                                        <MapPin
+                                            size={18}
+                                            className="mb-[0.1rem]"
+                                        />
+                                        <h1 className="figtree-semibold text-lg">
+                                            Location
+                                        </h1>
+                                    </div>
+                                    <p className="figtree-light text-muted-foreground text-sm mt-1">
+                                        {branch.detailed_address}
+                                    </p>
                                 </div>
-                                <p className="figtree-light text-muted-foreground text-sm mt-1">
-                                    {branch.detailed_address}
-                                </p>
                             </div>
-                        </div>
-                        <div className="">
-                            <div className="inline-flex gap-2 items-center">
-                                <div className="inline-flex items-center gap-3">
-                                    <Phone size={18} className="mb-[0.1rem]" />
-                                    <h1 className="figtree-semibold text-lg">
-                                        Contact
-                                    </h1>
+                            <div className="">
+                                <div className="inline-flex gap-2 items-center">
+                                    <div className="inline-flex items-center gap-3">
+                                        <Phone
+                                            size={18}
+                                            className="mb-[0.1rem]"
+                                        />
+                                        <h1 className="figtree-semibold text-lg">
+                                            Contact
+                                        </h1>
+                                    </div>
+                                    <p className="figtree-light text-muted-foreground text-sm mt-1">
+                                        {branch.contact_number}
+                                    </p>
                                 </div>
-                                <p className="figtree-light text-muted-foreground text-sm mt-1">
-                                    {branch.contact_number}
-                                </p>
                             </div>
-                        </div>
-                        <div className="mb-3">
-                            <div className="inline-flex gap-2 items-center">
-                                <div className="inline-flex items-center gap-3">
-                                    <Mail size={18} className="mb-[0.1rem]" />
-                                    <h1 className="figtree-semibold text-lg">
-                                        Email
-                                    </h1>
+                            <div className="mb-3">
+                                <div className="inline-flex gap-2 items-center">
+                                    <div className="inline-flex items-center gap-3">
+                                        <Mail
+                                            size={18}
+                                            className="mb-[0.1rem]"
+                                        />
+                                        <h1 className="figtree-semibold text-lg">
+                                            Email
+                                        </h1>
+                                    </div>
+                                    <p className="figtree-light text-muted-foreground text-sm mt-1">
+                                        {branch.email}
+                                    </p>
                                 </div>
-                                <p className="figtree-light text-muted-foreground text-sm mt-1">
-                                    {branch.email}
-                                </p>
                             </div>
                         </div>
                         <div className="mb-3 lg:hidden">
-                            <Link
-                                className={`${buttonVariants({
-                                    variant: "default",
-                                })} w-full`}
-                            >
-                                Book Now!
-                            </Link>
+                            <BookNowButton
+                                shop_id={shop.id}
+                                branch_id={branch.id}
+                            />
                         </div>
                     </div>
                 </div>
@@ -311,15 +348,13 @@ export default function Shop({ shop, branch, branchServices, randomShops }) {
                         </Label>
                         <SelectBranch
                             shop={shop}
+                            branch={branch}
                             branch_name={branch.branch_name}
                         ></SelectBranch>
-                        <Link
-                            className={`${buttonVariants({
-                                variant: "default",
-                            })} w-full rounded-sm mt-3 figtree-semibold `}
-                        >
-                            Book Now!
-                        </Link>
+                        <BookNowButton
+                            shop_id={shop.id}
+                            branch_id={branch.id}
+                        />
                         <Separator className="my-5" />
                         <div className="space-y-3">
                             <Dialog>
