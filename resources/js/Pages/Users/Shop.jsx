@@ -9,8 +9,20 @@ import {
     TabsTrigger,
 } from "@/Components/ui/tabs2";
 import { Button, buttonVariants } from "@/Components/ui/button";
+import {
+    Dialog,
+    DialogClose,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from "@/Components/ui/dialog";
+import { Input } from "@/Components/ui/input";
 import ShopCarousel from "@/Components/User/ShopCarousel";
 import { Component, Clock8, Share2, TriangleAlert } from "lucide-react";
+import CopyButton from "@/Components/CopyButton";
 import { Separator } from "@/Components/ui/separator";
 import {
     Select,
@@ -18,9 +30,40 @@ import {
     SelectItem,
     SelectTrigger,
     SelectValue,
-} from "@/components/ui/select";
-import { Label } from "@/Components/ui/label";
+} from "@/Components/ui/select";
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from "@/Components/ui/tooltip";
 
+import { Label } from "@/Components/ui/label";
+import { useState, useEffect } from "react";
+
+const formatTime = (time) => {
+    if (!time) return "Closed";
+
+    const [hours, minutes] = time.split(":").map(Number);
+    const date = new Date();
+    date.setHours(hours, minutes);
+
+    return date.toLocaleTimeString("en-US", {
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: true,
+    });
+};
+
+const getClosingTime = (operation_hours) => {
+    const today = new Date().toLocaleString("en-US", { weekday: "long" });
+
+    const todaySchedule = operation_hours.find((day) => day.day === today);
+
+    return todaySchedule && todaySchedule.is_open
+        ? formatTime(todaySchedule.closing_time)
+        : "Closed";
+};
 export default function Shop({ shop, branch, branchServices, randomShops }) {
     console.log(branchServices);
     const categories = [
@@ -37,6 +80,14 @@ export default function Shop({ shop, branch, branchServices, randomShops }) {
             (service) => service.service_category.category_name === category
         ),
     }));
+
+    const [closingTime, setClosingTime] = useState("Loading...");
+
+    useEffect(() => {
+        if (branch && branch.operation_hours) {
+            setClosingTime(getClosingTime(branch.operation_hours));
+        }
+    }, [branch]);
 
     console.log(branch);
     return (
@@ -195,26 +246,80 @@ export default function Shop({ shop, branch, branchServices, randomShops }) {
                         <Link
                             className={`${buttonVariants({
                                 variant: "default",
-                            })} w-full rounded-sm mt-3 figtree-semibold uppercase`}
+                            })} w-full rounded-sm mt-3 figtree-semibold `}
                         >
                             Book Now!
                         </Link>
                         <Separator className="my-5" />
                         <div className="space-y-3">
-                            <Button
-                                className="w-full justify-start"
-                                variant="outline"
-                            >
-                                <Clock8 size={20} />
-                                Open until
-                            </Button>
-                            <Button
-                                className="w-full justify-start"
-                                variant="outline"
-                            >
-                                <Share2 size={20} />
-                                Share
-                            </Button>
+                            <TooltipProvider>
+                                <Tooltip>
+                                    <TooltipTrigger className="w-full">
+                                        <Button
+                                            className="w-full justify-start"
+                                            variant="outline"
+                                        >
+                                            <Clock8 size={20} />
+                                            Open until {closingTime}
+                                        </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        <p>
+                                            Click to view our shop's operating
+                                            hours.
+                                        </p>
+                                    </TooltipContent>
+                                </Tooltip>
+                            </TooltipProvider>
+
+                            <Dialog>
+                                <DialogTrigger asChild>
+                                    <Button
+                                        className="w-full justify-start"
+                                        variant="outline"
+                                    >
+                                        <Share2 size={20} />
+                                        Share link
+                                    </Button>
+                                </DialogTrigger>
+                                <DialogContent className="sm:max-w-md">
+                                    <DialogHeader>
+                                        <DialogTitle>Share link</DialogTitle>
+                                        <DialogDescription>
+                                            Anyone who has this link will be
+                                            able to view this.
+                                        </DialogDescription>
+                                    </DialogHeader>
+                                    <div className="flex items-center space-x-2">
+                                        <div className="grid flex-1 gap-2">
+                                            <Label
+                                                htmlFor="link"
+                                                className="sr-only"
+                                            >
+                                                Link
+                                            </Label>
+                                            <Input
+                                                id="link"
+                                                defaultValue={`https://127.0.0.1:8000/shop/${shop.id}/${branch.id}`}
+                                                readOnly
+                                            />
+                                        </div>
+                                        <CopyButton
+                                            textToCopy={`127.0.0.1:8000/shop/${shop.id}/${branch.id}`}
+                                        />
+                                    </div>
+                                    <DialogFooter className="sm:justify-start">
+                                        <DialogClose asChild>
+                                            <Button
+                                                type="button"
+                                                variant="secondary"
+                                            >
+                                                Close
+                                            </Button>
+                                        </DialogClose>
+                                    </DialogFooter>
+                                </DialogContent>
+                            </Dialog>
                             <Button
                                 className="w-full justify-start"
                                 variant="outline"
