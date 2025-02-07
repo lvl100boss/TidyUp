@@ -4,7 +4,6 @@ import { Badge } from "@/Components/ui/badge";
 import { Skeleton } from "@/Components/ui/skeleton";
 
 const ShopCard = ({ shop, isLoading }) => {
-    console.log(shop);
     return (
         <Link
             href={`shop/${shop.id}/${shop.branches[0].id}`}

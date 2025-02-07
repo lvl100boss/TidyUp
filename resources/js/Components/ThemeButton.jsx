@@ -12,7 +12,7 @@ const ThemeButton = ({ isDarkTheme, ...props }) => {
             <Tooltip>
                 <TooltipTrigger asChild>
                     <Button
-                        className={`fixed bottom-[4.3rem] right-5 ${buttonVariants(
+                        className={`fixed bottom-[4.3rem] lg:bottom-5 right-5 ${buttonVariants(
                             {
                                 size: "icon",
                                 radius: "round",

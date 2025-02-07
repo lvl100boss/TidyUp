@@ -21,7 +21,16 @@ import {
 } from "@/Components/ui/dialog";
 import { Input } from "@/Components/ui/input";
 import ShopCarousel from "@/Components/User/ShopCarousel";
-import { Component, Clock8, Share2, TriangleAlert } from "lucide-react";
+import {
+    Component,
+    Clock8,
+    Share2,
+    TriangleAlert,
+    RefreshCw,
+    Store,
+    Phone,
+    Mail,
+} from "lucide-react";
 import CopyButton from "@/Components/CopyButton";
 import { Separator } from "@/Components/ui/separator";
 import {
@@ -37,6 +46,14 @@ import {
     TooltipProvider,
     TooltipTrigger,
 } from "@/Components/ui/tooltip";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 import { Label } from "@/Components/ui/label";
 import { useState, useEffect } from "react";
@@ -64,8 +81,29 @@ const getClosingTime = (operation_hours) => {
         ? formatTime(todaySchedule.closing_time)
         : "Closed";
 };
+
+function SelectBranch(props) {
+    return (
+        <Select
+            onValueChange={(branchId) => {
+                router.visit(`/shop/${props.shop.id}/${branchId}`);
+            }}
+        >
+            <SelectTrigger className="w-full">
+                <SelectValue placeholder={props.branch_name} />
+            </SelectTrigger>
+            <SelectContent>
+                {props.shop.branches.map((branch) => (
+                    <SelectItem value={branch.id} key={branch.id}>
+                        {branch.branch_name}
+                    </SelectItem>
+                ))}
+            </SelectContent>
+        </Select>
+    );
+}
+
 export default function Shop({ shop, branch, branchServices, randomShops }) {
-    console.log(branchServices);
     const categories = [
         ...new Set(
             branchServices.map(
@@ -93,17 +131,48 @@ export default function Shop({ shop, branch, branchServices, randomShops }) {
     return (
         <UserLayout>
             <Head title={shop.shop_name} />
-            <div className="grid lg:grid-cols-4 gap-5">
-                <div className="col-span-3">
+            <div className="flex gap-5">
+                <div className="flex-1">
                     <div className="mb-3 lg:hidden">
                         <h1 className="figtree-semibold text-2xl">
                             {shop.shop_name}
                         </h1>
-                        <div className="inline-flex gap-2 items-center">
-                            <p className="text-sm">{branch.branch_name}</p>
-                            <Badge className="bg-green-300 text-foreground dark:text-background">
-                                {branch.availability}
-                            </Badge>
+                        <div className="flex items-center justify-between">
+                            <div className="inline-flex gap-2 items-center">
+                                <div className="inline-flex gap-1 items-center">
+                                    <p className="text-sm">
+                                        {branch.branch_name}
+                                    </p>
+
+                                    <DropdownMenu>
+                                        <DropdownMenuTrigger>
+                                            <RefreshCw
+                                                size={15}
+                                                className="stroke-1"
+                                            />
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent>
+                                            <DropdownMenuLabel>
+                                                Select Branch
+                                            </DropdownMenuLabel>
+                                            <DropdownMenuSeparator />
+                                            <DropdownMenuItem>
+                                                Main Branch
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem>
+                                                Branch2
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem>
+                                                Branch3
+                                            </DropdownMenuItem>
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
+                                </div>
+
+                                <Badge className="bg-green-300 text-foreground dark:text-background">
+                                    {branch.availability}
+                                </Badge>
+                            </div>
                         </div>
                     </div>
                     <div className="mb-3">
@@ -165,45 +234,61 @@ export default function Shop({ shop, branch, branchServices, randomShops }) {
                             ))}
                         </Tabs>
                     </div>
-                    <div className="">
-                        <div className="inline-flex gap-2 items-center">
-                            <h1 className="figtree-semibold text-lg">
-                                Location
-                            </h1>
-                            <p className="figtree-light text-muted-foreground text-sm mt-1">
-                                {branch.detailed_address}
-                            </p>
+                    <div className="my-10">
+                        <div className="figtree-bold text-2xl mb-2">
+                            Branch Details
                         </div>
-                    </div>
-                    <div className="">
-                        <div className="inline-flex gap-2 items-center">
-                            <h1 className="figtree-semibold text-lg">
-                                Contact
-                            </h1>
-                            <p className="figtree-light text-muted-foreground text-sm mt-1">
-                                {branch.contact_number}
-                            </p>
+                        <div className="">
+                            <div className="inline-flex gap-2 items-center">
+                                <div className="inline-flex items-center gap-3">
+                                    <Store size={18} className="mb-[0.1rem]" />
+                                    <h1 className="figtree-semibold text-lg">
+                                        Location
+                                    </h1>
+                                </div>
+                                <p className="figtree-light text-muted-foreground text-sm mt-1">
+                                    {branch.detailed_address}
+                                </p>
+                            </div>
                         </div>
-                    </div>
-                    <div className="mb-3">
-                        <div className="inline-flex gap-2 items-center">
-                            <h1 className="figtree-semibold text-lg">Email</h1>
-                            <p className="figtree-light text-muted-foreground text-sm mt-1">
-                                {branch.email}
-                            </p>
+                        <div className="">
+                            <div className="inline-flex gap-2 items-center">
+                                <div className="inline-flex items-center gap-3">
+                                    <Phone size={18} className="mb-[0.1rem]" />
+                                    <h1 className="figtree-semibold text-lg">
+                                        Contact
+                                    </h1>
+                                </div>
+                                <p className="figtree-light text-muted-foreground text-sm mt-1">
+                                    {branch.contact_number}
+                                </p>
+                            </div>
                         </div>
-                    </div>
-                    <div className="mb-3 lg:hidden">
-                        <Link
-                            className={`${buttonVariants({
-                                variant: "default",
-                            })} w-full`}
-                        >
-                            Book Now!
-                        </Link>
+                        <div className="mb-3">
+                            <div className="inline-flex gap-2 items-center">
+                                <div className="inline-flex items-center gap-3">
+                                    <Mail size={18} className="mb-[0.1rem]" />
+                                    <h1 className="figtree-semibold text-lg">
+                                        Email
+                                    </h1>
+                                </div>
+                                <p className="figtree-light text-muted-foreground text-sm mt-1">
+                                    {branch.email}
+                                </p>
+                            </div>
+                        </div>
+                        <div className="mb-3 lg:hidden">
+                            <Link
+                                className={`${buttonVariants({
+                                    variant: "default",
+                                })} w-full`}
+                            >
+                                Book Now!
+                            </Link>
+                        </div>
                     </div>
                 </div>
-                <div className="col-span-1 hidden lg:block">
+                <div className="lg:w-[15rem] 2xl:w-[22rem] hidden lg:block">
                     <div className="border p-5 rounded-md ">
                         <div className="mb-3">
                             <h1 className="figtree-semibold text-2xl">
@@ -224,25 +309,10 @@ export default function Shop({ shop, branch, branchServices, randomShops }) {
                         <Label className="mt-3 figtree-semibold">
                             Select Branches
                         </Label>
-                        <Select
-                            onValueChange={(branchId) => {
-                                router.visit(`/shop/${shop.id}/${branchId}`);
-                            }}
-                        >
-                            <SelectTrigger className="w-full">
-                                <SelectValue placeholder={branch.branch_name} />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {shop.branches.map((branch) => (
-                                    <SelectItem
-                                        value={branch.id}
-                                        key={branch.id}
-                                    >
-                                        {branch.branch_name}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
+                        <SelectBranch
+                            shop={shop}
+                            branch_name={branch.branch_name}
+                        ></SelectBranch>
                         <Link
                             className={`${buttonVariants({
                                 variant: "default",
@@ -252,25 +322,86 @@ export default function Shop({ shop, branch, branchServices, randomShops }) {
                         </Link>
                         <Separator className="my-5" />
                         <div className="space-y-3">
-                            <TooltipProvider>
-                                <Tooltip>
-                                    <TooltipTrigger className="w-full">
-                                        <Button
-                                            className="w-full justify-start"
-                                            variant="outline"
-                                        >
-                                            <Clock8 size={20} />
-                                            Open until {closingTime}
-                                        </Button>
-                                    </TooltipTrigger>
-                                    <TooltipContent>
-                                        <p>
-                                            Click to view our shop's operating
-                                            hours.
-                                        </p>
-                                    </TooltipContent>
-                                </Tooltip>
-                            </TooltipProvider>
+                            <Dialog>
+                                <DialogTrigger className="w-full">
+                                    <TooltipProvider>
+                                        <Tooltip>
+                                            <TooltipTrigger className="w-full">
+                                                <Button
+                                                    className="w-full justify-start"
+                                                    variant="outline"
+                                                >
+                                                    <Clock8 size={20} />
+                                                    Open until {closingTime}
+                                                </Button>
+                                            </TooltipTrigger>
+                                            <TooltipContent>
+                                                <p>
+                                                    Click to view our shop's
+                                                    operating hours.
+                                                </p>
+                                            </TooltipContent>
+                                        </Tooltip>
+                                    </TooltipProvider>
+                                </DialogTrigger>
+                                <DialogContent className="max-w-sm">
+                                    <DialogHeader>
+                                        <DialogTitle>
+                                            Operation Hours
+                                        </DialogTitle>
+                                        <div className="">
+                                            <div className="grid grid-cols-2">
+                                                <DialogDescription>
+                                                    AVAILABLE DAYS
+                                                </DialogDescription>
+                                                <DialogDescription>
+                                                    AVAILABLE TIMES
+                                                </DialogDescription>
+                                            </div>
+                                            <div className="mt-3 space-y-3">
+                                                {branch.operation_hours.map(
+                                                    (day) => (
+                                                        <div
+                                                            key={day.day}
+                                                            className="grid grid-cols-2 items-center gap-5"
+                                                        >
+                                                            <div className="w-full ">
+                                                                <div
+                                                                    className={`figtree-bold uppercase w-full ${buttonVariants(
+                                                                        {
+                                                                            variant:
+                                                                                day.is_open
+                                                                                    ? "default"
+                                                                                    : "secondary",
+                                                                            // size: "icon",
+                                                                        }
+                                                                    )}`}
+                                                                >
+                                                                    {day.day}
+                                                                </div>
+                                                            </div>
+                                                            <div
+                                                                className={
+                                                                    !day.is_open &&
+                                                                    "text-muted-foreground uppercase"
+                                                                }
+                                                            >
+                                                                {day.is_open
+                                                                    ? `${formatTime(
+                                                                          day.opening_time
+                                                                      )} - ${formatTime(
+                                                                          day.closing_time
+                                                                      )}`
+                                                                    : "Closed"}
+                                                            </div>
+                                                        </div>
+                                                    )
+                                                )}
+                                            </div>
+                                        </div>
+                                    </DialogHeader>
+                                </DialogContent>
+                            </Dialog>
 
                             <Dialog>
                                 <DialogTrigger asChild>
