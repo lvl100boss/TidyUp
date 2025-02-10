@@ -12,7 +12,6 @@ export default defineConfig({
     ],
     // server: {
     //     host: "192.168.1.94", // Replace with your local IP
-    //     port: 5173,
-    //     strictPort: true, // Ensure the port is strictly used
+    //     port: 8000,
     // },
 });

@@ -5,6 +5,9 @@
 @tailwind utilities;
 
 @layer base {
+    html {
+        scroll-behavior: unset;
+    }
     body {
         font-family: "figtree", sans-serif;
         -webkit-font-smoothing: antialiased;
@@ -113,13 +116,24 @@
 }
 
 @layer components {
-    input:-webkit-autofill,
-    input:-webkit-autofill:hover,
-    input:-webkit-autofill:focus,
-    input:-webkit-autofill:active {
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: #ffffff;
+    :root .dark input:-webkit-autofill,
+    :root .dark input:-webkit-autofill:hover,
+    :root .dark input:-webkit-autofill:focus,
+    :root .dark input:-webkit-autofill:active {
+        -webkit-text-fill-color: white !important;
         transition: background-color 5000s ease-in-out 0s;
+    }
+
+    :root input:-webkit-autofill,
+    :root input:-webkit-autofill:hover,
+    :root input:-webkit-autofill:focus,
+    :root input:-webkit-autofill:active {
+        -webkit-text-fill-color: black !important;
+        transition: background-color 5000s ease-in-out 0s;
+    }
+
+    input:focus-visible {
+        @apply !border-foreground;
     }
 }
 @layer base {
@@ -128,5 +142,9 @@
     }
     body {
         @apply bg-background text-foreground;
+    }
+    input:focus {
+        outline: none !important;
+        box-shadow: none !important;
     }
 }

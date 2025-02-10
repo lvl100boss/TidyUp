@@ -54,4 +54,9 @@ class ShopBranch extends Model
     {
         return $this->hasMany(BranchServices::class, 'branch_id');
     }
+
+    public function appointments()
+    {
+        return $this->hasMany(Appointments::class);
+    }
 }

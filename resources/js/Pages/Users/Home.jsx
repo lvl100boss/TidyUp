@@ -23,7 +23,6 @@ import { useEffect, useState } from "react";
 
 export default function Home({ shops }) {
     const [isLoading, setIsLoading] = useState(true);
-
     useEffect(() => {
         const preloadImages = async () => {
             const imagePromises = shops.map((shop) => {
@@ -155,13 +154,13 @@ export default function Home({ shops }) {
                     </div>
                 </div>
             </div>
-            <div className="flex items-center justify-between mb-5">
+            <div className="flex items-end justify-between mb-5">
                 <h4 className="text-lg figtree-medium p-2 border-b border-foreground">
                     Customer's Choice
                 </h4>
                 <Link
                     href="/popular"
-                    className="py-1 px-2 border-b border-foreground inline-flex items-center gap-1"
+                    className="p-2 border-b border-foreground inline-flex items-center gap-1"
                 >
                     <ArrowUpRight className="stroke-1 size-5" />
                     <span>See More</span>
