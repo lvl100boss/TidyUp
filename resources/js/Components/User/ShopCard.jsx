@@ -48,8 +48,9 @@ const ShopCard = ({ shop, isLoading }) => {
                                       className="h-4 w-12 rounded-full"
                                   />
                               ))
-                        : shop.branches[0]?.branch_categories.map(
-                              (category, index) => (
+                        : shop.branches[0]?.branch_categories
+                              .slice(0, 2)
+                              .map((category, index) => (
                                   <Badge
                                       key={index}
                                       variant="secondary"
@@ -57,8 +58,7 @@ const ShopCard = ({ shop, isLoading }) => {
                                   >
                                       {category.name}
                                   </Badge>
-                              )
-                          )}
+                              ))}
                 </div>
             </div>
         </Link>
