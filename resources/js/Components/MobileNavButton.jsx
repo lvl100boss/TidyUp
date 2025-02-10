@@ -57,12 +57,9 @@ const MobileNavButton = () => {
         <div className="lg:hidden">
             <Drawer>
                 <DrawerTrigger>
-                    <Button
-                        className="fixed bottom-5 right-5 shop border border-muted-foreground"
-                        size="icon"
-                        variant=""
-                    >
+                    <Button className="fixed bottom-5 right-5 shop border border-muted-foreground">
                         <SquareChevronUp />
+                        <span className="figtree-medium">Menu</span>
                     </Button>
                 </DrawerTrigger>
                 <DrawerContent onCloseAutoFocus={(e) => e.preventDefault()}>
