@@ -3,11 +3,13 @@
 use App\Http\Controllers\AppointmentController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\ShopController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
+Route::get('/shop/{shop_id}/{branch_id}', [ShopController::class, 'show'])->name('shop.show');
 
 Route::get('/explore', function () {
     return Inertia::render('Users/Explore');
@@ -36,12 +38,13 @@ Route::get('/dashboard', function () {
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
-    Route::get('/appointments', [AppointmentController::class, 'index'])->name('appointments');
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    Route::get('/appointments', [AppointmentController::class, 'index'])->name('appointments');
 });
 
 require __DIR__ . '/auth.php';
+require __DIR__ . '/booking.php';
 require __DIR__ . '/shop.php';
 require __DIR__ . '/admin.php';
