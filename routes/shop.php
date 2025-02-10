@@ -4,7 +4,6 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ShopDashboardController;
 use App\Http\Controllers\ShopController;
 use Inertia\Inertia;
-
 Route::get('/shop/dashboard', [ShopDashboardController::class, 'index'])->middleware(['auth', 'verified'])->name('shop.dashboard');
 Route::redirect('/shop', '/shop/dashboard')->middleware(['auth', 'verified']);
 

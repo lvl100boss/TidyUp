@@ -12,6 +12,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/Components/ui/avatar";
 export default function Dashboard({ shop, pendingAppointments }) {
     console.log(shop);
     console.log(pendingAppointments);
+
     const shopOwner =
         shop.shop_account.user.first_name +
         " " +
@@ -76,6 +77,7 @@ export default function Dashboard({ shop, pendingAppointments }) {
                     </div>
                     <div className="border rounded-lg min-w-60 flex-1 p-5">
                         <div className="inline-flex items-center gap-2 w-full pb-3">
+
                             <Banknote />
                             <h6 className="figtree-semibold">Total Income</h6>
                         </div>
@@ -86,12 +88,14 @@ export default function Dashboard({ shop, pendingAppointments }) {
                     </div>
                     <div className="border rounded-lg min-w-60 flex-1 p-5">
                         <div className="inline-flex items-center gap-2 w-full pb-3">
+
                             <Banknote />
                             <h6 className="figtree-semibold">Total Income</h6>
                         </div>
                         <div className="inline-flex items-center gap-2">
                             <PhilippinePeso size={15} />
                             <span className="text-3xl ">0.00</span>
+
                         </div>
                     </div>
                 </div>
@@ -109,6 +113,7 @@ export default function Dashboard({ shop, pendingAppointments }) {
                             Upcoming Appointments
                         </h1>
                     </div>
+
                 </div>
             </div>
         </ShopsLayout>
