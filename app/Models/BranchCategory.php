@@ -15,4 +15,9 @@ class BranchCategory extends Model
     {
         return $this->belongsToMany(ShopBranch::class, 'branch_branch_category', 'branch_category_id', 'branch_id');
     }
+
+    public function branchCategories()
+    {
+        return $this->hasMany(BranchBranchCategory::class, 'branch_category_id');
+    }
 }
