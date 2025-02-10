@@ -112,9 +112,11 @@ const Header = ({ onClick, isDarkTheme }) => {
                                         </DropdownMenuItem>
                                     </Link>
                                 ) : (
-                                    <DropdownMenuItem>
-                                        Setup Your Shop
-                                    </DropdownMenuItem>
+                                    <Link href={route("shop.setup")}>
+                                        <DropdownMenuItem>
+                                            Setup Your Shop
+                                        </DropdownMenuItem>
+                                    </Link>
                                 )}
                             </DropdownMenuGroup>
                             <DropdownMenuSeparator />

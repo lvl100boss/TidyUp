@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\ServiceCategories;
+use App\Models\BranchCategory;
 use Illuminate\Http\Request;
 use App\Models\Shop;
 use App\Models\ShopBranch;
@@ -11,6 +11,22 @@ use Inertia\Inertia;
 class ShopController extends Controller
 {
     //
+    public function create()
+    {
+        $branchCategories = BranchCategory::all();
+        return Inertia::render(
+            'Shops/SetupShop',
+            [
+                'branchCategories' => $branchCategories
+            ]
+        );
+    }
+
+    public function store(Request $request)
+    {
+        dd($request->all());
+    }
+
     public function show($shop_id, $branch_id)
     {
         $shop = Shop::find($shop_id)->with('branches')->where('id', $shop_id)->first();
