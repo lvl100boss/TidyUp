@@ -5,14 +5,18 @@ import {
     StepThreePage,
     StepFourPage,
 } from "@/Components/User/BookingPages/BookingStepsPage";
+import { Head } from "@inertiajs/react";
 
 export default function Booking({ shop, branch }) {
     return (
-        <UserLayout>
-            <StepOnePage shop={shop} branch={branch} />
-            {/* <StepTwoPage />
-            <StepThreePage />
-            <StepFourPage /> */}
-        </UserLayout>
+        <>
+            <Head title="Booking" />
+            <UserLayout>
+                <StepOnePage shop={shop} branch={branch} />
+                {/* <StepTwoPage />
+                <StepThreePage />
+                <StepFourPage /> */}
+            </UserLayout>
+        </>
     );
 }
