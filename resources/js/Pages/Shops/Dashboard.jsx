@@ -8,6 +8,14 @@ import {
     Currency,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/Components/ui/avatar";
+import { Badge } from "@/Components/ui/badge";
+import { buttonVariants } from "@/Components/ui/button";
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 export default function Dashboard({ shop, pendingAppointments }) {
     console.log(shop);
@@ -25,7 +33,28 @@ export default function Dashboard({ shop, pendingAppointments }) {
             <div className="border p-5 px-5 rounded-lg flex items-center justify-between mb-5">
                 <div>
                     <h6>Shop Name</h6>
-                    <h1 className="text-3xl figtree-bold">{shop.shop_name}</h1>
+                    <div className="inline-flex items-center gap-2">
+                        <h1 className="text-3xl figtree-bold">
+                            {shop.shop_name}
+                        </h1>
+                        <div>
+                            <TooltipProvider>
+                                <Tooltip>
+                                    <TooltipTrigger>
+                                        <Badge className="bg-secondary text-foreground hover:bg-muted/65 cursor-pointer">
+                                            Unverified
+                                        </Badge>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        <p>
+                                            Please complete you shop's setup to
+                                            be verified.
+                                        </p>
+                                    </TooltipContent>
+                                </Tooltip>
+                            </TooltipProvider>
+                        </div>
+                    </div>
                 </div>
                 <div className="hidden sm:inline-flex items-center gap-5 ">
                     <div className="text-right">
@@ -77,7 +106,6 @@ export default function Dashboard({ shop, pendingAppointments }) {
                     </div>
                     <div className="border rounded-lg min-w-60 flex-1 p-5">
                         <div className="inline-flex items-center gap-2 w-full pb-3">
-
                             <Banknote />
                             <h6 className="figtree-semibold">Total Income</h6>
                         </div>
@@ -88,14 +116,12 @@ export default function Dashboard({ shop, pendingAppointments }) {
                     </div>
                     <div className="border rounded-lg min-w-60 flex-1 p-5">
                         <div className="inline-flex items-center gap-2 w-full pb-3">
-
                             <Banknote />
                             <h6 className="figtree-semibold">Total Income</h6>
                         </div>
                         <div className="inline-flex items-center gap-2">
                             <PhilippinePeso size={15} />
                             <span className="text-3xl ">0.00</span>
-
                         </div>
                     </div>
                 </div>
@@ -113,7 +139,6 @@ export default function Dashboard({ shop, pendingAppointments }) {
                             Upcoming Appointments
                         </h1>
                     </div>
-
                 </div>
             </div>
         </ShopsLayout>
