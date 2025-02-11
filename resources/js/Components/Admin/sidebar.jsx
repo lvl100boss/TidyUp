@@ -29,7 +29,11 @@ export default function Sidebar() {
             icon: MessageCircleMore,
         },
         { label: "User Feedback", href: "/admin/reports", icon: MailOpen },
-        { label: "Restriction", href: "/admin/content", icon: TriangleAlert },
+        {
+            label: "Restriction",
+            href: "/admin/restriction",
+            icon: TriangleAlert,
+        },
         {
             label: "Platform Staff",
             href: "/admin/platform/staff",
