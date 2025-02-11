@@ -105,7 +105,7 @@ export default function Home({ shops }) {
             <div className="relative flex items-center justify-center text-white dark:text-black overflow-hidden sm:rounded-lg mb-5 -mx-5 sm:mx-0 ">
                 <AspectRatio ratio={ratio}>
                     <video
-                        className="dark:invert w-full h-full object-cover "
+                        className="invert w-full h-full object-cover "
                         src="/assets/videos/bg-gradient.mp4"
                         autoPlay
                         muted
@@ -118,7 +118,7 @@ export default function Home({ shops }) {
                             initial={{ opacity: 0, y: -20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.8 }}
-                            className="text-2xl md:text-6xl font-extrabold"
+                            className="text-2xl md:text-6xl font-extrabold text-foreground dark:text-background"
                         >
                             Transformation in a <br />
                             <span className="text-green-200 dark:text-green-300">
@@ -130,7 +130,7 @@ export default function Home({ shops }) {
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.3, duration: 0.8 }}
-                            className="text-sm md:text-xl mt-4"
+                            className="text-sm md:text-xl mt-4 text-foreground dark:text-background"
                         >
                             A comprehensive booking platform for beauty-related
                             services, offering users ease and comfort.

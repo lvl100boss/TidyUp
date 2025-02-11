@@ -189,10 +189,6 @@ export default function Shop({ shop, branch, branchServices, randomShops }) {
                         <div className="flex items-center justify-between">
                             <div className="inline-flex gap-2 items-center">
                                 <div className="inline-flex gap-1 items-center">
-                                    <MobileSelectBranch
-                                        shop={shop}
-                                        branch={branch}
-                                    ></MobileSelectBranch>
                                     <p className="text-sm">
                                         {branch.branch_name}
                                     </p>
@@ -201,6 +197,10 @@ export default function Shop({ shop, branch, branchServices, randomShops }) {
                                 <Badge className="bg-green-300 pointer-events-none text-foreground dark:text-background">
                                     {branch.availability}
                                 </Badge>
+                                <MobileSelectBranch
+                                    shop={shop}
+                                    branch={branch}
+                                ></MobileSelectBranch>
                             </div>
                         </div>
                     </div>
