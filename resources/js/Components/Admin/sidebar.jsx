@@ -18,7 +18,7 @@ export default function Sidebar() {
     const navItems = [
         { label: "Dashboard", href: "/admin/dashboard", icon: Home },
         { label: "Shops", href: "/admin/users", icon: Store },
-        { label: "Customers", href: "/admin/orders", icon: UsersRound },
+        { label: "Users", href: "/admin/users", icon: UsersRound },
         { label: "Appointments", href: "/admin/reports", icon: Calendar },
         { label: "Sales Report", href: "/admin/content", icon: Tag },
         { label: "Invoice", href: "/admin/settings", icon: Receipt },
