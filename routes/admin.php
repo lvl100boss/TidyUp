@@ -8,6 +8,9 @@ Route::get('/admin/dashboard', function () {
 })->middleware(['auth', 'verified'])->name('admin.dashboard');
 Route::redirect('/admin', '/admin/dashboard')->middleware(['auth', 'verified']);
 
+Route::get('/admin/shops', function () {
+    return Inertia::render('Admin/Shops');
+})->middleware(['auth', 'verified'])->name('admin.shops');
 Route::get('/admin/users', function () {
     return Inertia::render('Admin/Users');
 })->middleware(['auth', 'verified'])->name('admin.users');
