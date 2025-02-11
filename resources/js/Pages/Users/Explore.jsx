@@ -1,5 +1,8 @@
+import { buttonVariants } from "@/Components/ui/button";
 import UserLayout from "@/Layouts/UserLayout";
-import { Head } from "@inertiajs/react";
+import { Head, Link } from "@inertiajs/react";
+import { Button } from "@/Components/ui/button";
+import { AtSign } from "lucide-react";
 
 export default function Explore() {
     return (

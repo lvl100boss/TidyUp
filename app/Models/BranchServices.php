@@ -21,4 +21,9 @@ class BranchServices extends Model
     {
         return $this->belongsTo(ShopBranch::class, 'branch_id');
     }
+
+    public function serviceCategory()
+    {
+        return $this->belongsTo(ServiceCategories::class, 'service_category_id');
+    }
 }

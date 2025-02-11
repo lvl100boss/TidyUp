@@ -2,6 +2,7 @@ import Header from "@/Components/User/Header";
 import ThemeButton from "@/Components/ThemeButton";
 import Sidebar from "@/Components/User/Sidebar";
 import Footer from "@/Components/User/Footer";
+import MobileNavButton from "@/Components/MobileNavButton";
 import React, { useState, useEffect } from "react";
 import { usePage } from "@inertiajs/react";
 
@@ -39,9 +40,15 @@ export default function UserLayout({ children }) {
             <div>
                 <Footer />
             </div>
-            {!user && (
-                <ThemeButton onClick={toggleTheme} isDarkTheme={isDarkTheme} />
-            )}
+            <div>
+                {!user && (
+                    <ThemeButton
+                        onClick={toggleTheme}
+                        isDarkTheme={isDarkTheme}
+                    />
+                )}
+                <MobileNavButton />
+            </div>
         </div>
     );
 }

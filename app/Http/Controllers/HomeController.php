@@ -12,7 +12,7 @@ class HomeController extends Controller
     //
     public function index()
     {
-        $shops = Shop::with('branches.gallery')->with('branches.branchCategories')->inRandomOrder()->limit(8)->get();
+        $shops = Shop::with('branches.gallery')->with('branches.branchCategories')->inRandomOrder()->limit(10)->get();
         return Inertia::render('Users/Home', [
             'shops' => $shops,
             'canLogin' => Route::has('login'),

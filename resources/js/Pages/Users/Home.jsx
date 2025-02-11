@@ -23,7 +23,6 @@ import { useEffect, useState } from "react";
 
 export default function Home({ shops }) {
     const [isLoading, setIsLoading] = useState(true);
-
     useEffect(() => {
         const preloadImages = async () => {
             const imagePromises = shops.map((shop) => {
@@ -106,7 +105,7 @@ export default function Home({ shops }) {
             <div className="relative flex items-center justify-center text-white dark:text-black overflow-hidden sm:rounded-lg mb-5 -mx-5 sm:mx-0 ">
                 <AspectRatio ratio={ratio}>
                     <video
-                        className="dark:invert w-full h-full object-cover "
+                        className="invert w-full h-full object-cover "
                         src="/assets/videos/bg-gradient.mp4"
                         autoPlay
                         muted
@@ -119,7 +118,7 @@ export default function Home({ shops }) {
                             initial={{ opacity: 0, y: -20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.8 }}
-                            className="text-2xl md:text-6xl font-extrabold"
+                            className="text-2xl md:text-6xl font-extrabold text-foreground dark:text-background"
                         >
                             Transformation in a <br />
                             <span className="text-green-200 dark:text-green-300">
@@ -131,7 +130,7 @@ export default function Home({ shops }) {
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.3, duration: 0.8 }}
-                            className="text-sm md:text-xl mt-4"
+                            className="text-sm md:text-xl mt-4 text-foreground dark:text-background"
                         >
                             A comprehensive booking platform for beauty-related
                             services, offering users ease and comfort.
@@ -155,13 +154,13 @@ export default function Home({ shops }) {
                     </div>
                 </div>
             </div>
-            <div className="flex items-center justify-between mb-5">
+            <div className="flex items-end justify-between mb-5">
                 <h4 className="text-lg figtree-medium p-2 border-b border-foreground">
                     Customer's Choice
                 </h4>
                 <Link
                     href="/popular"
-                    className="py-1 px-2 border-b border-foreground inline-flex items-center gap-1"
+                    className="p-2 border-b border-foreground inline-flex items-center gap-1"
                 >
                     <ArrowUpRight className="stroke-1 size-5" />
                     <span>See More</span>
