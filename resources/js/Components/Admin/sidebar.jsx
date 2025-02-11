@@ -1,20 +1,40 @@
-import React from 'react';
-import { Link } from '@inertiajs/react';
-import { Home, Users,Store, UsersRound, Calendar, Tag, Receipt, MessageCircleMore, MailOpen, TriangleAlert, IdCard} from 'lucide-react';
+import React from "react";
+import { Link } from "@inertiajs/react";
+import {
+    Home,
+    Users,
+    Store,
+    UsersRound,
+    Calendar,
+    Tag,
+    Receipt,
+    MessageCircleMore,
+    MailOpen,
+    TriangleAlert,
+    IdCard,
+} from "lucide-react";
 
 export default function Sidebar() {
     const navItems = [
-        { label: 'Dashboard', href: '/admin/dashboard', icon: Home },
-        { label: 'Shops', href: '/admin/users', icon: Store },
-        { label: 'Customers', href: '/admin/orders', icon: UsersRound },
-        { label: 'Appointments', href: '/admin/reports', icon: Calendar },
-        { label: 'Sales Report', href: '/admin/content', icon: Tag },
-        { label: 'Invoice', href: '/admin/settings', icon: Receipt },
-        { label: 'Analytics', href: '/admin/users', icon: Users },
-        { label: 'Customer Service', href: '/admin/orders', icon: MessageCircleMore },
-        { label: 'User Feedback', href: '/admin/reports', icon: MailOpen },
-        { label: 'Restriction', href: '/admin/content', icon: TriangleAlert },
-        { label: 'Platform Staff', href: '/admin/settings', icon: IdCard },
+        { label: "Dashboard", href: "/admin/dashboard", icon: Home },
+        { label: "Shops", href: "/admin/users", icon: Store },
+        { label: "Customers", href: "/admin/orders", icon: UsersRound },
+        { label: "Appointments", href: "/admin/reports", icon: Calendar },
+        { label: "Sales Report", href: "/admin/content", icon: Tag },
+        { label: "Invoice", href: "/admin/settings", icon: Receipt },
+        { label: "Analytics", href: "/admin/users", icon: Users },
+        {
+            label: "Customer Service",
+            href: "/admin/orders",
+            icon: MessageCircleMore,
+        },
+        { label: "User Feedback", href: "/admin/reports", icon: MailOpen },
+        { label: "Restriction", href: "/admin/content", icon: TriangleAlert },
+        {
+            label: "Platform Staff",
+            href: "/admin/platform/staff",
+            icon: IdCard,
+        },
     ];
 
     return (
