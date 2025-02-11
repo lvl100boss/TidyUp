@@ -5,28 +5,43 @@
 @tailwind utilities;
 
 @layer base {
+    html {
+        scroll-behavior: unset;
+    }
     body {
         font-family: "figtree", sans-serif;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
     }
 
     .clash-display {
         font-family: "clash-display", sans-serif;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
     }
 
     .figtree-semibold {
         font-family: "figtree-semibold", sans-serif;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
     }
 
     .figtree-bold {
         font-family: "figtree-bold", sans-serif;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
     }
 
     .figtree-medium {
         font-family: "figtree-medium", sans-serif;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
     }
 
     .figtree-light {
         font-family: "figtree-light", sans-serif;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
     }
 
     :root {
@@ -55,6 +70,14 @@
         --chart-3: 197 37% 24%;
         --chart-4: 43 74% 66%;
         --chart-5: 27 87% 67%;
+        --sidebar-background: 0 0% 98%;
+        --sidebar-foreground: 240 5.3% 26.1%;
+        --sidebar-primary: 240 5.9% 10%;
+        --sidebar-primary-foreground: 0 0% 98%;
+        --sidebar-accent: 240 4.8% 95.9%;
+        --sidebar-accent-foreground: 240 5.9% 10%;
+        --sidebar-border: 220 13% 91%;
+        --sidebar-ring: 217.2 91.2% 59.8%;
     }
     .dark {
         --background: 240 10% 3.9%;
@@ -81,17 +104,36 @@
         --chart-3: 30 80% 55%;
         --chart-4: 280 65% 60%;
         --chart-5: 340 75% 55%;
+        --sidebar-background: 240 5.9% 10%;
+        --sidebar-foreground: 240 4.8% 95.9%;
+        --sidebar-primary: 224.3 76.3% 48%;
+        --sidebar-primary-foreground: 0 0% 100%;
+        --sidebar-accent: 240 3.7% 15.9%;
+        --sidebar-accent-foreground: 240 4.8% 95.9%;
+        --sidebar-border: 240 3.7% 15.9%;
+        --sidebar-ring: 217.2 91.2% 59.8%;
     }
 }
 
 @layer components {
-    input:-webkit-autofill,
-    input:-webkit-autofill:hover,
-    input:-webkit-autofill:focus,
-    input:-webkit-autofill:active {
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: #ffffff;
+    :root .dark input:-webkit-autofill,
+    :root .dark input:-webkit-autofill:hover,
+    :root .dark input:-webkit-autofill:focus,
+    :root .dark input:-webkit-autofill:active {
+        -webkit-text-fill-color: white !important;
         transition: background-color 5000s ease-in-out 0s;
+    }
+
+    :root input:-webkit-autofill,
+    :root input:-webkit-autofill:hover,
+    :root input:-webkit-autofill:focus,
+    :root input:-webkit-autofill:active {
+        -webkit-text-fill-color: black !important;
+        transition: background-color 5000s ease-in-out 0s;
+    }
+
+    input:focus-visible {
+        @apply !border-foreground;
     }
 }
 @layer base {
@@ -100,5 +142,9 @@
     }
     body {
         @apply bg-background text-foreground;
+    }
+    input:focus {
+        outline: none !important;
+        box-shadow: none !important;
     }
 }

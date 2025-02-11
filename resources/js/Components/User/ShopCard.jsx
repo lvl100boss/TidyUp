@@ -5,7 +5,10 @@ import { Skeleton } from "@/Components/ui/skeleton";
 
 const ShopCard = ({ shop, isLoading }) => {
     return (
-        <Link href={`/shops/${shop?.id}`}>
+        <Link
+            href={`shop/${shop.id}/${shop.branches[0].id}`}
+            className={isLoading ? "pointer-events-none" : ""}
+        >
             <div className="card">
                 <div className="card-body">
                     <div className="relative">
@@ -16,12 +19,12 @@ const ShopCard = ({ shop, isLoading }) => {
                             <img
                                 src={shop.branches[0]?.gallery[0]?.url}
                                 alt={shop.shop_name}
-                                className={`object-cover rounded-lg h-full w-full ${
+                                className={`object-cover rounded-md h-full w-full ${
                                     isLoading ? "invisible" : ""
                                 }`}
                             />
                         </AspectRatio>
-                        <span className="absolute top-2 right-2 bg-white rounded-full py-1 px-4 scale-75 text-xs sm:text-sm z-20">
+                        <span className="absolute top-2 right-2 bg-white rounded-full py-1 px-4 scale-75 text-xs sm:text-sm ">
                             {!isLoading && shop.status}
                         </span>
                     </div>
@@ -33,17 +36,9 @@ const ShopCard = ({ shop, isLoading }) => {
                             {shop.shop_name}
                         </h5>
                     )}
-
-                    {isLoading ? (
-                        <Skeleton className="h-3 w-3/4 mt-2" />
-                    ) : (
-                        <p className="card-text text-sm text-muted-foreground">
-                            {shop.branches[0]?.detailed_address}
-                        </p>
-                    )}
                 </div>
 
-                <div className="flex items-center gap-2 mt-2">
+                <div className="flex items-center gap-2 mt-2 flex-wrap">
                     {isLoading
                         ? Array(2)
                               .fill(0)
@@ -53,17 +48,17 @@ const ShopCard = ({ shop, isLoading }) => {
                                       className="h-4 w-12 rounded-full"
                                   />
                               ))
-                        : shop.branches[0]?.branch_categories.map(
-                              (category, index) => (
+                        : shop.branches[0]?.branch_categories
+                              .slice(0, 2)
+                              .map((category, index) => (
                                   <Badge
                                       key={index}
-                                      className="rounded-full"
-                                      variant="outline"
+                                      variant="secondary"
+                                      className={"text-nowrap"}
                                   >
                                       {category.name}
                                   </Badge>
-                              )
-                          )}
+                              ))}
                 </div>
             </div>
         </Link>

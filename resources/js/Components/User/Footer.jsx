@@ -1,7 +1,7 @@
-import { cn } from "@/lib/utils"; // ShadCN utility for class merging
-import { Button } from "@/components/ui/button"; // ShadCN Button component
-import { Input } from "@/components/ui/input"; // ShadCN Input component
-
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import ApplicationLogo from "@/components/ApplicationLogo";
 export default function Footer() {
     return (
         <footer className={cn("w-full bg-background text-foreground py-8")}>
@@ -14,11 +14,22 @@ export default function Footer() {
                 >
                     {/* Brand Section */}
                     <div>
-                        <h2 className={cn("text-xl font-semibold")}>TidyUp</h2>
-                        <p className={cn("text-sm text-muted-foreground mt-2")}>
-                            Find the nearest barbershops and hair salons, browse
-                            services, and book with confidence.
-                        </p>
+                        <div>
+                            <div className="flex items-center gap-3">
+                                <ApplicationLogo className="size-10 dark:invert" />
+                                <h2 className={cn("text-xl font-semibold")}>
+                                    TidyUp
+                                </h2>
+                            </div>
+                            <p
+                                className={cn(
+                                    "text-sm text-muted-foreground mt-2"
+                                )}
+                            >
+                                Find the nearest barbershops and hair salons,
+                                browse services, and book with confidence.
+                            </p>
+                        </div>
                     </div>
 
                     {/* Links Section */}

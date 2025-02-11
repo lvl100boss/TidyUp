@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Appointments;
 
 class Shop extends Model
 {
@@ -24,5 +25,10 @@ class Shop extends Model
     public function shopGallery()
     {
         return $this->hasMany(ShopGallery::class, ShopBranch::class);
+    }
+
+    public function appointments()
+    {
+        return $this->hasMany(Appointments::class);
     }
 }

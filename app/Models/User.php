@@ -61,4 +61,9 @@ class User extends Authenticatable
     {
         return $this->hasMany(Appointments::class); // Each user has many appointments
     }
+
+    public function shopAccount()
+    {
+        return $this->hasOne(ShopAccount::class, 'shop_owner_id'); // Each user has one shop account
+    }
 }
