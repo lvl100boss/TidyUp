@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ArrowUpDown, Search } from "lucide-react";
 import React, { useState } from 'react';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/Components/ui/table"; // Adjust the import based on your component structure
 
 export default function Shops() {
   const initialData = [
@@ -11,7 +12,7 @@ export default function Shops() {
     { id: "02", shopName: "Gupit ni John", shopOwner: "John Doe", categories: "Barber", dateRegistered: "10/5/24", status: "Verified" },
     { id: "03", shopName: "Linda Beauty", shopOwner: "Linda Batumbakal", categories: "Makeup Artist, Nail Artist", dateRegistered: "10/5/24", status: "Rejected" },
     // ... add more data as needed
-  ];
+  ];    
 
   const [data, setData] = useState(initialData);
   const [searchTerm, setSearchTerm] = useState("");
@@ -65,7 +66,7 @@ export default function Shops() {
   return (
     <AdminLayout>
       <Head title="Shops" />
-      <div className="p-6 space-y-4">
+      <div className="space-y-4">
         <h1 className="text-2xl font-bold">Shop Registration</h1>
         
         <div className="flex items-center space-x-2">
@@ -84,14 +85,11 @@ export default function Shops() {
         </div>
 
         <div className="border rounded-md overflow-x-auto">
-          <table className="min-w-full divide-y divide-border ">
-            <thead className="bg-background">
-              <tr>
+          <Table>
+            <TableHeader>
+              <TableRow>
                 {['ID', 'Shop Name', 'Shop Owner', 'Categories', 'Date Registered', 'Status'].map((header) => (
-                  <th
-                    key={header}
-                    className="px-6 py-3 text-left text-xs font-medium text-foreground uppercase tracking-wider"
-                  >
+                  <TableHead key={header}>
                     <button
                       onClick={() => handleSort(header.toLowerCase().replace(' ', ''))}
                       className="flex items-center space-x-1 hover:text-gray-700"
@@ -99,27 +97,25 @@ export default function Shops() {
                       <span>{header}</span>
                       <ArrowUpDown className="h-4 w-4" />
                     </button>
-                  </th>
-                  
+                  </TableHead>
                 ))}
-                
-              </tr>
-            </thead>
-            <tbody className="bg-background divide-y divide-border">
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {data.map((row, index) => (
-                <tr key={index} className="hover:bg-foreground hover:text-foreground">
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">{row.id}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">{row.shopName}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">{row.shopOwner}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">{row.categories}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">{row.dateRegistered}</td>
-                  <td className={`px-6 py-4 whitespace-nowrap text-sm ${getStatusColor(row.status)}`}>
+                <TableRow key={index} className="hover:bg-background hover:text-foreground transition-colors">
+                  <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-foreground">{row.id}</TableCell>
+                  <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-foreground">{row.shopName}</TableCell>
+                  <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-foreground">{row.shopOwner}</TableCell>
+                  <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-foreground">{row.categories}</TableCell>
+                  <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-foreground">{row.dateRegistered}</TableCell>
+                  <TableCell className={`px-6 py-4 whitespace-nowrap text-sm ${getStatusColor(row.status)}`}>
                     {row.status}
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               ))}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </div>
       </div>
     </AdminLayout>
