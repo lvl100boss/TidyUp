@@ -1,19 +1,20 @@
+import React, { useState, useMemo } from "react";
 import AdminLayout from "@/Layouts/AdminLayout";
 import { Head } from "@inertiajs/react";
-import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/Components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/Components/ui/avatar";
 import { Input } from "@/Components/ui/input";
 import { Label } from "@/Components/ui/label";
-import { DialogFooter } from "@/Components/ui/dialog";
 import { Button } from "@/Components/ui/button";
 import {
     Dialog,
     DialogContent,
+    DialogFooter,
     DialogHeader,
     DialogTitle,
-    DialogTrigger,
 } from "@/Components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/Components/ui/select";
+import { Loader2 } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/Components/ui/card";
 
 export default function PlatformStaff() {
     const [staff, setStaff] = useState([
@@ -110,6 +111,10 @@ export default function PlatformStaff() {
         avatar: '/path/to/default-avatar.jpg'
     });
 
+    const [searchQuery, setSearchQuery] = useState("");
+    const [filterBy, setFilterBy] = useState("all");
+    const [isLoading, setIsLoading] = useState(false);
+
     const handleAddNewStaff = () => {
         const id = staff.length + 1;
         setStaff([...staff, { id, ...newStaff }]);
@@ -178,76 +183,142 @@ export default function PlatformStaff() {
         setSelectedStaff({...selectedStaff, avatar: newProfilePicture});
         setNewProfilePicture(null);
     };
+
+    const filteredStaff = React.useMemo(() => {
+        setIsLoading(true);
+        try {
+            const filtered = staff.filter((member) => {
+                const searchLower = searchQuery.toLowerCase();
+                const matchesSearch = !searchQuery || 
+                    member.name.toLowerCase().includes(searchLower) ||
+                    member.role.toLowerCase().includes(searchLower) ||
+                    member.department.toLowerCase().includes(searchLower);
+
+                switch (filterBy) {
+                    case "active":
+                        return matchesSearch && member.status === "Active";
+                    case "department":
+                        return matchesSearch && member.department === selectedStaff.department;
+                    case "role":
+                        return matchesSearch && member.role === selectedStaff.role;
+                    default:
+                        return matchesSearch;
+                }
+            });
+            return filtered;
+        } finally {
+            setIsLoading(false);
+        }
+    }, [staff, searchQuery, filterBy, selectedStaff]);
+
     return (
         <AdminLayout>
             <Head title="Platform Staff" />
-            <div className="container mx-auto p-6">
-                <div className="grid grid-cols-12 gap-6">
-                    {/* Left Sidebar */}
+            
+            {/* Page Header */}
+            <div className="border-b">
+                <div className="container mx-auto px-6 py-4">
+                    <h1 className="text-2xl font-semibold text-gray-800 dark:text-gray-100">Platform Staff</h1>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                        Manage and oversee platform staff members
+                    </p>
+                </div>
+            </div>
+
+            {/* Main Content */}
+            <div className="container mx-auto px-6 py-8">
+                <div className="grid grid-cols-12 gap-8">
+                    {/* Staff List Sidebar */}
                     <div className="col-span-4">
-                        <Card className="h-full dark:border-gray-700">
-                            <CardHeader className="border-b dark:border-gray-700">
+                        <Card className="sticky top-6">
+                            <CardHeader className="border-b space-y-4 pb-4">
                                 <div className="flex justify-between items-center">
-                                    <CardTitle>Staff List</CardTitle>
+                                    <CardTitle className="text-lg">Staff List</CardTitle>
                                     <Button 
                                         onClick={() => setIsNewStaffModalOpen(true)}
                                         variant="default"
                                         size="sm"
+                                        className="w-28"
                                     >
                                         Add Staff
                                     </Button>
                                 </div>
+                                <div className="space-y-3">
+                                    <Input
+                                        placeholder="Search staff..."
+                                        value={searchQuery}
+                                        onChange={(e) => setSearchQuery(e.target.value)}
+                                    />
+                                    <Select value={filterBy} onValueChange={setFilterBy}>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Filter by..." />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="all">All Staff</SelectItem>
+                                            <SelectItem value="active">Active Only</SelectItem>
+                                            <SelectItem value="department">Same Department</SelectItem>
+                                            <SelectItem value="role">Same Role</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
                             </CardHeader>
 
-                            {/* Staff List */}
-                            <div className="overflow-y-auto" style={{ maxHeight: "calc(100vh - 200px)" }}>
-                                <CardContent className="p-4">
-                                    <div className="space-y-2">
-                                        {staff.map((member) => (
-                                            <div 
-                                                key={member.id} 
-                                                className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all ${
-                                                    selectedStaff.id === member.id 
-                                                        ? 'bg-olive-50 dark:bg-olive-900/30' 
-                                                        : 'hover:bg-gray-50 dark:hover:bg-gray-800/50'
-                                                }`}
-                                                onClick={() => setSelectedStaff(member)}
-                                            >
-                                                <Avatar className="h-10 w-10">
-                                                    <AvatarImage src={member.avatar} alt={member.name} />
-                                                    <AvatarFallback>{member.name.charAt(0)}</AvatarFallback>
-                                                </Avatar>
-                                                <div className="flex-1 min-w-0">
-                                                    <p className="font-medium truncate dark:text-gray-100">{member.name}</p>
-                                                    <p className="text-sm text-gray-500 dark:text-gray-400 truncate">{member.role}</p>
+                            <div className="overflow-y-auto" style={{ maxHeight: "calc(100vh - 300px)" }}>
+                                <CardContent className="p-3">
+                                    {isLoading ? (
+                                        <div className="flex justify-center items-center py-8">
+                                            <Loader2 className="h-6 w-6 animate-spin text-olive-600" />
+                                        </div>
+                                    ) : (
+                                        <div className="space-y-1">
+                                            {filteredStaff.map((member) => (
+                                                <div 
+                                                    key={member.id} 
+                                                    className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all ${
+                                                        selectedStaff.id === member.id 
+                                                            ? 'bg-olive-50 dark:bg-olive-900/30' 
+                                                            : 'hover:bg-gray-50 dark:hover:bg-gray-800/50'
+                                                    }`}
+                                                    onClick={() => setSelectedStaff(member)}
+                                                >
+                                                    <Avatar className="h-10 w-10 border border-gray-200 dark:border-gray-700">
+                                                        <AvatarImage src={member.avatar} alt={member.name} />
+                                                        <AvatarFallback>{member.name.charAt(0)}</AvatarFallback>
+                                                    </Avatar>
+                                                    <div className="flex-1 min-w-0">
+                                                        <p className="font-medium truncate dark:text-gray-100">{member.name}</p>
+                                                        <p className="text-sm text-gray-500 dark:text-gray-400 truncate">{member.role}</p>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        ))}
-                                    </div>
+                                            ))}
+                                        </div>
+                                    )}
                                 </CardContent>
                             </div>
                         </Card>
                     </div>
 
-                    {/* Right Content */}
+                    {/* Staff Details */}
                     <div className="col-span-8 space-y-6">
-                        {/* Selected Staff Profile Card */}
-                        <Card className="dark:border-gray-700">
-                            <CardContent className="flex flex-col items-center space-y-4 p-6">
-                                <Avatar className="w-32 h-32 border-4 border-olive-600/20">
+                        {/* Profile Card */}
+                        <Card>
+                            <CardContent className="flex items-center gap-6 p-6">
+                                <Avatar className="w-24 h-24 border-4 border-olive-600/10">
                                     <AvatarImage src={selectedStaff.avatar} alt={selectedStaff.name} />
                                     <AvatarFallback>{selectedStaff.name.charAt(0)}</AvatarFallback>
                                 </Avatar>
-                                <div className="text-center">
+                                <div className="flex-1">
                                     <h2 className="text-2xl font-semibold dark:text-gray-100">{selectedStaff.name}</h2>
-                                    <p className="text-gray-500 dark:text-gray-400">{selectedStaff.role}</p>
+                                    <p className="text-gray-500 dark:text-gray-400 mt-1">{selectedStaff.role}</p>
+                                    <Button 
+                                        variant="outline" 
+                                        onClick={() => setIsDialogOpen(true)}
+                                        className="mt-4"
+                                        size="sm"
+                                    >
+                                        Change Photo
+                                    </Button>
                                 </div>
-                                <Button 
-                                    variant="outline" 
-                                    onClick={() => setIsDialogOpen(true)}
-                                >
-                                    Change Photo
-                                </Button>
                             </CardContent>
                         </Card>
 
@@ -395,112 +466,112 @@ export default function PlatformStaff() {
                         </Card>
                     </div>
                 </div>
-
-                {/* Add Staff Modal */}
-                <Dialog open={isNewStaffModalOpen} onOpenChange={setIsNewStaffModalOpen}>
-                    <DialogContent className="sm:max-w-[425px]">
-                        <DialogHeader>
-                            <DialogTitle>Add New Staff</DialogTitle>
-                        </DialogHeader>
-                        <div className="grid gap-4 py-4">
-                            <div className="grid gap-2">
-                                <Label htmlFor="newName">Name</Label>
-                                <Input
-                                    id="newName"
-                                    value={newStaff.name}
-                                    onChange={(e) => setNewStaff({...newStaff, name: e.target.value})}
-                                />
-                            </div>
-                            <div className="grid gap-2">
-                                <Label htmlFor="newRole">Role</Label>
-                                <Input
-                                    id="newRole"
-                                    value={newStaff.role}
-                                    onChange={(e) => setNewStaff({...newStaff, role: e.target.value})}
-                                />
-                            </div>
-                            <div className="grid gap-2">
-                                <Label htmlFor="newEmail">Email</Label>
-                                <Input
-                                    id="newEmail"
-                                    type="email"
-                                    value={newStaff.email}
-                                    onChange={(e) => setNewStaff({...newStaff, email: e.target.value})}
-                                />
-                            </div>
-                            <div className="grid gap-2">
-                                <Label htmlFor="newPhone">Phone</Label>
-                                <Input
-                                    id="newPhone"
-                                    value={newStaff.phone}
-                                    onChange={(e) => setNewStaff({...newStaff, phone: e.target.value})}
-                                />
-                            </div>
-                        </div>
-                        <DialogFooter>
-                            <Button variant="outline" onClick={() => setIsNewStaffModalOpen(false)}>
-                                Cancel
-                            </Button>
-                            <Button variant="default" onClick={handleAddNewStaff}>
-                                Add Staff
-                            </Button>
-                        </DialogFooter>
-                    </DialogContent>
-                </Dialog>
-
-                {/* Change Photo Modal */}
-                <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                    <DialogContent className="sm:max-w-[425px]">
-                        <DialogHeader>
-                            <DialogTitle>Update Profile Picture</DialogTitle>
-                        </DialogHeader>
-                        <div className="grid gap-4 py-4">
-                            <div className="flex flex-col items-center space-y-4">
-                                <div className="relative">
-                                    <Avatar className="w-40 h-40">
-                                        <AvatarImage 
-                                            src={newProfilePicture || selectedStaff.avatar} 
-                                            alt={selectedStaff.name}
-                                        />
-                                        <AvatarFallback>{selectedStaff.name.charAt(0)}</AvatarFallback>
-                                    </Avatar>
-                                    {newProfilePicture && (
-                                        <div className="absolute -bottom-2 left-0 w-full text-center">
-                                            <span className="bg-olive-600 text-white text-xs px-2 py-1 rounded-full">
-                                                Preview
-                                            </span>
-                                        </div>
-                                    )}
-                                </div>
-                                <Input
-                                    id="picture"
-                                    type="file"
-                                    onChange={handleProfilePictureChange}
-                                    accept="image/*"
-                                />
-                            </div>
-                        </div>
-                        <DialogFooter>
-                            <Button
-                                variant="outline"
-                                onClick={() => {
-                                    setNewProfilePicture(null);
-                                    setIsDialogOpen(false);
-                                }}
-                            >
-                                Cancel
-                            </Button>
-                            <Button
-                                variant="default"
-                                onClick={handleProfilePictureUpload}
-                                disabled={!newProfilePicture}
-                            >
-                                Save Changes
-                            </Button>
-                        </DialogFooter>
-                    </DialogContent>
-                </Dialog>
             </div>
+
+            {/* Add Staff Modal */}
+            <Dialog open={isNewStaffModalOpen} onOpenChange={setIsNewStaffModalOpen}>
+                <DialogContent className="sm:max-w-[425px]">
+                    <DialogHeader>
+                        <DialogTitle>Add New Staff</DialogTitle>
+                    </DialogHeader>
+                    <div className="grid gap-4 py-4">
+                        <div className="grid gap-2">
+                            <Label htmlFor="newName">Name</Label>
+                            <Input
+                                id="newName"
+                                value={newStaff.name}
+                                onChange={(e) => setNewStaff({...newStaff, name: e.target.value})}
+                            />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label htmlFor="newRole">Role</Label>
+                            <Input
+                                id="newRole"
+                                value={newStaff.role}
+                                onChange={(e) => setNewStaff({...newStaff, role: e.target.value})}
+                            />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label htmlFor="newEmail">Email</Label>
+                            <Input
+                                id="newEmail"
+                                type="email"
+                                value={newStaff.email}
+                                onChange={(e) => setNewStaff({...newStaff, email: e.target.value})}
+                            />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label htmlFor="newPhone">Phone</Label>
+                            <Input
+                                id="newPhone"
+                                value={newStaff.phone}
+                                onChange={(e) => setNewStaff({...newStaff, phone: e.target.value})}
+                            />
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setIsNewStaffModalOpen(false)}>
+                            Cancel
+                        </Button>
+                        <Button variant="default" onClick={handleAddNewStaff}>
+                            Add Staff
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* Change Photo Modal */}
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                <DialogContent className="sm:max-w-[425px]">
+                    <DialogHeader>
+                        <DialogTitle>Update Profile Picture</DialogTitle>
+                    </DialogHeader>
+                    <div className="grid gap-4 py-4">
+                        <div className="flex flex-col items-center space-y-4">
+                            <div className="relative">
+                                <Avatar className="w-40 h-40">
+                                    <AvatarImage 
+                                        src={newProfilePicture || selectedStaff.avatar} 
+                                        alt={selectedStaff.name}
+                                    />
+                                    <AvatarFallback>{selectedStaff.name.charAt(0)}</AvatarFallback>
+                                </Avatar>
+                                {newProfilePicture && (
+                                    <div className="absolute -bottom-2 left-0 w-full text-center">
+                                        <span className="bg-olive-600 text-white text-xs px-2 py-1 rounded-full">
+                                            Preview
+                                        </span>
+                                    </div>
+                                )}
+                            </div>
+                            <Input
+                                id="picture"
+                                type="file"
+                                onChange={handleProfilePictureChange}
+                                accept="image/*"
+                            />
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <Button
+                            variant="outline"
+                            onClick={() => {
+                                setNewProfilePicture(null);
+                                setIsDialogOpen(false);
+                            }}
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            variant="default"
+                            onClick={handleProfilePictureUpload}
+                            disabled={!newProfilePicture}
+                        >
+                            Save Changes
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </AdminLayout>
     );
 }
