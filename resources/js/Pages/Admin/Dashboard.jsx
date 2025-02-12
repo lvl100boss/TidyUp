@@ -59,7 +59,7 @@ export default function Dashboard() {
 
       <div className=" space-y-6">
         {/* Header Section */}
-        <div className="bg-white p-6 rounded-lg shadow dark:bg-gray-800">
+        <div className="bg-background p-6 rounded-md shadow border">
           <h2 className="text-lg">Super Admin</h2>
           <p className="text-2xl">Dave Jamir Basa</p>
         </div>
