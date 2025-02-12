@@ -1,12 +1,10 @@
 import InputError from "@/Components/InputError";
 import { Input, PInput } from "@/Components/ui/input";
 import { Label } from "@/Components/ui/label";
-import InputLabel from "@/Components/InputLabel";
-import PrimaryButton from "@/Components/PrimaryButton";
-import TextInput from "@/Components/TextInput";
 import { Head, Link, useForm } from "@inertiajs/react";
 import { Button } from "@/Components/ui/button";
 import ApplicationLogo from "@/Components/ApplicationLogo";
+import React, { useEffect, useState } from "react";
 
 export default function Register() {
     const { data, setData, post, processing, errors, reset } = useForm({
@@ -22,6 +20,28 @@ export default function Register() {
         post(route("register"), {
             onFinish: () => reset("password", "password_confirmation"),
         });
+    };
+
+    const [isDarkTheme, setIsDarkTheme] = useState(false);
+
+    useEffect(() => {
+        // Retrieve the theme preference from local storage
+        const savedTheme = localStorage.getItem("theme");
+        if (savedTheme === "dark") {
+            document.body.classList.add("dark");
+            setIsDarkTheme(true);
+        }
+    }, []);
+
+    const toggleTheme = () => {
+        if (isDarkTheme) {
+            document.body.classList.remove("dark");
+            localStorage.setItem("theme", "light");
+        } else {
+            document.body.classList.add("dark");
+            localStorage.setItem("theme", "dark");
+        }
+        setIsDarkTheme(!isDarkTheme);
     };
 
     return (
@@ -41,7 +61,7 @@ export default function Register() {
 
             <form
                 onSubmit={submit}
-                className="w-full max-w-screen-sm md:max-w-96 md:px-6 md:py-4 rounded-lg"
+                className="w-full max-w-screen-sm sm:max-w-md md:px-6 md:py-4 rounded-lg"
             >
                 <div>
                     <Label htmlFor="username">Username</Label>

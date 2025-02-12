@@ -9,7 +9,7 @@ import LocationSelect from "@/Components/LocationSelect";
 import { Button } from "@/Components/ui/button";
 import InputError from "@/Components/InputError";
 
-export default function SetupShop({ branchCategories }) {
+export default function SetupShop({ categories }) {
     const [isDarkTheme, setIsDarkTheme] = useState(false);
     const { data, setData, post, processing, errors } = useForm({
         shop_name: "",
@@ -112,7 +112,7 @@ export default function SetupShop({ branchCategories }) {
                                         value={data.categories} // Control the selected values
                                         onValueChange={handleCategoryChange} // Handle changes
                                     >
-                                        {branchCategories.map((category) => (
+                                        {categories.map((category) => (
                                             <ToggleGroupItem
                                                 key={category.id}
                                                 value={category.id.toString()} // Use ID as value

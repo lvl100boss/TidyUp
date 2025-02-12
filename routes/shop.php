@@ -4,25 +4,33 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ShopDashboardController;
 use App\Http\Controllers\ShopController;
 use Inertia\Inertia;
-Route::get('/shop/dashboard', [ShopDashboardController::class, 'index'])->middleware(['auth', 'verified'])->name('shop.dashboard');
-Route::redirect('/shop', '/shop/dashboard')->middleware(['auth', 'verified']);
+// Shop Dashboard
+Route::get('/shop/dashboard', [ShopDashboardController::class, 'index'])
+    ->middleware(['auth', 'verified'])
+    ->name('shop.dashboard');
 
-Route::get('/shop/appointments', function () {
-    return Inertia::render('Shops/Appointments');
-})->middleware(['auth', 'verified'])->name('shop.appointments');
+Route::redirect('/shop', '/shop/dashboard')
+    ->middleware(['auth', 'verified']);
 
-Route::get('/shop/catalog', function () {
-    return Inertia::render('Shops/ShopCatalog');
-})->middleware(['auth', 'verified'])->name('shop.catalog');
+// Shop Pages
+$shopPages = [
+    'appointments' => 'Shops/Appointments',
+    'catalog' => 'Shops/ShopCatalog',
+    'profile' => 'Shops/ShopProfile',
+    'branches' => 'Shops/ManageBranch',
+];
 
-Route::get('/shop/profile', function () {
-    return Inertia::render('Shops/ShopProfile');
-})->middleware(['auth', 'verified'])->name('shop.profile');
+foreach ($shopPages as $route => $component) {
+    Route::get("/shop/{$route}", function () use ($component) {
+        return Inertia::render($component);
+    })->middleware(['auth', 'verified'])->name("shop.{$route}");
+}
 
-Route::get('/shop/branches', function () {
-    return Inertia::render('Shops/ManageBranch');
-})->middleware(['auth', 'verified'])->name('shop.branches');
+// Shop Setup
+Route::get('/shop/setup', [ShopController::class, 'create'])
+    ->middleware(['auth', 'verified'])
+    ->name('shop.setup');
 
-// Shop SETUP
-Route::get('/shop/setup', [ShopController::class, 'create'])->middleware(['auth', 'verified'])->name('shop.setup');
-Route::post('/shop/setup', [ShopController::class, 'store'])->middleware(['auth', 'verified'])->name('shop.setup.store');
+Route::post('/shop/setup', [ShopController::class, 'store'])
+    ->middleware(['auth', 'verified'])
+    ->name('shop.setup.store');

@@ -54,12 +54,13 @@ class RegisteredUserController extends Controller
 
         $user->userRole()->create([
             'user_id' => $user->id,
-            'role_id' => 1, // Ensure the role_id is valid
+            'role_id' => 5,
         ]);
 
         event(new Registered($user));
 
         Auth::login($user);
+
 
         return redirect(route('home', absolute: false));
     }

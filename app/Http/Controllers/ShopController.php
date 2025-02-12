@@ -2,10 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\BranchCategory;
 use Illuminate\Http\Request;
 use App\Models\Shop;
-use App\Models\ShopBranch;
+use App\Models\Categories;
 use Inertia\Inertia;
 
 class ShopController extends Controller
@@ -13,11 +12,12 @@ class ShopController extends Controller
     //
     public function create()
     {
-        $branchCategories = BranchCategory::all();
+        $categories = Categories::all();
+
         return Inertia::render(
             'Shops/SetupShop',
             [
-                'branchCategories' => $branchCategories
+                'categories' => $categories
             ]
         );
     }
@@ -27,19 +27,19 @@ class ShopController extends Controller
         dd($request->all());
     }
 
-    public function show($shop_id, $branch_id)
-    {
-        $shop = Shop::find($shop_id)->with('branches')->where('id', $shop_id)->first();
-        $branch = ShopBranch::with(['gallery', 'services.serviceCategory', 'operationHours'])->where('id', $branch_id)->first();
+    // public function show($shop_id, $branch_id)
+    // {
+    //     $shop = Shop::find($shop_id)->with('branches')->where('id', $shop_id)->first();
+    //     $branch = ShopBranch::with(['gallery', 'services.serviceCategory', 'operationHours'])->where('id', $branch_id)->first();
 
-        $randomShops = Shop::with('branches.gallery')->with('branches.branchCategories')->inRandomOrder()->limit(10)->get();
+    //     $randomShops = Shop::with('branches.gallery')->with('branches.branchCategories')->inRandomOrder()->limit(10)->get();
 
-        $branchServices = $branch->services;
-        return Inertia::render('Users/Shop', [
-            'shop' => $shop,
-            'branch' => $branch,
-            'branchServices' => $branchServices,
-            'randomShops' => $randomShops
-        ]);
-    }
+    //     $branchServices = $branch->services;
+    //     return Inertia::render('Users/Shop', [
+    //         'shop' => $shop,
+    //         'branch' => $branch,
+    //         'branchServices' => $branchServices,
+    //         'randomShops' => $randomShops
+    //     ]);
+    // }
 }

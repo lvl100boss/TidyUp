@@ -5,6 +5,7 @@ import { Button } from "@/Components/ui/button";
 import ApplicationLogo from "@/Components/ApplicationLogo";
 import InputError from "@/Components/InputError";
 import { Head, Link, useForm } from "@inertiajs/react";
+import { useState, useEffect } from "react";
 
 export default function Login({ status, canResetPassword }) {
     const { data, setData, post, processing, errors, reset } = useForm({
@@ -19,6 +20,28 @@ export default function Login({ status, canResetPassword }) {
         post(route("login"), {
             onFinish: () => reset("password"),
         });
+    };
+
+    const [isDarkTheme, setIsDarkTheme] = useState(false);
+
+    useEffect(() => {
+        // Retrieve the theme preference from local storage
+        const savedTheme = localStorage.getItem("theme");
+        if (savedTheme === "dark") {
+            document.body.classList.add("dark");
+            setIsDarkTheme(true);
+        }
+    }, []);
+
+    const toggleTheme = () => {
+        if (isDarkTheme) {
+            document.body.classList.remove("dark");
+            localStorage.setItem("theme", "light");
+        } else {
+            document.body.classList.add("dark");
+            localStorage.setItem("theme", "dark");
+        }
+        setIsDarkTheme(!isDarkTheme);
     };
 
     return (
@@ -46,7 +69,7 @@ export default function Login({ status, canResetPassword }) {
 
             <form
                 onSubmit={submit}
-                className="w-full max-w-screen-sm md:max-w-96 md:px-6 md:py-4 rounded-lg"
+                className="w-full max-w-screen-sm sm:max-w-md md:px-6 md:py-4 rounded-lg"
             >
                 <div>
                     <Label htmlFor="email">Email</Label>
@@ -82,7 +105,7 @@ export default function Login({ status, canResetPassword }) {
                     <InputError message={errors.password} className="mt-2" />
                 </div>
 
-                <div className="mt-4 block flex items-center justify-between">
+                <div className="mt-4 flex items-center justify-between">
                     <Label className="flex items-center gap-2">
                         <Checkbox
                             name="remember"
