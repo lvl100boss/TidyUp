@@ -47,13 +47,18 @@ export default function Sidebar() {
                 <nav className="space-y-1 text-sm font-medium">
                     {navItems.map((item) => {
                         const Icon = item.icon;
+                        const isActive = window.location.pathname === item.href;
                         return (
                             <Link
                                 key={item.label}
                                 href={item.href}
-                                className="flex items-center px-4 py-2 text-gray-900 hover:bg-gray-100 rounded-md group transition-colors dark:text-gray-300 dark:hover:bg-gray-700"
+                                className={`flex items-center px-4 py-2 rounded-md group transition-colors ${
+                                    isActive
+                                        ? "bg-secondary"
+                                        : "hover:bg-secondary"
+                                }`}
                             >
-                                <Icon className="w-5 h-5 mr-3 text-gray-900 group-hover:text-gray-700 dark:text-gray-400 group-hover:dark:text-gray-300" />
+                                <Icon className="w-5 h-5 mr-3" />
                                 <span>{item.label}</span>
                             </Link>
                         );

@@ -20,7 +20,7 @@ Route::get('/admin/analytics', function () {
 })->middleware(['auth', 'verified'])->name('admin.analytics');
 
 Route::get('/admin/feedbacks', function () {
-    return Inertia::render('Admin/UserFeedback');
+    return Inertia::render('Admin/UserFeedbackd');
 })->middleware(['auth', 'verified'])->name('admin.feedbacks');
 
 Route::get('/admin/customer-service', function () {
