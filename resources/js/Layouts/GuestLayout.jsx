@@ -37,7 +37,7 @@ export default function GuestLayout({ children }) {
                     We're glad to have you here.
                 </p>
             </div>
-            <div className="mt-6 w-full overflow-hidden  p-5 sm:max-w-md sm:rounded-lg ">
+            <div className="mt-5 w-full overflow-hidden sm:max-w-md sm:rounded-lg ">
                 {children}
             </div>
         </div>

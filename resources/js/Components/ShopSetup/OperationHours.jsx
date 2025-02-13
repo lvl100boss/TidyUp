@@ -27,7 +27,27 @@ const TIME_SLOTS = Array.from({ length: 48 }, (_, i) => {
     return `${displayHour}:${minute} ${period}`;
 });
 
-export default function OperationHours({ data, handleOperationHoursChange }) {
+export default function OperationHours({
+    data,
+    handleOperationHoursChange,
+    setAllFieldsFilled,
+    allFieldsFilled,
+}) {
+    React.useEffect(() => {
+        const hasOneOpenDay = Object.values(data.operation_hours).some(
+            (day) => day.isOpen
+        );
+
+        const allOpenDaysHaveTime = Object.values(data.operation_hours).every(
+            (day) => !day.isOpen || (day.openTime && day.closeTime)
+        );
+
+        const shouldBeFilled = hasOneOpenDay && allOpenDaysHaveTime;
+
+        if (shouldBeFilled !== allFieldsFilled) {
+            setAllFieldsFilled(shouldBeFilled);
+        }
+    }, [data.operation_hours, allFieldsFilled, setAllFieldsFilled]);
     return (
         <div className="space-y-6">
             <h2 className="text-xl font-semibold">Operation Hours</h2>

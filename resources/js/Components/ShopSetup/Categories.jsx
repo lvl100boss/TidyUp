@@ -2,7 +2,18 @@ import React from "react";
 import { Label } from "@/Components/ui/label";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
-export default function Categories({ data, handleCategoryChange, categories }) {
+export default function Categories({
+    data,
+    handleCategoryChange,
+    categories,
+    allFieldsFilled,
+    setAllFieldsFilled,
+}) {
+    if (data.categories.length && !allFieldsFilled) {
+        setAllFieldsFilled(true);
+    } else if (!data.categories.length && allFieldsFilled) {
+        setAllFieldsFilled(false);
+    }
     return (
         <div className="space-y-4">
             <h2 className="text-xl font-semibold">Categories</h2>

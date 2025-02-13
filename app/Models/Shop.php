@@ -25,19 +25,24 @@ class Shop extends Model
         'tokens',
     ];
 
-    public function shopAccount()
-    {
-        return $this->hasOne(ShopAccount::class);
-    }
-
-    public function branches()
-    {
-        return $this->hasMany(ShopBranch::class);
-    }
-
     public function shopGallery()
     {
-        return $this->hasMany(ShopGallery::class, ShopBranch::class);
+        return $this->hasMany(ShopGallery::class, 'shop_id');
+    }
+
+    public function shopServiceCategories()
+    {
+        return $this->hasMany(ShopServiceCategories::class);
+    }
+
+    public function shopCategories()
+    {
+        return $this->hasMany(ShopCategory::class);
+    }
+
+    public function shopOperationHours()
+    {
+        return $this->hasMany(OperationHours::class, 'shop_id');
     }
 
     public function appointments()

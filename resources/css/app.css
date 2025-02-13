@@ -132,6 +132,7 @@
         transition: background-color 5000s ease-in-out 0s;
     }
 
+    textarea:focus-visible,
     input:focus-visible {
         @apply !border-foreground;
     }
@@ -143,6 +144,7 @@
     body {
         @apply bg-background text-foreground;
     }
+    textarea:focus,
     input:focus {
         outline: none !important;
         box-shadow: none !important;

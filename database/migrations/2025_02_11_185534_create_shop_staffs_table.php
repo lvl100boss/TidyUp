@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('shop_id')->constrained()->onDelete('cascade');
             $table->foreignId('staff_id')->constrained('users')->onDelete('cascade');
+            $table->enum('role', ['owner', 'staff'])->default('staff');
             $table->timestamps();
             $table->unique(['shop_id', 'staff_id']); // Ensure unique combination of shop and staff
         });

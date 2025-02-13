@@ -9,7 +9,28 @@ export default function Location({
     setData,
     handleLocationChange,
     errors,
+    setAllFieldsFilled,
+    allFieldsFilled,
 }) {
+    if (
+        data.detailed_address &&
+        data.region &&
+        data.province &&
+        data.city &&
+        data.barangay &&
+        !allFieldsFilled
+    ) {
+        setAllFieldsFilled(true);
+    } else if (
+        !data.detailed_address &&
+        !data.region &&
+        !data.province &&
+        !data.city &&
+        !data.barangay &&
+        allFieldsFilled
+    ) {
+        setAllFieldsFilled(false);
+    }
     return (
         <div className="space-y-4">
             <h2 className="text-xl font-semibold">Location Details</h2>

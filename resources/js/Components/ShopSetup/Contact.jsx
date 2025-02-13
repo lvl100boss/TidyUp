@@ -3,7 +3,18 @@ import { Input } from "@/Components/ui/input";
 import { Label } from "@/Components/ui/label";
 import InputError from "@/Components/InputError";
 
-export default function Contact({ data, setData, errors }) {
+export default function Contact({
+    data,
+    setData,
+    errors,
+    allFieldsFilled,
+    setAllFieldsFilled,
+}) {
+    if (data.email && data.phone && !allFieldsFilled) {
+        setAllFieldsFilled(true);
+    } else if ((!data.email || !data.phone) && allFieldsFilled) {
+        setAllFieldsFilled(false);
+    }
     return (
         <div className="space-y-4">
             <h2 className="text-xl font-semibold">Contact Information</h2>

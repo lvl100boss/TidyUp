@@ -11,6 +11,8 @@ import OperationHours from "@/Components/ShopSetup/OperationHours";
 import Catalog from "@/Components/ShopSetup/Catalog";
 import BusinessPermit from "@/Components/ShopSetup/BusinessPermit";
 import Gallery from "@/Components/ShopSetup/Gallery";
+import Summary from "@/Components/ShopSetup/Summary";
+import Success from "@/Components/ShopSetup/Success";
 
 const STEPS = {
     SHOP_INFO: 0,
@@ -21,6 +23,8 @@ const STEPS = {
     CATALOG: 5,
     BUSINESS_PERMIT: 6,
     GALLERY: 7,
+    SUMMARY: 8,
+    SUCCESS: 9,
 };
 
 const INITIAL_OPERATION_HOURS = [
@@ -43,15 +47,21 @@ const INITIAL_OPERATION_HOURS = [
     {}
 );
 
-export default function SetupShop({ categories }) {
+export default function SetupShop({ categories, serviceCategories }) {
     const [isDarkTheme, setIsDarkTheme] = useState(false);
     const [currentStep, setCurrentStep] = useState(STEPS.SHOP_INFO);
     const [previewMainImage, setPreviewMainImage] = useState(null);
     const [previewGalleryImages, setPreviewGalleryImages] = useState([]);
     const [previewPermitImage, setPreviewPermitImage] = useState(null);
+    const [previewDtiRegistrationImage, setPreviewDtiRegistrationImage] =
+        useState(null);
+    const [previewValidIdImage, setPreviewValidIdImage] = useState(null);
+    const [isSubmitted, setIsSubmitted] = useState(false);
+    const [allFieldsFilled, setAllFieldsFilled] = useState(false);
 
     const { data, setData, post, processing, errors } = useForm({
         shop_name: "",
+        bio: "",
         email: "",
         phone: "",
         region: "",
@@ -60,24 +70,26 @@ export default function SetupShop({ categories }) {
         barangay: "",
         detailed_address: "",
         categories: [],
-        main_image: null,
-        gallery_images: [],
+        shop_photo: null,
+        shop_gallery: [],
         operation_hours: INITIAL_OPERATION_HOURS,
         catalog_items: [],
         business_permit: null,
+        dti_registration: null,
+        valid_id: null,
     });
 
     const handleMainImageChange = (e) => {
         const file = e.target.files[0];
         if (file) {
-            setData("main_image", file);
+            setData("shop_photo", file);
             setPreviewMainImage(URL.createObjectURL(file));
         }
     };
 
     const handleGalleryImagesChange = (e) => {
         const files = Array.from(e.target.files);
-        setData("gallery_images", [...data.gallery_images, ...files]);
+        setData("shop_gallery", [...data.shop_gallery, ...files]);
         const newPreviews = files.map((file) => URL.createObjectURL(file));
         setPreviewGalleryImages((prev) => [...prev, ...newPreviews]);
     };
@@ -90,10 +102,26 @@ export default function SetupShop({ categories }) {
         }
     };
 
+    const handleValidIdImageChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            setData("valid_id", file);
+            setPreviewValidIdImage(URL.createObjectURL(file));
+        }
+    };
+
+    const handleDtiRegistrationImageChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            setData("dti_registration", file);
+            setPreviewDtiRegistrationImage(URL.createObjectURL(file));
+        }
+    };
+
     const removeGalleryImage = (index) => {
-        const newGalleryImages = [...data.gallery_images];
+        const newGalleryImages = [...data.shop_gallery];
         newGalleryImages.splice(index, 1);
-        setData("gallery_images", newGalleryImages);
+        setData("shop_gallery", newGalleryImages);
 
         const newPreviews = [...previewGalleryImages];
         URL.revokeObjectURL(newPreviews[index]);
@@ -127,23 +155,27 @@ export default function SetupShop({ categories }) {
 
     const submitForm = (e) => {
         e.preventDefault();
-        if (currentStep === STEPS.GALLERY) {
-            post("/shop/setup", {
-                preserveScroll: true,
-                forceFormData: true,
-            });
-        }
+        post("/shop/setup", {
+            preserveScroll: true,
+            forceFormData: true,
+            onSuccess: () => {
+                setIsSubmitted(true);
+                setCurrentStep(STEPS.SUCCESS);
+            },
+        });
     };
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        if (currentStep !== STEPS.GALLERY) {
+        if (currentStep === STEPS.SUMMARY) {
+            submitForm(e);
+        } else {
             nextStep();
         }
     };
 
     const nextStep = () => {
-        setCurrentStep((prev) => Math.min(prev + 1, 7));
+        setCurrentStep((prev) => Math.min(prev + 1, 9));
     };
 
     const prevStep = () => {
@@ -173,7 +205,13 @@ export default function SetupShop({ categories }) {
         switch (currentStep) {
             case STEPS.SHOP_INFO:
                 return (
-                    <ShopInfo data={data} setData={setData} errors={errors} />
+                    <ShopInfo
+                        setData={setData}
+                        data={data}
+                        errors={errors}
+                        allFieldsFilled={allFieldsFilled}
+                        setAllFieldsFilled={setAllFieldsFilled}
+                    />
                 );
             case STEPS.CATEGORIES:
                 return (
@@ -181,11 +219,19 @@ export default function SetupShop({ categories }) {
                         data={data}
                         handleCategoryChange={handleCategoryChange}
                         categories={categories}
+                        allFieldsFilled={allFieldsFilled}
+                        setAllFieldsFilled={setAllFieldsFilled}
                     />
                 );
             case STEPS.CONTACT:
                 return (
-                    <Contact data={data} setData={setData} errors={errors} />
+                    <Contact
+                        data={data}
+                        setData={setData}
+                        errors={errors}
+                        allFieldsFilled={allFieldsFilled}
+                        setAllFieldsFilled={setAllFieldsFilled}
+                    />
                 );
             case STEPS.LOCATION:
                 return (
@@ -194,6 +240,8 @@ export default function SetupShop({ categories }) {
                         setData={setData}
                         handleLocationChange={handleLocationChange}
                         errors={errors}
+                        allFieldsFilled={allFieldsFilled}
+                        setAllFieldsFilled={setAllFieldsFilled}
                     />
                 );
             case STEPS.OPERATION_HOURS:
@@ -201,29 +249,60 @@ export default function SetupShop({ categories }) {
                     <OperationHours
                         data={data}
                         handleOperationHoursChange={handleOperationHoursChange}
+                        allFieldsFilled={allFieldsFilled}
+                        setAllFieldsFilled={setAllFieldsFilled}
                     />
                 );
             case STEPS.CATALOG:
-                return <Catalog />;
+                return (
+                    <Catalog
+                        serviceCategories={serviceCategories}
+                        data={data}
+                        setData={setData}
+                        allFieldsFilled={allFieldsFilled}
+                        setAllFieldsFilled={setAllFieldsFilled}
+                    />
+                );
             case STEPS.BUSINESS_PERMIT:
                 return (
                     <BusinessPermit
                         handlePermitImageChange={handlePermitImageChange}
+                        handleDtiRegistrationImageChange={
+                            handleDtiRegistrationImageChange
+                        }
+                        handleValidIdImageChange={handleValidIdImageChange}
                         previewPermitImage={previewPermitImage}
+                        previewDtiRegistrationImage={
+                            previewDtiRegistrationImage
+                        }
+                        previewValidIdImage={previewValidIdImage}
                         errors={errors}
+                        allFieldsFilled={allFieldsFilled}
+                        setAllFieldsFilled={setAllFieldsFilled}
+                        data={data}
                     />
                 );
             case STEPS.GALLERY:
                 return (
                     <Gallery
+                        data={data}
                         handleMainImageChange={handleMainImageChange}
                         handleGalleryImagesChange={handleGalleryImagesChange}
                         removeGalleryImage={removeGalleryImage}
                         previewMainImage={previewMainImage}
                         previewGalleryImages={previewGalleryImages}
+                        allFieldsFilled={allFieldsFilled}
+                        setAllFieldsFilled={setAllFieldsFilled}
                         errors={errors}
                     />
                 );
+            case STEPS.SUMMARY:
+                return <Summary data={data} categories={categories} />;
+            // return <Success />;
+            case STEPS.SUCCESS:
+                return <Success />;
+            default:
+                return null;
         }
     };
 
@@ -243,40 +322,47 @@ export default function SetupShop({ categories }) {
                             </p>
                         </div>
                         <form onSubmit={handleSubmit}>
-                            <StepIndicator
-                                currentStep={currentStep}
-                                totalSteps={8}
-                            />
+                            {currentStep !== STEPS.SUCCESS && (
+                                <StepIndicator
+                                    currentStep={currentStep}
+                                    totalSteps={9}
+                                />
+                            )}
                             {renderStepContent()}
-                            <div className="mt-6 flex justify-between">
-                                <Button
-                                    type="button"
-                                    variant="outline"
-                                    onClick={prevStep}
-                                    disabled={currentStep === STEPS.SHOP_INFO}
-                                >
-                                    Previous
-                                </Button>
-                                {currentStep === STEPS.GALLERY ? (
+                            {currentStep !== STEPS.SUCCESS && (
+                                <div className="mt-6 flex justify-between">
                                     <Button
                                         type="button"
-                                        onClick={submitForm}
-                                        disabled={processing}
-                                        className="figtree-semibold"
+                                        variant="outline"
+                                        onClick={prevStep}
+                                        disabled={
+                                            currentStep === STEPS.SHOP_INFO
+                                        }
                                     >
-                                        {processing
-                                            ? "Submitting..."
-                                            : "Submit"}
+                                        Previous
                                     </Button>
-                                ) : (
-                                    <Button
-                                        type="submit"
-                                        className="figtree-semibold"
-                                    >
-                                        Next
-                                    </Button>
-                                )}
-                            </div>
+                                    {currentStep === STEPS.SUMMARY ? (
+                                        <Button
+                                            type="button"
+                                            onClick={submitForm}
+                                            disabled={processing}
+                                            className="figtree-semibold"
+                                        >
+                                            {processing
+                                                ? "Submitting..."
+                                                : "Submit Application"}
+                                        </Button>
+                                    ) : (
+                                        <Button
+                                            type="submit"
+                                            className="figtree-semibold"
+                                            disabled={!allFieldsFilled}
+                                        >
+                                            Next
+                                        </Button>
+                                    )}
+                                </div>
+                            )}
                         </form>
                     </div>
                 </div>

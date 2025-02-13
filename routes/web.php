@@ -12,7 +12,6 @@ use App\Http\Middleware\EnsureVerifiedIfAuthenticated;
 
 Route::middleware(EnsureVerifiedIfAuthenticated::class)->group(function () {
     Route::get('/', [HomeController::class, 'index'])->name('home');
-    Route::get('/shop/{shop_id}/{branch_id}', [ShopController::class, 'show'])->name('shop.show');
 
     Route::get('/explore', function () {
         return Inertia::render('Users/Explore');
