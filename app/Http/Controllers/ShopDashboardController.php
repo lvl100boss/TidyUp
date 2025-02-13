@@ -13,12 +13,12 @@ class ShopDashboardController extends Controller
     //
     public function index()
     {
-        $shop = Shop::with('shopAccount.user')->where('id', auth()->user()->shopAccount->shop_id)->first();
-        $pendingAppointments = Appointments::with('shop.branches')->where('shop_id', $shop->shop_id)->where('status', 'pending')->get();
-        // dd($pendingAppointments);
+        $user = User::find(auth()->user()->id);
+
+        $shop = Shop::where('user_id', $user->id)->first();
         return Inertia::render('Shops/Dashboard', [
-            'pendingAppointments' => $pendingAppointments,
-            'shop' => $shop
+            'shop' => $shop,
+            'user' => $user
         ]);
     }
 }

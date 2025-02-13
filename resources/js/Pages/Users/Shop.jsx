@@ -166,12 +166,12 @@ export default function Shop({ shop, randomShops }) {
                                         {services.map((service) => (
                                             <li
                                                 key={service.id}
-                                                className="p-2 flex justify-between items-center"
+                                                className="p-2 flex justify-between items-center group hover:bg-muted/50 rounded-md"
                                             >
                                                 <div className="inline-flex items-center gap-2">
                                                     <Component size={20} />
                                                     <div>
-                                                        <p className="underline">
+                                                        <p className="group-hover:underline group:hover">
                                                             <strong>
                                                                 {
                                                                     service.service_name

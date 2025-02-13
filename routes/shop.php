@@ -19,7 +19,7 @@ Route::middleware(['auth', 'verified', EnsureShopOwner::class])->group(function 
         'appointments' => 'Shops/Appointments',
         'catalog' => 'Shops/ShopCatalog',
         'profile' => 'Shops/ShopProfile',
-        'branches' => 'Shops/ManageBranch',
+        'manage/staff' => 'Shops/ManageStaff',
     ];
     foreach ($shopPages as $route => $component) {
         Route::get("/shop/{$route}", function () use ($component) {

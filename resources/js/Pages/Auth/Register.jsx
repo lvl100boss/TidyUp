@@ -8,6 +8,8 @@ import React, { useEffect, useState } from "react";
 
 export default function Register() {
     const { data, setData, post, processing, errors, reset } = useForm({
+        first_name: "",
+        last_name: "",
         username: "",
         email: "",
         password: "",
@@ -64,6 +66,33 @@ export default function Register() {
                 className="w-full max-w-screen-sm sm:max-w-md md:px-6 md:py-4 rounded-lg"
             >
                 <div>
+                    <Label htmlFor="first_name">First Name</Label>
+                    <Input
+                        id="first_name"
+                        type="text"
+                        name="first_name"
+                        placeholder="Enter your first name"
+                        value={data.first_name}
+                        autoComplete="given-name"
+                        isFocused={true}
+                        onChange={(e) => setData("first_name", e.target.value)}
+                    />
+                    <InputError message={errors.first_name} className="mt-2" />
+                </div>
+                <div className="mt-4">
+                    <Label htmlFor="last_name">Last Name</Label>
+                    <Input
+                        id="last_name"
+                        type="text"
+                        name="last_name"
+                        placeholder="Enter your last name"
+                        value={data.last_name}
+                        autoComplete="family-name"
+                        onChange={(e) => setData("last_name", e.target.value)}
+                    />
+                    <InputError message={errors.last_name} className="mt-2" />
+                </div>
+                <div className="mt-4">
                     <Label htmlFor="username">Username</Label>
                     <Input
                         id="username"

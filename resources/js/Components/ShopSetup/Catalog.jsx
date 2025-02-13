@@ -17,7 +17,7 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
-import { Terminal, Trash2 } from "lucide-react";
+import { Terminal, Trash2, Info } from "lucide-react";
 
 const Catalog = ({
     serviceCategories,
@@ -180,6 +180,17 @@ const Catalog = ({
             <Button type="button" onClick={addService} className="w-full">
                 Add Service
             </Button>
+            <div className="p-4 bg-muted/30 rounded-lg text-sm text-muted-foreground">
+                <div className="flex items-center gap-2">
+                    <Info className="h-5 w-5" />
+                    <p>
+                        You may add one or more services to your catalog now.
+                        These services can be edited or removed at any time.
+                        Additionally, you have the option to add more services
+                        later if needed.
+                    </p>
+                </div>
+            </div>
             {/* Display Added Services */}
             {data.catalog_items.length > 0 && (
                 <Table className="mt-4">

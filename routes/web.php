@@ -3,6 +3,7 @@
 use App\Http\Controllers\AppointmentController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\DiscoverController;
 use App\Http\Controllers\ShopController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
@@ -13,9 +14,7 @@ use App\Http\Middleware\EnsureVerifiedIfAuthenticated;
 Route::middleware(EnsureVerifiedIfAuthenticated::class)->group(function () {
     Route::get('/', [HomeController::class, 'index'])->name('home');
 
-    Route::get('/explore', function () {
-        return Inertia::render('Users/Explore');
-    })->name('Explore');
+    Route::get('/discover', [DiscoverController::class, 'index'])->name('Discover');
     Route::get('/popular', function () {
         return Inertia::render('Users/Popular');
     })->name('Popular');
