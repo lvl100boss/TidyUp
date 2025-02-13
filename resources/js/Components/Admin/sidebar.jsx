@@ -28,7 +28,7 @@ export default function Sidebar() {
             href: "/admin/customer-service",
             icon: MessageCircleMore,
         },
-        { label: "User Feedback", href: "/admin/feedbacks", icon: MailOpen },
+        { label: "User Feedback", href: "/admin/feedback", icon: MailOpen },
         {
             label: "Restriction",
             href: "/admin/restriction",

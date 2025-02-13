@@ -19,9 +19,9 @@ Route::get('/admin/analytics', function () {
     return Inertia::render('Admin/Analytics');
 })->middleware(['auth', 'verified'])->name('admin.analytics');
 
-Route::get('/admin/feedbacks', function () {
-    return Inertia::render('Admin/UserFeedbackd');
-})->middleware(['auth', 'verified'])->name('admin.feedbacks');
+Route::get('/admin/feedback', function () {
+    return Inertia::render('Admin/UserFeedback');
+})->middleware(['auth', 'verified'])->name('admin.feedback');
 
 Route::get('/admin/customer-service', function () {
     return Inertia::render('Admin/CustomerService');
