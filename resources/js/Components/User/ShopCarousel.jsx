@@ -10,7 +10,7 @@ import {
 import ShopCard from "@/components/User/ShopCard";
 import { Badge } from "../ui/badge";
 import { Link } from "@inertiajs/react";
-
+// this is the comment
 export default function ShopCarousel({ shops }) {
     return (
         <Carousel
