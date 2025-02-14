@@ -1,5 +1,5 @@
 import { Button, buttonVariants } from "@/Components/ui/button";
-import { Link, usePage } from "@inertiajs/react"; // Add usePage import
+import { Head, Link, usePage } from "@inertiajs/react"; // Add usePage import
 import {
     Calendar,
     Store,

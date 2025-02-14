@@ -253,7 +253,7 @@ export default function Shop({ shop, randomShops }) {
                     </div>
                 </div>
                 <div className="lg:w-[15rem] 2xl:w-[22rem] hidden lg:block">
-                    <div className="border p-5 rounded-md ">
+                    <div className="border p-5 rounded-md sticky top-5">
                         <div className="mb-3">
                             <h1 className="figtree-semibold text-2xl">
                                 {shop?.shop_name}

@@ -2,35 +2,30 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ShopDashboardController;
+use App\Http\Controllers\ManageBranchController;
 use App\Http\Controllers\ShopController;
 use App\Http\Middleware\EnsureShopOwner;
 use Inertia\Inertia;
-// Shop Dashboard
-Route::get('/shop/dashboard', [ShopDashboardController::class, 'index'])
-    ->middleware(['auth', 'verified'])
-    ->name('shop.dashboard');
 
-Route::redirect('/shop', '/shop/dashboard')
-    ->middleware(['auth', 'verified']);
+Route::get('/shop/dashboard', [ShopDashboardController::class, 'index'])->middleware(['auth', 'verified'])->name('shop.dashboard');
+Route::redirect('/shop', '/shop/dashboard')->middleware(['auth', 'verified']);
 
-// Shop Pages
-Route::middleware(['auth', 'verified', EnsureShopOwner::class])->group(function () {
-    $shopPages = [
-        'appointments' => 'Shops/Appointments',
-        'catalog' => 'Shops/ShopCatalog',
-        'profile' => 'Shops/ShopProfile',
-        'manage/staff' => 'Shops/ManageStaff',
-    ];
-    foreach ($shopPages as $route => $component) {
-        Route::get("/shop/{$route}", function () use ($component) {
-            return Inertia::render($component);
-        })->name("shop.{$route}");
-    }
-});
-Route::get('/{shop_id}/shop', [ShopController::class, 'show'])->name('shop.show');
+Route::get('/shop/appointments', function () {
+    return Inertia::render('Shops/Appointments');
+})->middleware(['auth', 'verified'])->name('shop.appointments');
 
-// Shop Setup
-Route::middleware(['auth', 'verified'])->group(function () {
-    Route::get('/shop/setup', [ShopController::class, 'create'])->name('shop.setup');
-    Route::post('/shop/setup', [ShopController::class, 'store'])->name('shop.store');
-});
+Route::get('/shop/catalog', function () {
+    return Inertia::render('Shops/ShopCatalog');
+})->middleware(['auth', 'verified'])->name('shop.catalog');
+
+Route::get('/shop/profile', function () {
+    return Inertia::render('Shops/ShopProfile');
+})->middleware(['auth', 'verified'])->name('shop.profile');
+
+Route::get('/shop/branches', function () {
+    return Inertia::render('Shops/ManageBranch');
+})->middleware(['auth', 'verified'])->name('shop.branches');
+
+// Shop SETUP
+Route::get('/shop/setup', [ShopController::class, 'create'])->middleware(['auth', 'verified'])->name('shop.setup');
+Route::post('/shop/setup', [ShopController::class, 'store'])->middleware(['auth', 'verified'])->name('shop.setup.store');
