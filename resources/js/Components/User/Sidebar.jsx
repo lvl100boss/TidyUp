@@ -18,7 +18,7 @@ const Sidebar = () => {
     const mainLinks = [
         { href: "/", label: "Home", icon: House },
         { href: "/appointments", label: "Appointments", icon: Calendar },
-        { href: "/explore", label: "Explore", icon: Compass },
+        { href: "/discover", label: "Discover", icon: Compass },
         { href: "/popular", label: "Popular", icon: TrendingUp },
     ];
 
