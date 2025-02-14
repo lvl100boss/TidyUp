@@ -27,6 +27,8 @@ Route::middleware(EnsureVerifiedIfAuthenticated::class)->group(function () {
     Route::get('/FAQs', function () {
         return Inertia::render('Users/Faqs');
     })->name('FAQs');
+
+    Route::get('{shop_id}/shop', [ShopController::class, 'show'])->name('shop.show');
 });
 
 Route::get('/dashboard', function () {
