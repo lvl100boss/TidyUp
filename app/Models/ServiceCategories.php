@@ -16,8 +16,8 @@ class ServiceCategories extends Model
         'is_active'
     ];
 
-    public function services()
+    public function shopServiceCategories()
     {
-        return $this->hasMany(BranchServices::class);
+        return $this->hasMany(ShopServiceCategories::class, 'service_category_id');
     }
 }

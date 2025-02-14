@@ -1,18 +1,67 @@
-import { Input } from "@/Components/ui/input";
-import { Label } from "@/Components/ui/label";
-import Header from "@/Components/User/Header";
+import React, { useState, useEffect } from "react";
 import { Head, useForm } from "@inertiajs/react";
-import { useState, useEffect } from "react";
-import React from "react";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import LocationSelect from "@/Components/LocationSelect";
 import { Button } from "@/Components/ui/button";
-import InputError from "@/Components/InputError";
+import Header from "@/Components/User/Header";
+import StepIndicator from "@/Components/ShopSetup/StepIndicator";
+import ShopInfo from "@/Components/ShopSetup/ShopInfo";
+import Categories from "@/Components/ShopSetup/Categories";
+import Contact from "@/Components/ShopSetup/Contact";
+import Location from "@/Components/ShopSetup/Location";
+import OperationHours from "@/Components/ShopSetup/OperationHours";
+import Catalog from "@/Components/ShopSetup/Catalog";
+import BusinessPermit from "@/Components/ShopSetup/BusinessPermit";
+import Gallery from "@/Components/ShopSetup/Gallery";
+import Summary from "@/Components/ShopSetup/Summary";
+import Success from "@/Components/ShopSetup/Success";
 
-export default function SetupShop({ branchCategories }) {
+const STEPS = {
+    SHOP_INFO: 0,
+    CATEGORIES: 1,
+    CONTACT: 2,
+    LOCATION: 3,
+    OPERATION_HOURS: 4,
+    CATALOG: 5,
+    BUSINESS_PERMIT: 6,
+    GALLERY: 7,
+    SUMMARY: 8,
+    SUCCESS: 9,
+};
+
+const INITIAL_OPERATION_HOURS = [
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+    "Sunday",
+].reduce(
+    (acc, day) => ({
+        ...acc,
+        [day]: {
+            isOpen: false,
+            openTime: "9:00 AM",
+            closeTime: "5:00 PM",
+        },
+    }),
+    {}
+);
+
+export default function SetupShop({ categories, serviceCategories }) {
     const [isDarkTheme, setIsDarkTheme] = useState(false);
+    const [currentStep, setCurrentStep] = useState(STEPS.SHOP_INFO);
+    const [previewMainImage, setPreviewMainImage] = useState(null);
+    const [previewGalleryImages, setPreviewGalleryImages] = useState([]);
+    const [previewPermitImage, setPreviewPermitImage] = useState(null);
+    const [previewDtiRegistrationImage, setPreviewDtiRegistrationImage] =
+        useState(null);
+    const [previewValidIdImage, setPreviewValidIdImage] = useState(null);
+    const [isSubmitted, setIsSubmitted] = useState(false);
+    const [allFieldsFilled, setAllFieldsFilled] = useState(false);
+
     const { data, setData, post, processing, errors } = useForm({
         shop_name: "",
+        bio: "",
         email: "",
         phone: "",
         region: "",
@@ -21,7 +70,74 @@ export default function SetupShop({ branchCategories }) {
         barangay: "",
         detailed_address: "",
         categories: [],
+        shop_photo: null,
+        shop_gallery: [],
+        operation_hours: INITIAL_OPERATION_HOURS,
+        catalog_items: [],
+        business_permit: null,
+        dti_registration: null,
+        valid_id: null,
     });
+
+    const handleMainImageChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            setData("shop_photo", file);
+            setPreviewMainImage(URL.createObjectURL(file));
+        }
+    };
+
+    const handleGalleryImagesChange = (e) => {
+        const files = Array.from(e.target.files);
+        setData("shop_gallery", [...data.shop_gallery, ...files]);
+        const newPreviews = files.map((file) => URL.createObjectURL(file));
+        setPreviewGalleryImages((prev) => [...prev, ...newPreviews]);
+    };
+
+    const handlePermitImageChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            setData("business_permit", file);
+            setPreviewPermitImage(URL.createObjectURL(file));
+        }
+    };
+
+    const handleValidIdImageChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            setData("valid_id", file);
+            setPreviewValidIdImage(URL.createObjectURL(file));
+        }
+    };
+
+    const handleDtiRegistrationImageChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            setData("dti_registration", file);
+            setPreviewDtiRegistrationImage(URL.createObjectURL(file));
+        }
+    };
+
+    const removeGalleryImage = (index) => {
+        const newGalleryImages = [...data.shop_gallery];
+        newGalleryImages.splice(index, 1);
+        setData("shop_gallery", newGalleryImages);
+
+        const newPreviews = [...previewGalleryImages];
+        URL.revokeObjectURL(newPreviews[index]);
+        newPreviews.splice(index, 1);
+        setPreviewGalleryImages(newPreviews);
+    };
+
+    const handleOperationHoursChange = (day, field, value) => {
+        setData("operation_hours", {
+            ...data.operation_hours,
+            [day]: {
+                ...data.operation_hours[day],
+                [field]: value,
+            },
+        });
+    };
 
     const handleCategoryChange = (values) => {
         setData("categories", values);
@@ -39,11 +155,34 @@ export default function SetupShop({ branchCategories }) {
 
     const submitForm = (e) => {
         e.preventDefault();
-        post("/shop/setup", { preserveScroll: true });
+        post("/shop/setup", {
+            preserveScroll: true,
+            forceFormData: true,
+            onSuccess: () => {
+                setIsSubmitted(true);
+                setCurrentStep(STEPS.SUCCESS);
+            },
+        });
+    };
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        if (currentStep === STEPS.SUMMARY) {
+            submitForm(e);
+        } else {
+            nextStep();
+        }
+    };
+
+    const nextStep = () => {
+        setCurrentStep((prev) => Math.min(prev + 1, 9));
+    };
+
+    const prevStep = () => {
+        setCurrentStep((prev) => Math.max(prev - 1, 0));
     };
 
     useEffect(() => {
-        // Retrieve the theme preference from local storage
         const savedTheme = localStorage.getItem("theme");
         if (savedTheme === "dark") {
             document.body.classList.add("dark");
@@ -61,6 +200,112 @@ export default function SetupShop({ branchCategories }) {
         }
         setIsDarkTheme(!isDarkTheme);
     };
+
+    const renderStepContent = () => {
+        switch (currentStep) {
+            case STEPS.SHOP_INFO:
+                return (
+                    <ShopInfo
+                        setData={setData}
+                        data={data}
+                        errors={errors}
+                        allFieldsFilled={allFieldsFilled}
+                        setAllFieldsFilled={setAllFieldsFilled}
+                    />
+                );
+            case STEPS.CATEGORIES:
+                return (
+                    <Categories
+                        data={data}
+                        handleCategoryChange={handleCategoryChange}
+                        categories={categories}
+                        allFieldsFilled={allFieldsFilled}
+                        setAllFieldsFilled={setAllFieldsFilled}
+                    />
+                );
+            case STEPS.CONTACT:
+                return (
+                    <Contact
+                        data={data}
+                        setData={setData}
+                        errors={errors}
+                        allFieldsFilled={allFieldsFilled}
+                        setAllFieldsFilled={setAllFieldsFilled}
+                    />
+                );
+            case STEPS.LOCATION:
+                return (
+                    <Location
+                        data={data}
+                        setData={setData}
+                        handleLocationChange={handleLocationChange}
+                        errors={errors}
+                        allFieldsFilled={allFieldsFilled}
+                        setAllFieldsFilled={setAllFieldsFilled}
+                    />
+                );
+            case STEPS.OPERATION_HOURS:
+                return (
+                    <OperationHours
+                        data={data}
+                        handleOperationHoursChange={handleOperationHoursChange}
+                        allFieldsFilled={allFieldsFilled}
+                        setAllFieldsFilled={setAllFieldsFilled}
+                    />
+                );
+            case STEPS.CATALOG:
+                return (
+                    <Catalog
+                        serviceCategories={serviceCategories}
+                        data={data}
+                        setData={setData}
+                        allFieldsFilled={allFieldsFilled}
+                        setAllFieldsFilled={setAllFieldsFilled}
+                    />
+                );
+            case STEPS.BUSINESS_PERMIT:
+                return (
+                    <BusinessPermit
+                        handlePermitImageChange={handlePermitImageChange}
+                        handleDtiRegistrationImageChange={
+                            handleDtiRegistrationImageChange
+                        }
+                        handleValidIdImageChange={handleValidIdImageChange}
+                        previewPermitImage={previewPermitImage}
+                        previewDtiRegistrationImage={
+                            previewDtiRegistrationImage
+                        }
+                        previewValidIdImage={previewValidIdImage}
+                        errors={errors}
+                        allFieldsFilled={allFieldsFilled}
+                        setAllFieldsFilled={setAllFieldsFilled}
+                        data={data}
+                    />
+                );
+            case STEPS.GALLERY:
+                return (
+                    <Gallery
+                        data={data}
+                        handleMainImageChange={handleMainImageChange}
+                        handleGalleryImagesChange={handleGalleryImagesChange}
+                        removeGalleryImage={removeGalleryImage}
+                        previewMainImage={previewMainImage}
+                        previewGalleryImages={previewGalleryImages}
+                        allFieldsFilled={allFieldsFilled}
+                        setAllFieldsFilled={setAllFieldsFilled}
+                        errors={errors}
+                    />
+                );
+            case STEPS.SUMMARY:
+                return <Summary data={data} categories={categories} />;
+            // return <Success />;
+            case STEPS.SUCCESS:
+                return <Success />;
+            default:
+                return null;
+        }
+    };
+
     return (
         <>
             <Head title="Shop Setup" />
@@ -76,123 +321,48 @@ export default function SetupShop({ branchCategories }) {
                                 Fill up your Shop's Information
                             </p>
                         </div>
-                        <form onSubmit={submitForm}>
-                            {/* Shop Name Field */}
-                            <div className="mb-4">
-                                <Label htmlFor="shop_name">Shop Name</Label>
-                                <Input
-                                    type="text"
-                                    id="shop_name"
-                                    name="shop_name"
-                                    value={data.shop_name}
-                                    onChange={(e) =>
-                                        setData("shop_name", e.target.value)
-                                    }
-                                    placeholder="Enter your Shop's Name"
+                        <form onSubmit={handleSubmit}>
+                            {currentStep !== STEPS.SUCCESS && (
+                                <StepIndicator
+                                    currentStep={currentStep}
+                                    totalSteps={9}
                                 />
-                                <InputError field="shop_name" errors={errors} />
-                            </div>
-                            {/* Category Name Field */}
-                            <div className="mb-4">
-                                <div className="mb-4">
-                                    <Label htmlFor="branch_category">
-                                        Category
-                                    </Label>
-                                    <p className="text-sm text-muted-foreground">
-                                        You can select multiple categories that
-                                        fit your shop.
-                                    </p>
-                                </div>
-                                <div>
-                                    <ToggleGroup
-                                        type="multiple"
-                                        size="lg"
+                            )}
+                            {renderStepContent()}
+                            {currentStep !== STEPS.SUCCESS && (
+                                <div className="mt-6 flex justify-between">
+                                    <Button
+                                        type="button"
                                         variant="outline"
-                                        className="justify-start gap-2"
-                                        value={data.categories} // Control the selected values
-                                        onValueChange={handleCategoryChange} // Handle changes
+                                        onClick={prevStep}
+                                        disabled={
+                                            currentStep === STEPS.SHOP_INFO
+                                        }
                                     >
-                                        {branchCategories.map((category) => (
-                                            <ToggleGroupItem
-                                                key={category.id}
-                                                value={category.id.toString()} // Use ID as value
-                                                aria-label={category.name}
-                                            >
-                                                {category.name}
-                                            </ToggleGroupItem>
-                                        ))}
-                                    </ToggleGroup>
+                                        Previous
+                                    </Button>
+                                    {currentStep === STEPS.SUMMARY ? (
+                                        <Button
+                                            type="button"
+                                            onClick={submitForm}
+                                            disabled={processing}
+                                            className="figtree-semibold"
+                                        >
+                                            {processing
+                                                ? "Submitting..."
+                                                : "Submit Application"}
+                                        </Button>
+                                    ) : (
+                                        <Button
+                                            type="submit"
+                                            className="figtree-semibold"
+                                            disabled={!allFieldsFilled}
+                                        >
+                                            Next
+                                        </Button>
+                                    )}
                                 </div>
-                            </div>
-                            <div className="flex items-center gap-2 flex-wrap mb-4">
-                                <div className="flex-1 min-w-72">
-                                    <div>
-                                        <Label htmlFor="email">
-                                            Business Email
-                                        </Label>
-                                        <Input
-                                            type="email"
-                                            id="email"
-                                            name="email"
-                                            value={data.email}
-                                            onChange={(e) =>
-                                                setData("email", e.target.value)
-                                            }
-                                            placeholder="Enter your Shop's email address"
-                                        />
-                                    </div>
-                                </div>
-                                <div className="flex-1 min-w-72">
-                                    <div>
-                                        <Label htmlFor="phone">
-                                            Phone Number
-                                        </Label>
-                                        <Input
-                                            type="tel"
-                                            id="phone"
-                                            name="phone"
-                                            value={data.phone}
-                                            onChange={(e) =>
-                                                setData("phone", e.target.value)
-                                            }
-                                            placeholder="Enter your Shop's phone number"
-                                        />
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="mb-4">
-                                <Label htmlFor="address">Address</Label>
-                                <LocationSelect
-                                    onLocationChange={handleLocationChange}
-                                />
-                                {/* for this to work u need to npm install select-philippines-address */}
-                            </div>
-                            <div className="mb-4">
-                                <Label htmlFor="detailed_address">
-                                    Detailed Address
-                                </Label>
-                                <Input
-                                    type="text"
-                                    id="detailed_address"
-                                    name="detailed_address"
-                                    value={data.detailed_address}
-                                    onChange={(e) =>
-                                        setData(
-                                            "detailed_address",
-                                            e.target.value
-                                        )
-                                    }
-                                    placeholder="Enter your Shop's detailed address"
-                                />
-                            </div>
-                            <div>
-                                <Button
-                                    type="submit"
-                                    className="figtree-semibold"
-                                >
-                                    Submit
-                                </Button>
-                            </div>
+                            )}
                         </form>
                     </div>
                 </div>

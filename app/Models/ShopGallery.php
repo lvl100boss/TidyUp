@@ -12,11 +12,11 @@ class ShopGallery extends Model
         'filename',
         'path',
         'url',
-        'branch_id'
+        'shop_id'
     ];
 
-    public function branch()
+    public function shop()
     {
-        return $this->belongsTo(ShopBranch::class);
+        return $this->belongsTo(Shop::class);
     }
 }
