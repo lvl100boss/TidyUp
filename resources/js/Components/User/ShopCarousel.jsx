@@ -12,6 +12,7 @@ import { Badge } from "../ui/badge";
 import { Link } from "@inertiajs/react";
 // this is the comment
 export default function ShopCarousel({ shops }) {
+    console.log(shops);
     return (
         <Carousel
             opts={{
@@ -48,6 +49,21 @@ export default function ShopCarousel({ shops }) {
                                     <h5 className="mt-2 figtree-medium text-sm md:font-normal">
                                         {shop.shop_name}
                                     </h5>
+                                </div>
+                            </div>
+                            <div>
+                                <div className="flex items-center gap-2 mt-2 flex-wrap">
+                                    {shop.shop_categories.map(
+                                        (category, index) => (
+                                            <Badge
+                                                key={index}
+                                                variant="secondary"
+                                                className={"text-nowrap"}
+                                            >
+                                                {category.categories.name}
+                                            </Badge>
+                                        )
+                                    )}
                                 </div>
                             </div>
                         </Link>

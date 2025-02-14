@@ -36,7 +36,9 @@ const ShopCard = ({ shop, isLoading }) => {
                             />
                         </AspectRatio>
                         {/* Empty badge container */}
-                        <Badge className={`absolute top-3 right-3`}></Badge>
+                        <Badge
+                            className={`absolute top-3 right-3 bg-white`}
+                        ></Badge>
                     </div>
 
                     {/* Shop Name Section */}

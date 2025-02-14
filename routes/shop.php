@@ -18,9 +18,9 @@ Route::get('/shop/catalog', function () {
 Route::get('/shop/profile', function () {
     return Inertia::render('Shops/ShopProfile');
 })->middleware(['auth', 'verified'])->name('shop.profile');
-Route::get('/shop/branches', function () {
-    return Inertia::render('Shops/ManageBranch');
-})->middleware(['auth', 'verified'])->name('shop.branches');
+Route::get('/shop/manage/staff', function () {
+    return Inertia::render('Shops/ManageStaff');
+})->middleware(['auth', 'verified'])->name('shop.manage.staff');
 
 // Shop SETUP
 Route::get('/shop/setup', [ShopController::class, 'create'])->middleware(['auth', 'verified'])->name('shop.setup');
