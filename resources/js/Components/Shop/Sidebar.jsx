@@ -24,7 +24,7 @@ const Sidebar = () => {
         { href: "/shop/appointments", label: "Appointments", icon: Calendar },
         { href: "/shop/profile", label: "Shop Profile", icon: Building2 },
         { href: "/shop/catalog", label: "Shop Catalog", icon: BookOpen },
-        { href: "/shop/branches", label: "Manage Branches", icon: Store },
+        { href: "/shop/manage/staff", label: "Manage Staffs", icon: Store },
     ];
 
     // const categoryLinks = [

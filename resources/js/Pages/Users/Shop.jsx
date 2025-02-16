@@ -70,79 +70,22 @@ const formatTime = (time) => {
     });
 };
 
-const getClosingTime = (operation_hours) => {
+const getClosingTime = (shop_operation_hours) => {
     const today = new Date().toLocaleString("en-US", { weekday: "long" });
 
-    const todaySchedule = operation_hours.find((day) => day.day === today);
+    const todaySchedule = shop_operation_hours.find(
+        (day) => day.day.charAt(0).toUpperCase() + day.day.slice(1) === today
+    );
 
     return todaySchedule && todaySchedule.is_open
-        ? formatTime(todaySchedule.closing_time)
+        ? formatTime(todaySchedule.close_time)
         : "Closed";
 };
 
-function SelectBranch(props) {
-    return (
-        <Select
-            onValueChange={(branchId) => {
-                router.visit(`/shop/${props.shop.id}/${branchId}`);
-            }}
-        >
-            <SelectTrigger className="w-full">
-                <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-                {props.shop.branches.map(
-                    (branch) =>
-                        (props.branch_name === branch.branch_name && (
-                            <SelectItem key={branch.id} disabled>
-                                {branch.branch_name}
-                            </SelectItem>
-                        )) || (
-                            <SelectItem value={branch.id} key={branch.id}>
-                                {branch.branch_name}
-                            </SelectItem>
-                        )
-                )}
-            </SelectContent>
-        </Select>
-    );
-}
-
-function MobileSelectBranch(props) {
-    return (
-        <DropdownMenu>
-            <DropdownMenuTrigger>
-                <RefreshCw size={18} className="" />
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-                {props.shop.branches.map(
-                    (branch) =>
-                        (props.branch.branch_name === branch.branch_name && (
-                            <DropdownMenuItem key={branch.id} disabled>
-                                {branch.branch_name}
-                            </DropdownMenuItem>
-                        )) || (
-                            <DropdownMenuItem
-                                key={branch.id}
-                                onClick={() => {
-                                    router.visit(
-                                        `/shop/${props.shop.id}/${branch.id}`
-                                    );
-                                }}
-                            >
-                                {branch.branch_name}
-                            </DropdownMenuItem>
-                        )
-                )}
-            </DropdownMenuContent>
-        </DropdownMenu>
-    );
-}
-
-function BookNowButton({ shop_id, branch_id }) {
+function BookNowButton({ shop_id }) {
     return (
         <Link
-            href={`/booking/${shop_id}/${branch_id}`}
+            href={`/booking/${shop_id}`}
             className={`${buttonVariants({
                 variant: "default",
             })} w-full rounded-sm mt-3 figtree-semibold `}
@@ -152,60 +95,47 @@ function BookNowButton({ shop_id, branch_id }) {
     );
 }
 
-export default function Shop({ shop, branch, branchServices, randomShops }) {
+export default function Shop({ shop, randomShops }) {
+    console.log(shop);
     const categories = [
         ...new Set(
-            branchServices.map(
-                (service) => service.service_category.category_name
-            )
+            shop?.shop_service_categories?.map(
+                (service) => service.service_categories?.name
+            ) || []
         ),
     ];
 
     const groupedServices = categories.map((category) => ({
         category,
-        services: branchServices.filter(
-            (service) => service.service_category.category_name === category
-        ),
+        services:
+            shop?.shop_service_categories?.filter(
+                (service) => service.service_categories?.name === category
+            ) || [],
     }));
 
     const [closingTime, setClosingTime] = useState("Loading...");
 
     useEffect(() => {
-        if (branch && branch.operation_hours) {
-            setClosingTime(getClosingTime(branch.operation_hours));
+        if (shop && shop?.shop_operation_hours) {
+            setClosingTime(getClosingTime(shop?.shop_operation_hours));
         }
-    }, [branch]);
+    }, [shop]);
 
-    console.log(branch);
     return (
         <UserLayout>
-            <Head title={shop.shop_name} />
+            <Head title={shop?.shop_name} />
             <div className="flex gap-5">
                 <div className="flex-1">
-                    <div className="mb-3 lg:hidden">
+                    <div className="mb-3 lg:hidden inline-flex gap-2 items-center">
                         <h1 className="figtree-semibold text-2xl">
-                            {shop.shop_name}
+                            {shop?.shop_name}
                         </h1>
-                        <div className="flex items-center justify-between">
-                            <div className="inline-flex gap-2 items-center">
-                                <div className="inline-flex gap-1 items-center">
-                                    <p className="text-sm">
-                                        {branch.branch_name}
-                                    </p>
-                                </div>
-
-                                <Badge className="bg-green-300 pointer-events-none text-foreground dark:text-background">
-                                    {branch.availability}
-                                </Badge>
-                                <MobileSelectBranch
-                                    shop={shop}
-                                    branch={branch}
-                                ></MobileSelectBranch>
-                            </div>
-                        </div>
+                        <Badge className="bg-green-300 pointer-events-none text-foreground dark:text-background">
+                            {shop?.availability === 1 ? "Open" : "Closed"}
+                        </Badge>
                     </div>
                     <div className="mb-3">
-                        <ShopGallery branch={branch} />
+                        <ShopGallery shop={shop} />
                     </div>
 
                     <div className="mb-3">
@@ -236,12 +166,12 @@ export default function Shop({ shop, branch, branchServices, randomShops }) {
                                         {services.map((service) => (
                                             <li
                                                 key={service.id}
-                                                className="p-2 flex justify-between items-center"
+                                                className="p-2 flex justify-between items-center group hover:bg-muted/50 rounded-md"
                                             >
                                                 <div className="inline-flex items-center gap-2">
                                                     <Component size={20} />
                                                     <div>
-                                                        <p className="underline">
+                                                        <p className="group-hover:underline group:hover">
                                                             <strong>
                                                                 {
                                                                     service.service_name
@@ -265,7 +195,7 @@ export default function Shop({ shop, branch, branchServices, randomShops }) {
                     </div>
                     <div className="my-10">
                         <div className="figtree-bold text-2xl mb-3">
-                            Branch Details
+                            Shop Details
                         </div>
                         <div className="space-y-2">
                             <div className="">
@@ -280,7 +210,7 @@ export default function Shop({ shop, branch, branchServices, randomShops }) {
                                         </h1>
                                     </div>
                                     <p className="figtree-light text-muted-foreground text-sm mt-1">
-                                        {branch.detailed_address}
+                                        {shop?.detailed_address}
                                     </p>
                                 </div>
                             </div>
@@ -296,7 +226,7 @@ export default function Shop({ shop, branch, branchServices, randomShops }) {
                                         </h1>
                                     </div>
                                     <p className="figtree-light text-muted-foreground text-sm mt-1">
-                                        {branch.contact_number}
+                                        {shop?.contact_number}
                                     </p>
                                 </div>
                             </div>
@@ -312,16 +242,13 @@ export default function Shop({ shop, branch, branchServices, randomShops }) {
                                         </h1>
                                     </div>
                                     <p className="figtree-light text-muted-foreground text-sm mt-1">
-                                        {branch.email}
+                                        {shop?.email}
                                     </p>
                                 </div>
                             </div>
                         </div>
                         <div className="mb-3 lg:hidden">
-                            <BookNowButton
-                                shop_id={shop.id}
-                                branch_id={branch.id}
-                            />
+                            <BookNowButton shop_id={shop?.id} />
                         </div>
                     </div>
                 </div>
@@ -329,32 +256,16 @@ export default function Shop({ shop, branch, branchServices, randomShops }) {
                     <div className="border p-5 rounded-md sticky top-5">
                         <div className="mb-3">
                             <h1 className="figtree-semibold text-2xl">
-                                {shop.shop_name}
+                                {shop?.shop_name}
                             </h1>
-                            <div className="inline-flex gap-2 items-center">
-                                <p className="text-sm">{branch.branch_name}</p>
-                                <Badge className="bg-green-300 text-foreground dark:text-background">
-                                    {branch.availability}
-                                </Badge>
-                            </div>
                         </div>
                         <div>
-                            <p className="text-center text-xs text-muted-foreground italic opacity-0 pointer-events-none">
-                                "Make Sure to Check the Other Branches Too!"
+                            <p className="text-center text-xs text-muted-foreground italic pointer-events-none">
+                                {shop?.bio}
                             </p>
                         </div>
-                        <Label className="mt-3 figtree-semibold">
-                            Select Branches
-                        </Label>
-                        <SelectBranch
-                            shop={shop}
-                            branch={branch}
-                            branch_name={branch.branch_name}
-                        ></SelectBranch>
-                        <BookNowButton
-                            shop_id={shop.id}
-                            branch_id={branch.id}
-                        />
+
+                        <BookNowButton shop_id={shop?.id} />
                         <Separator className="my-5" />
                         <div className="space-y-3">
                             <Dialog>
@@ -394,7 +305,7 @@ export default function Shop({ shop, branch, branchServices, randomShops }) {
                                                 </DialogDescription>
                                             </div>
                                             <div className="mt-3 space-y-3">
-                                                {branch.operation_hours.map(
+                                                {shop?.shop_operation_hours.map(
                                                     (day) => (
                                                         <div
                                                             key={day.day}
@@ -408,7 +319,6 @@ export default function Shop({ shop, branch, branchServices, randomShops }) {
                                                                                 day.is_open
                                                                                     ? "default"
                                                                                     : "secondary",
-                                                                            // size: "icon",
                                                                         }
                                                                     )}`}
                                                                 >
@@ -423,9 +333,9 @@ export default function Shop({ shop, branch, branchServices, randomShops }) {
                                                             >
                                                                 {day.is_open
                                                                     ? `${formatTime(
-                                                                          day.opening_time
+                                                                          day.open_time
                                                                       )} - ${formatTime(
-                                                                          day.closing_time
+                                                                          day.close_time
                                                                       )}`
                                                                     : "Closed"}
                                                             </div>
@@ -466,12 +376,12 @@ export default function Shop({ shop, branch, branchServices, randomShops }) {
                                             </Label>
                                             <Input
                                                 id="link"
-                                                defaultValue={`https://127.0.0.1:8000/shop/${shop.id}/${branch.id}`}
+                                                defaultValue={`https://127.0.0.1:8000/shop/${shop?.id}`}
                                                 readOnly
                                             />
                                         </div>
                                         <CopyButton
-                                            textToCopy={`127.0.0.1:8000/shop/${shop.id}/${branch.id}`}
+                                            textToCopy={`127.0.0.1:8000/shop/${shop?.id}`}
                                         />
                                     </div>
                                     <DialogFooter className="sm:justify-start">
