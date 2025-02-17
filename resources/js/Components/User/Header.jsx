@@ -112,7 +112,7 @@ const Header = ({ onClick, isDarkTheme }) => {
                                         </DropdownMenuItem>
                                     </Link>
                                 ) : (
-                                    <Link href={route("shop.setup")}>
+                                    <Link href={`/shop/setup`}>
                                         <DropdownMenuItem>
                                             Setup Your Shop
                                         </DropdownMenuItem>

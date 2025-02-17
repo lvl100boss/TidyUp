@@ -10,8 +10,9 @@ import {
 import ShopCard from "@/components/User/ShopCard";
 import { Badge } from "../ui/badge";
 import { Link } from "@inertiajs/react";
-
+// this is the comment
 export default function ShopCarousel({ shops }) {
+    console.log(shops);
     return (
         <Carousel
             opts={{
@@ -34,11 +35,11 @@ export default function ShopCarousel({ shops }) {
                         key={index}
                         className="basis-[80%] sm:basis-1/2 md:basis-1/3 lg:basis-1/4 xl:basis-1/5 "
                     >
-                        <Link href={`/shop/${shop.id}/${shop.branches[0].id}`}>
+                        <Link href={`/${shop.id}/shop`}>
                             <div className="">
                                 <div className="aspect-video relative">
                                     <img
-                                        src={shop.branches[0]?.gallery[0]?.url}
+                                        src={`/${shop.shop_photo}`}
                                         alt=""
                                         className="w-full h-full object-cover rounded-md"
                                     />
@@ -48,6 +49,21 @@ export default function ShopCarousel({ shops }) {
                                     <h5 className="mt-2 figtree-medium text-sm md:font-normal">
                                         {shop.shop_name}
                                     </h5>
+                                </div>
+                            </div>
+                            <div>
+                                <div className="flex items-center gap-2 mt-2 flex-wrap">
+                                    {shop.shop_categories.map(
+                                        (category, index) => (
+                                            <Badge
+                                                key={index}
+                                                variant="secondary"
+                                                className={"text-nowrap"}
+                                            >
+                                                {category.categories.name}
+                                            </Badge>
+                                        )
+                                    )}
                                 </div>
                             </div>
                         </Link>

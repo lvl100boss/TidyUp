@@ -7,18 +7,18 @@ import {
 } from "@/Components/ui/carousel";
 import { AspectRatio } from "@/Components/ui/aspect-ratio";
 
-export default function ShopGallery({ branch }) {
+export default function ShopGallery({ shop }) {
     return (
         <div className="-mx-5 sm:mx-0">
             <Carousel>
                 <div className="relative">
                     <CarouselContent>
-                        {branch.gallery.map((image, index) => (
+                        {shop?.shop_gallery.map((image, index) => (
                             <CarouselItem key={index}>
                                 <div className="bg-muted  aspect-video  sm:rounded-md overflow-hidden">
                                     <img
-                                        src={`${image.url}`}
-                                        alt={`${branch.branch_name} Photo ${
+                                        src={`/${image.url}`}
+                                        alt={`${shop.shop_name} Photo ${
                                             index + 1
                                         }`}
                                         className="w-full h-full object-cover object-center"

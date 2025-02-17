@@ -7,14 +7,14 @@ use Illuminate\Database\Eloquent\Model;
 class OperationHours extends Model
 {
     //
-    protected $table = 'operation_hours';
+    protected $table = 'shop_operation_hours';
 
     protected $fillable = [
-        'branch_id',
+        'shop_id',
         'day',
         'is_open',
-        'opening_time',
-        'closing_time'
+        'open_time',
+        'close_time'
     ];
 
     public function branch()

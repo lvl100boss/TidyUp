@@ -101,6 +101,7 @@ const PhilippineAddressSelect = ({ onLocationChange }) => {
             },
         });
     }, [selectedRegion, selectedProvince, selectedCity, selectedBarangay]);
+
     return (
         <div className="flex flex-col space-y-4">
             <Select value={selectedRegion} onValueChange={handleRegionChange}>
