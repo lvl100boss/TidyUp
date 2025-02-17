@@ -1,5 +1,5 @@
 import { Button, buttonVariants } from "@/Components/ui/button";
-import { Link, usePage } from "@inertiajs/react"; // Add usePage import
+import { Head, Link, usePage } from "@inertiajs/react"; // Add usePage import
 import {
     Calendar,
     Store,
@@ -24,7 +24,7 @@ const Sidebar = () => {
         { href: "/shop/appointments", label: "Appointments", icon: Calendar },
         { href: "/shop/profile", label: "Shop Profile", icon: Building2 },
         { href: "/shop/catalog", label: "Shop Catalog", icon: BookOpen },
-        { href: "/shop/branches", label: "Branches", icon: Store },
+        { href: "/shop/manage/staff", label: "Manage Staffs", icon: Store },
     ];
 
     // const categoryLinks = [
