@@ -62,8 +62,13 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(Appointments::class); // Each user has many appointments
     }
 
-    public function shopAccount()
+    public function shop()
     {
-        return $this->hasOne(ShopAccount::class, 'shop_owner_id'); // Each user has one shop account
+        return $this->hasOne(Shop::class); // Each user has one shop
+    }
+
+    public function shopStaffs()
+    {
+        return $this->belongsTo(ShopStaffs::class, 'staff_id'); // Each user has many shop staffs
     }
 }

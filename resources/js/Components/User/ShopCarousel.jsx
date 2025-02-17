@@ -39,7 +39,7 @@ export default function ShopCarousel({ shops }) {
                             <div className="">
                                 <div className="aspect-video relative">
                                     <img
-                                        src={`/${shop.shop_photo}`}
+                                        src={`/${shop.shop_gallery[0].url}`}
                                         alt=""
                                         className="w-full h-full object-cover rounded-md"
                                     />

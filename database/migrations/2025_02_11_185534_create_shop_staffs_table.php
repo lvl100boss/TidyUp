@@ -15,9 +15,15 @@ return new class extends Migration
             $table->id();
             $table->foreignId('shop_id')->constrained()->onDelete('cascade');
             $table->foreignId('staff_id')->constrained('users')->onDelete('cascade');
-            $table->enum('role', ['owner', 'staff'])->default('staff');
+            $table->string('role');
+            $table->enum('position', ['owner', 'staff'])->default('staff');
+            $table->boolean('is_active')->default(true);
+            $table->timestamp('started_at')->nullable(); // Added started_at timestamp
+            $table->timestamp('ended_at')->nullable(); // Added ended_at timestamp
             $table->timestamps();
             $table->unique(['shop_id', 'staff_id']); // Ensure unique combination of shop and staff
+            $table->index(['shop_id', 'staff_id']); // Added index for better performance on shop_id and staff_id
+            $table->softDeletes(); // Added soft deletes
         });
     }
 

@@ -1,6 +1,6 @@
 import UserLayout from "@/Layouts/UserLayout";
 import React, { useState, useEffect } from "react";
-import { Head } from "@inertiajs/react";
+import { Head, Link } from "@inertiajs/react";
 import {
     Card,
     CardContent,
@@ -16,7 +16,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { StarIcon, MapPinIcon, PhoneIcon } from "lucide-react";
 
@@ -46,8 +46,8 @@ export default function Discover({ shopss, categoriess }) {
         () =>
             shopss.map((shop) => ({
                 id: shop.id,
+                image: shop.shop_gallery[0].url,
                 name: shop.shop_name,
-                image: shop.shop_photo,
                 rating: 4.8, // You might want to replace this with actual rating from data
                 reviews: 256, // You might want to replace this with actual reviews count
                 category: "Salon", // You might want to get this from shop data
@@ -104,7 +104,7 @@ export default function Discover({ shopss, categoriess }) {
     return (
         <UserLayout>
             <Head title="Explore" />
-            <div className="container mx-auto p-6 space-y-6">
+            <div className=" space-y-6">
                 {/* Header */}
                 <div className="flex flex-col gap-4">
                     <h1 className="text-3xl font-bold">Discover Services</h1>
@@ -169,7 +169,7 @@ export default function Discover({ shopss, categoriess }) {
                             <Card className="overflow-hidden">
                                 <div className="aspect-video relative overflow-hidden">
                                     <img
-                                        src={shop.image}
+                                        src={`/${shop.image}`}
                                         alt={shop.name}
                                         className="object-cover w-full h-full transition-transform hover:scale-105"
                                     />
@@ -206,11 +206,14 @@ export default function Discover({ shopss, categoriess }) {
                                     </div>
                                 </CardContent>
                                 <CardFooter>
-                                    <Button asChild className="w-full">
-                                        <a href={`/shops/${shop.id}`}>
-                                            View Details
-                                        </a>
-                                    </Button>
+                                    <Link
+                                        href={`/${shop.id}/shop`}
+                                        className={`w-full  ${buttonVariants({
+                                            variant: "default",
+                                        })} figtree-semibold`}
+                                    >
+                                        View Shop
+                                    </Link>
                                 </CardFooter>
                             </Card>
                         </div>

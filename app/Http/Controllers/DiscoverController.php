@@ -13,7 +13,7 @@ class DiscoverController extends Controller
     //
     public function index()
     {
-        $shops = Shop::all();
+        $shops = Shop::with('shopGallery')->get();
         $categoriess = Categories::all();
 
         return Inertia::render(

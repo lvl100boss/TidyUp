@@ -32,7 +32,7 @@ const Summary = ({ data, categories }) => {
                 </div>
 
                 <div className="border-t pt-4">
-                    <h3 className="font-semibold mb-2">Categories</h3>
+                    <h3 className="font-semibold mb-2">Shop Categories</h3>
                     <div className="flex flex-wrap gap-2">
                         {data.categories.map((category, index) => (
                             <Badge key={index} variant={"secondary"}>

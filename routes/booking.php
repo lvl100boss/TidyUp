@@ -4,9 +4,9 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Http\Controllers\BookingController;
 
-Route::get('/booking/{shop_id}/{branch_id}', [BookingController::class, 'show'])
-    ->name('booking.show')
-    ->where(['shop_id' => '[0-9]+', 'branch_id' => '[0-9]+']);
-
-Route::post('/booking/submit', [BookingController::class, 'store'])
-    ->name('booking.store');
+Route::middleware(['auth'])->group(function () {
+    Route::get('/{shop}/booking', [BookingController::class, 'index'])->name('booking.index');
+    Route::get('/{shop}/booking/time-slots', [BookingController::class, 'getAvailableTimeSlots'])->name('booking.time-slots');
+    Route::get('/{shop}/booking/services', [BookingController::class, 'getServices'])->name('booking.services');
+    Route::post('/{shop}/booking', [BookingController::class, 'createBooking'])->name('booking.store');
+});
