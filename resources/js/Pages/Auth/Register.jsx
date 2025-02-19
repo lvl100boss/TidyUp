@@ -197,22 +197,7 @@ export default function Register() {
                         className="mb-1"
                         onChange={(e) => setData("password", e.target.value)}
                     />
-                    <Progress
-                        value={passwordStrength}
-                        className={
-                            passwordStrength === 0
-                                ? "bg-red-500 [&>*]"
-                                : passwordStrength === 25
-                                ? "bg-red-500 [&>*]"
-                                : passwordStrength === 50
-                                ? "bg-orange-500 [&>*]"
-                                : passwordStrength === 75
-                                ? "bg-yellow-500 [&>*]"
-                                : passwordStrength === 100
-                                ? "bg-green-500 [&>*]"
-                                : ""
-                        }
-                    />
+                    <Progress value={passwordStrength} />
 
                     <InputError message={errors.password} className="mt-2" />
                 </div>

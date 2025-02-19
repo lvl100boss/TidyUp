@@ -29,9 +29,14 @@ class ProfileController extends Controller
      */
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
+        // dd($request->validated());
         $user = $request->user();
-        // Update user data
-        $user->fill($request->validated());
+        $user->first_name = $request->validated()['first_name'];
+        $user->last_name = $request->validated()['last_name'];
+        $user->email = $request->validated()['email'];
+        $user->contact_number = $request->validated()['contact_number'];
+        $user->gender = $request->validated()['gender'];
+        $user->date_of_birth = $request->validated()['date_of_birth'];
 
         // Handle profile photo upload
         if ($request->hasFile('profile_photo_path')) {

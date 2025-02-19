@@ -12,9 +12,8 @@ class AppointmentController extends Controller
     public function index()
     {
         $user = Auth::user();
-        $userAppointments = User::with(['appointments.branch.gallery', 'appointments.shop'])
-            ->where('id', $user->id)
-            ->first();
+        $userAppointments = User::with('appointments.shop.shopGallery')->find($user->id);
+
         // Convert collections to arrays
         $pendingAppointments = $userAppointments->appointments->where('status', 'pending')->where('is_successful', true)->values()->all();
         $upcomingAppointments = $userAppointments->appointments->where('status', 'upcoming')->where('is_successful', true)->values()->all();

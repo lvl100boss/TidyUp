@@ -186,12 +186,12 @@ export default function Shop({ shop, randomShops }) {
                                             </Label>
                                             <Input
                                                 id="link"
-                                                defaultValue={`https://127.0.0.1:8000/shop/${shop?.id}`}
+                                                defaultValue={`https://127.0.0.1:8000/${shop?.id}/shop`}
                                                 readOnly
                                             />
                                         </div>
                                         <CopyButton
-                                            textToCopy={`127.0.0.1:8000/shop/${shop?.id}`}
+                                            textToCopy={`127.0.0.1:8000/${shop?.id}/shop`}
                                         />
                                     </div>
                                     <DialogFooter className="sm:justify-start">

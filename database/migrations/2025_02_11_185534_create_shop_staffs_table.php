@@ -16,7 +16,7 @@ return new class extends Migration
             $table->foreignId('shop_id')->constrained()->onDelete('cascade');
             $table->foreignId('staff_id')->constrained('users')->onDelete('cascade');
             $table->string('role');
-            $table->enum('position', ['owner', 'staff'])->default('staff');
+            $table->enum('position', ['owner', 'staff', 'manager'])->default('staff');
             $table->boolean('is_active')->default(true);
             $table->timestamp('started_at')->nullable(); // Added started_at timestamp
             $table->timestamp('ended_at')->nullable(); // Added ended_at timestamp
