@@ -33,14 +33,24 @@ class ManageStaffController extends Controller
 
     public function create()
     {
-        return Inertia::render('Shops/CreateStaff');
+        $user_id = Auth::user()->id;
+        $shop = Shop::with('staffs.staff')->where('user_id', $user_id)->first();
+        $staffs = $shop->staffs;
+        $currentStaff = $staffs->where('staff_id', $user_id)->first();
+        $isOwner = $currentStaff->position === 'owner';
+        return Inertia::render(
+            'Shops/CreateStaff',
+            [
+                'isOwner' => $isOwner,
+            ]
+        );
     }
 
     public function store(Request $request)
     {
         $validated = $request->validate([
             'role' => ['required', 'string', 'max:255'],
-            'position' => ['required', 'string', Rule::in(['staff', 'manager'])],
+            'position' => ['required', 'string', Rule::in(['staff', 'manager', 'owner'])],
             'first_name' => ['required', 'string', 'max:255'],
             'last_name' => ['required', 'string', 'max:255'],
             'username' => ['required', 'string', 'max:255', 'unique:users,username'],
@@ -118,6 +128,12 @@ class ManageStaffController extends Controller
             abort(403);
         }
 
+        $user_id = Auth::user()->id;
+        $shop = Shop::with('staffs.staff')->where('user_id', $user_id)->first();
+        $staffs = $shop->staffs;
+        $currentStaff = $staffs->where('staff_id', $user_id)->first();
+        $isOwner = $currentStaff->position === 'owner';
+
         return Inertia::render('Shops/EditsStaff', [
             'staff' => [
                 'id' => $staff->id,
@@ -130,7 +146,8 @@ class ManageStaffController extends Controller
                 'date_of_birth' => $staff->staff->date_of_birth,
                 'gender' => $staff->staff->gender,
                 'is_active' => $staff->is_active,
-            ]
+            ],
+            'isOwner' => $isOwner,
         ]);
     }
 
@@ -139,7 +156,7 @@ class ManageStaffController extends Controller
         $staff = ShopStaffs::with('staff')->findOrFail($id);
         $validated = $request->validate([
             'role' => ['required', 'string', 'max:255'],
-            'position' => ['required', 'string', Rule::in(['staff', 'manager'])],
+            'position' => ['required', 'string', Rule::in(['staff', 'manager', 'owner'])],
             'first_name' => ['required', 'string', 'max:255'],
             'last_name' => ['required', 'string', 'max:255'],
             'username' => ['required', 'string', 'max:255', Rule::unique('users', 'username')->ignore($staff->staff->id)],

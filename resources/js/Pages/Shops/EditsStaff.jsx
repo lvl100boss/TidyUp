@@ -21,7 +21,7 @@ import InputError from "@/Components/InputError";
 import { Info } from "lucide-react";
 import { useState, useEffect } from "react";
 
-export default function EditsStaff({ staff }) {
+export default function EditsStaff({ staff, isOwner }) {
     const { data, setData, put, processing, errors } = useForm({
         role: staff.role || "",
         position: staff.position || "",
@@ -111,18 +111,36 @@ export default function EditsStaff({ staff }) {
                     {/* Position Field */}
                     <div>
                         <Label htmlFor="position" className="font-bold">Position</Label>
-                        <Select
-                            value={data.position}
-                            onValueChange={(value) => setData('position', value)}
-                        >
-                            <SelectTrigger id="position">
-                                <SelectValue placeholder="Select Position" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="manager">Manager</SelectItem>
-                                <SelectItem value="staff">Staff</SelectItem>
-                            </SelectContent>
-                        </Select>
+                        {isOwner && (
+                            <Select
+                                value={data.position}
+                                onValueChange={(value) => setData('position', value)}
+                            >
+                                <SelectTrigger id="position">
+                                    <SelectValue placeholder="Select Position" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="owner">Owner</SelectItem>
+                                    <SelectItem value="manager">Manager</SelectItem>
+                                    <SelectItem value="staff">Staff</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        )}
+                        {!isOwner && (
+                            <Select
+                                value={"staff"}
+                                onValueChange={(value) => setData('position', value)}
+                                disabled
+                            >
+                                <SelectTrigger id="position">
+                                    <SelectValue placeholder="Select Position" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="staff">Staff</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        )}
+
                         <InputError message={errors.position} />
                     </div>
                     {/* Role Field */}

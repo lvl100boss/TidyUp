@@ -21,7 +21,7 @@ import InputError from "@/Components/InputError";
 import { Info } from "lucide-react";
 import { useState, useEffect } from "react";
 
-export default function CreateStaff() {
+export default function CreateStaff({ isOwner }) {
     const { data, setData, post, processing, errors, reset } = useForm({
         role: "",
         position: "",
@@ -117,7 +117,12 @@ export default function CreateStaff() {
                                 <SelectValue placeholder="Select Position" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="manager">Manager</SelectItem>
+                                {isOwner && (
+                                    <>
+                                        <SelectItem value="owner">Owner</SelectItem>
+                                        <SelectItem value="manager">Manager</SelectItem>
+                                    </>
+                                )}
                                 <SelectItem value="staff">Staff</SelectItem>
                             </SelectContent>
                         </Select>

@@ -162,18 +162,19 @@ export default function ManageStaff({ staffs, shop, isOwner }) {
                                                             </Link>
                                                         )
                                                     }
-
-                                                    <DeleteStaffModal
-                                                        staff={member}
-                                                        shopId={shop.id}
-                                                        trigger={
-                                                            <DropdownMenuItem
-                                                                onSelect={(e) => { e.preventDefault() }}
-                                                            >
-                                                                <span className="text-red-500 group-hover:text-red-500">Delete</span>
-                                                            </DropdownMenuItem>
-                                                        }
-                                                    />
+                                                    {isOwner && (
+                                                        <DeleteStaffModal
+                                                            staff={member}
+                                                            shopId={shop.id}
+                                                            trigger={
+                                                                <DropdownMenuItem
+                                                                    onSelect={(e) => { e.preventDefault() }}
+                                                                >
+                                                                    <span className="text-red-500 group-hover:text-red-500">Delete</span>
+                                                                </DropdownMenuItem>
+                                                            }
+                                                        />
+                                                    )}
                                                 </DropdownMenuContent>
                                             </DropdownMenu>
                                         </div>
