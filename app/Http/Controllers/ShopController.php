@@ -12,6 +12,7 @@ use App\Models\ShopCategory;
 use App\Models\ShopGallery;
 use App\Models\ShopLegalDocument;
 use App\Models\ShopServiceCategories;
+use App\Models\ShopStaffs;
 use App\Models\User;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
@@ -111,6 +112,14 @@ class ShopController extends Controller
         $authenticatedUser = User::find(Auth::id());
         $authenticatedUser->userRole()->update([
             'role_id' => 3
+        ]);
+
+        ShopStaffs::create([
+            'shop_id' => $shop->id,
+            'staff_id' => $userID,
+            'role' => 'Shop Owner',
+            'position' => 'owner',
+            'is_active' => true,
         ]);
 
         return redirect()->route('home');

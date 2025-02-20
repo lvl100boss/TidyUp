@@ -14,18 +14,18 @@ import {
     MapPin,
     Phone,
     Mail,
-    Clock,
     Instagram,
     Facebook,
     Globe,
-    Camera,
     Users,
     Scissors,
-    Calendar,
 } from "lucide-react";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+
+import ShopGalleryCard from "@/Components/Shop/ShopProfile/ShopGalleryCard";
+
 const ShopProfile = ({ shop }) => {
     // Sample shop data structure
+    console.log(shop);
     const sampleShop = {
         id: 1,
         name: "Glamour Salon & Spa",
@@ -90,7 +90,7 @@ const ShopProfile = ({ shop }) => {
         <ShopsLayout>
             <Head title="Shop Profile" />
 
-            <div className="flex-1 space-y-4 md:p-8 pt-6">
+            <div className="flex-1 space-y-4">
                 {/* Header Section */}
                 <div className="flex flex-col md:flex-row gap-6 items-start">
                     <div className="w-full md:w-2/3 space-y-4">
@@ -98,13 +98,16 @@ const ShopProfile = ({ shop }) => {
                             <CardContent className="p-6">
                                 <div className="flex items-start gap-4">
                                     <Avatar className="w-24 h-24">
-                                        <AvatarImage src="/shop-avatar.jpg" />
+                                        <AvatarImage
+                                            src={`/${shop.shop_photo}`}
+                                            className="object-cover"
+                                        />
                                         <AvatarFallback>GS</AvatarFallback>
                                     </Avatar>
                                     <div className="space-y-2">
                                         <div className="space-y-1">
                                             <h2 className="text-2xl font-bold">
-                                                {sampleShop.name}
+                                                {shop.shop_name}
                                             </h2>
                                             <div className="flex items-center gap-2">
                                                 <Badge variant="secondary">
@@ -118,7 +121,7 @@ const ShopProfile = ({ shop }) => {
                                             </div>
                                         </div>
                                         <p className="text-muted-foreground">
-                                            {sampleShop.description}
+                                            {shop.bio}
                                         </p>
                                     </div>
                                 </div>
@@ -198,8 +201,6 @@ const ShopProfile = ({ shop }) => {
                             </CardContent>
                         </Card>
                     </div>
-
-                    {/* Sidebar Information */}
                     <div className="w-full md:w-1/3 space-y-4">
                         <Card>
                             <CardHeader>
@@ -209,20 +210,18 @@ const ShopProfile = ({ shop }) => {
                                 <div className="flex items-center gap-2">
                                     <MapPin className="h-4 w-4 text-muted-foreground" />
                                     <p className="text-sm">
-                                        {sampleShop.address}
+                                        {shop.detailed_address}
                                     </p>
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <Phone className="h-4 w-4 text-muted-foreground" />
                                     <p className="text-sm">
-                                        {sampleShop.phone}
+                                        {shop.contact_number}
                                     </p>
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <Mail className="h-4 w-4 text-muted-foreground" />
-                                    <p className="text-sm">
-                                        {sampleShop.email}
-                                    </p>
+                                    <p className="text-sm">{shop.email}</p>
                                 </div>
                             </CardContent>
                         </Card>
@@ -232,19 +231,33 @@ const ShopProfile = ({ shop }) => {
                                 <CardTitle>Business Hours</CardTitle>
                             </CardHeader>
                             <CardContent className="space-y-2">
-                                {Object.entries(sampleShop.openingHours).map(
-                                    ([day, hours]) => (
-                                        <div
-                                            key={day}
-                                            className="flex justify-between text-sm"
-                                        >
-                                            <span className="capitalize">
-                                                {day}
-                                            </span>
-                                            <span>{hours}</span>
-                                        </div>
-                                    )
-                                )}
+                                {shop.shop_operation_hours.map((hours) => (
+                                    <div
+                                        key={hours.day}
+                                        className="flex justify-between text-sm"
+                                    >
+                                        <span className="capitalize">
+                                            {hours.day}
+                                        </span>
+                                        <span>
+                                            {hours.is_open
+                                                ? `${new Date(
+                                                      `1970-01-01T${hours.open_time}Z`
+                                                  ).toLocaleTimeString([], {
+                                                      hour: "2-digit",
+                                                      minute: "2-digit",
+                                                      hour12: true,
+                                                  })} - ${new Date(
+                                                      `1970-01-01T${hours.close_time}Z`
+                                                  ).toLocaleTimeString([], {
+                                                      hour: "2-digit",
+                                                      minute: "2-digit",
+                                                      hour12: true,
+                                                  })}`
+                                                : "Closed"}
+                                        </span>
+                                    </div>
+                                ))}
                             </CardContent>
                         </Card>
 
@@ -275,42 +288,8 @@ const ShopProfile = ({ shop }) => {
                         </Card>
                     </div>
                 </div>
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                            <Camera className="h-5 w-5" />
-                            Gallery
-                        </CardTitle>
-                        <CardDescription>
-                            Browse our salon's portfolio and facilities
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                            {[1, 2, 3, 4, 5, 6, 8].map((id) => (
-                                <Dialog key={id}>
-                                    <DialogTrigger asChild>
-                                        <div className="aspect-square cursor-pointer relative group overflow-hidden rounded-lg">
-                                            <img
-                                                src={`https://source.unsplash.com/random/800x800?salon,${id}`}
-                                                alt={`Gallery image ${id}`}
-                                                className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-110"
-                                            />
-                                            <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity" />
-                                        </div>
-                                    </DialogTrigger>
-                                    <DialogContent className="max-w-3xl">
-                                        <img
-                                            src={`https://source.unsplash.com/random/1200x800?salon,${id}`}
-                                            alt={`Gallery image ${id}`}
-                                            className="w-full h-auto rounded-lg"
-                                        />
-                                    </DialogContent>
-                                </Dialog>
-                            ))}
-                        </div>
-                    </CardContent>
-                </Card>
+                {/* Shop Gallery */}
+                <ShopGalleryCard shop_gallery={shop.shop_gallery} />
             </div>
         </ShopsLayout>
     );

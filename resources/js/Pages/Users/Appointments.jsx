@@ -21,6 +21,7 @@ export default function Appointments({
     declinedAppointments,
     startedAppointments,
 }) {
+    console.log(pendingAppointments);
     const [activeTab, setActiveTab] = useState("upcoming");
 
     const appointmentTypes = [
@@ -49,23 +50,25 @@ export default function Appointments({
         return (
             <TabsContent value={type} className="grid gap-5 mt-0 w-full">
                 {appointments && appointments.length > 0 ? (
-                    appointments.map((appointment) => (
-                        <AppointmentCard
-                            key={appointment.id}
-                            appointment={appointment}
-                        />
-                    ))
+                    appointments
+                        .filter(
+                            (appointment) =>
+                                new Date(appointment.created_at) <= new Date()
+                        )
+                        .map((appointment) => (
+                            <AppointmentCard
+                                key={appointment.id}
+                                appointment={appointment}
+                            />
+                        ))
                 ) : (
-                    <>
-                        <div>
-                            <ApplicationLogo className="size-48 mx-auto mb-1 opacity-40 dark:invert" />
-                            <p className="text-center font-bold text-2xl opacity-40">
-                                No{" "}
-                                {type.charAt(0).toUpperCase() + type.slice(1)}{" "}
-                                appointments
-                            </p>
-                        </div>
-                    </>
+                    <div>
+                        <ApplicationLogo className="size-48 mx-auto mb-1 opacity-40 dark:invert" />
+                        <p className="text-center font-bold text-2xl opacity-40">
+                            No {type.charAt(0).toUpperCase() + type.slice(1)}{" "}
+                            appointments
+                        </p>
+                    </div>
                 )}
             </TabsContent>
         );
@@ -86,6 +89,7 @@ export default function Appointments({
                 <div className="sm:hidden w-full">
                     <Select
                         value={activeTab}
+                        qqq
                         onValueChange={setActiveTab}
                         className="w-full "
                     >
@@ -114,7 +118,9 @@ export default function Appointments({
                     </TabsList>
                 </div>
 
-                {appointmentTypes.map((type) => getAppointmentContent(type))}
+                {appointmentTypes.map((type) => (
+                    <div key={type}>{getAppointmentContent(type)}</div>
+                ))}
             </Tabs>
         </UserLayout>
     );

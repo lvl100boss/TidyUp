@@ -8,6 +8,13 @@ import { Label } from "@/Components/ui/label";
 import { Transition } from "@headlessui/react";
 import { Link, useForm, usePage } from "@inertiajs/react";
 import { User } from "lucide-react";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
 
 export default function UpdateProfileInformation({
     mustVerifyEmail,
@@ -23,6 +30,8 @@ export default function UpdateProfileInformation({
             email: user.email,
             contact_number: user.contact_number,
             profile_photo_path: null,
+            gender: user.gender,
+            date_of_birth: user.date_of_birth,
             _method: "PATCH",
         });
 
@@ -100,7 +109,6 @@ export default function UpdateProfileInformation({
                         value={data.email}
                         onChange={(e) => setData("email", e.target.value)}
                         autoComplete="email"
-                        disabled
                     />
 
                     <InputError className="mt-2" message={errors.email} />
@@ -122,6 +130,43 @@ export default function UpdateProfileInformation({
                         className="mt-2"
                         message={errors.contact_number}
                     />
+                </div>
+
+                <div>
+                    <Label htmlFor="date_of_birth">Date of Birth</Label>
+
+                    <Input
+                        id="date_of_birth"
+                        type="date"
+                        value={data.date_of_birth}
+                        onChange={(e) =>
+                            setData("date_of_birth", e.target.value)
+                        }
+                        autoComplete="bday"
+                    />
+
+                    <InputError
+                        className="mt-2"
+                        message={errors.date_of_birth}
+                    />
+                </div>
+
+                <div>
+                    <Label>Gender</Label>
+                    <Select
+                        value={data.gender}
+                        onValueChange={(value) => setData("gender", value)}
+                    >
+                        <SelectTrigger className="">
+                            <SelectValue placeholder="Gender" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="Male">Male</SelectItem>
+                            <SelectItem value="Female">Female</SelectItem>
+                        </SelectContent>
+                    </Select>
+
+                    <InputError className="mt-2" message={errors.gender} />
                 </div>
 
                 <div>

@@ -2,6 +2,9 @@
 
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+use App\Http\Controllers\UserController;
+use App\Http\Controllers\UserRestrictionController;
+use App\Http\Controllers\Admin\RestrictionController;
 
 Route::get('/admin/dashboard', function () {
     return Inertia::render('Admin/Dashboard');
@@ -34,3 +37,13 @@ Route::get('/admin/restriction', function () {
 Route::get('/admin/platform/staff', function () {
     return Inertia::render('Admin/PlatformStaff');
 })->middleware(['auth', 'verified'])->name('admin.platform.staff');
+
+Route::get('/admin/users', [UserController::class, 'index'])
+    ->middleware(['auth', 'verified'])
+    ->name('admin.users');
+
+Route::post('/admin/users/restrict', [UserRestrictionController::class, 'store'])
+    ->name('admin.users.restrict');
+
+Route::post('/admin/users/restrictions/lift', [UserRestrictionController::class, 'lift'])
+    ->name('admin.users.restrictions.lift');
