@@ -28,7 +28,7 @@ const ShopCard = ({ shop, isLoading }) => {
                             )}
                             {/* Shop Image */}
                             <img
-                                src={shop.shop_photo}
+                                src={shop.shop_gallery[0].url}
                                 alt={shop.shop_name}
                                 className={`object-cover rounded-md h-full w-full ${
                                     isLoading ? "invisible" : ""
@@ -49,6 +49,13 @@ const ShopCard = ({ shop, isLoading }) => {
                             {shop.shop_name}
                         </h5>
                     )}
+                    {isLoading ? (
+                        <Skeleton className="h-3 w-3/4 mt-2" />
+                    ) : (
+                        <h5 className="text-xs text-muted-foreground">
+                            {shop.detailed_address}s
+                        </h5>
+                    )}
                 </div>
 
                 {/* Categories Section */}
@@ -58,10 +65,7 @@ const ShopCard = ({ shop, isLoading }) => {
                           Array(2)
                               .fill(0)
                               .map((_, index) => (
-                                  <Skeleton
-                                      key={index}
-                                      className="h-4 w-12 rounded-full"
-                                  />
+                                  <Skeleton key={index} className="h-4 w-12" />
                               ))
                         : // Display shop categories
                           shop.shop_categories.map((category, index) => (

@@ -5,6 +5,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\DiscoverController;
 use App\Http\Controllers\ShopController;
+use App\Http\Controllers\PlatformStaffController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -36,6 +37,10 @@ Route::get('/dashboard', function () {
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware(['auth', 'verified'])->group(function () {
+
+    Route::get('/shop/setup', [ShopController::class, 'create'])->name('shop.setup');
+    Route::post('/shop/setup', [ShopController::class, 'store'])->name('shop.setup.store');
+
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
@@ -47,6 +52,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/report-issue', function () {
         return Inertia::render('Users/ReportAnIssue');
     })->name('ReportAnIssue');
+
+    // Platform Staff Routes
+    Route::get('/admin/staff', [PlatformStaffController::class, 'index'])->name('staff.index');
+    Route::post('/admin/staff', [PlatformStaffController::class, 'store'])->name('staff.store');
+    Route::put('/admin/staff/{staff}', [PlatformStaffController::class, 'update'])->name('staff.update');
+    Route::post('/admin/staff/{staff}/avatar', [PlatformStaffController::class, 'updateAvatar'])->name('staff.avatar');
+    Route::delete('/admin/staff/{staff}', [PlatformStaffController::class, 'destroy'])->name('staff.destroy');
 });
 
 require __DIR__ . '/auth.php';

@@ -10,8 +10,13 @@ const alertVariants = cva(
       variant: {
         default: "bg-background text-foreground",
         destructive:
-          "border-destructive/50 text-destructive dark:border-destructive [&>svg]:text-destructive",
+          "border-destructive/50 bg-red-100 dark:bg-red-300 text-destructive dark:border-destructive [&>svg]:text-destructive border-l-4",
+        success:
+          "border-green-500/50 bg-green-100 dark:bg-green-200 text-green-500 dark:border-green-500 [&>svg]:text-green-500 border-l-4",
       },
+      float: {
+        true: "fixed bottom-4 right-4 z-50 w-[30rem]",
+      }
     },
     defaultVariants: {
       variant: "default",
@@ -19,11 +24,11 @@ const alertVariants = cva(
   }
 )
 
-const Alert = React.forwardRef(({ className, variant, ...props }, ref) => (
+const Alert = React.forwardRef(({ className, float, variant, ...props }, ref) => (
   <div
     ref={ref}
     role="alert"
-    className={cn(alertVariants({ variant }), className)}
+    className={cn(alertVariants({ variant, float }), className)}
     {...props} />
 ))
 Alert.displayName = "Alert"
