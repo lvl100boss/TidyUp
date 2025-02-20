@@ -28,7 +28,7 @@ export default function Home({ shops }) {
             const imagePromises = shops.map((shop) => {
                 return new Promise((resolve, reject) => {
                     const img = new Image();
-                    img.src = shop.branches[0]?.gallery[0]?.url;
+                    img.src = shop.shop_gallery[0].url;
                     img.onload = resolve;
                     img.onerror = resolve; // Resolve even on error to prevent blocking
                 });

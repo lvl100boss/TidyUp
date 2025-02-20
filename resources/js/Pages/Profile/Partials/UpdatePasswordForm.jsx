@@ -1,7 +1,5 @@
 import InputError from "@/Components/InputError";
-import InputLabel from "@/Components/InputLabel";
-import PrimaryButton from "@/Components/PrimaryButton";
-import TextInput from "@/Components/TextInput";
+
 import { Button } from "@/Components/ui/button";
 import { Input, PInput } from "@/Components/ui/input";
 import { Label } from "@/Components/ui/label";
@@ -71,7 +69,8 @@ export default function UpdatePasswordForm({ className = "" }) {
                         }
                         type="password"
                         className="mt-1 block w-full"
-                        autoComplete="current-password"
+                        d
+                        placeholder="Enter your current password"
                     />
 
                     <InputError
@@ -90,7 +89,7 @@ export default function UpdatePasswordForm({ className = "" }) {
                         onChange={(e) => setData("password", e.target.value)}
                         type="password"
                         className="mt-1 block w-full"
-                        autoComplete="new-password"
+                        placeholder="Enter your new password"
                     />
 
                     <InputError message={errors.password} className="mt-2" />
@@ -109,7 +108,7 @@ export default function UpdatePasswordForm({ className = "" }) {
                         }
                         type="password"
                         className="mt-1 block w-full"
-                        autoComplete="new-password"
+                        placeholder="Confirm your new password"
                     />
 
                     <InputError

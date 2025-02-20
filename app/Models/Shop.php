@@ -9,22 +9,40 @@ class Shop extends Model
 {
     //
     protected $fillable = [
-        'shop_name'
+        'user_id',
+        'shop_name',
+        'email',
+        'contact_number',
+        'shop_photo',
+        'region',
+        'province',
+        'city',
+        'barangay',
+        'detailed_address',
+        'availability',
+        'is_verified',
+        'bio',
+        'tokens',
     ];
-
-    public function shopAccount()
-    {
-        return $this->hasOne(ShopAccount::class);
-    }
-
-    public function branches()
-    {
-        return $this->hasMany(ShopBranch::class);
-    }
 
     public function shopGallery()
     {
-        return $this->hasMany(ShopGallery::class, ShopBranch::class);
+        return $this->hasMany(ShopGallery::class, 'shop_id');
+    }
+
+    public function shopServiceCategories()
+    {
+        return $this->hasMany(ShopServiceCategories::class);
+    }
+
+    public function shopCategories()
+    {
+        return $this->hasMany(ShopCategory::class);
+    }
+
+    public function shopOperationHours()
+    {
+        return $this->hasMany(OperationHours::class, 'shop_id');
     }
 
     public function appointments()

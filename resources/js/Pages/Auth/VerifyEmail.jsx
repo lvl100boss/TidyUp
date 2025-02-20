@@ -1,6 +1,7 @@
-import PrimaryButton from '@/Components/PrimaryButton';
-import GuestLayout from '@/Layouts/GuestLayout';
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Button, buttonVariants } from "@/Components/ui/button";
+import GuestLayout from "@/Layouts/GuestLayout";
+import { Head, Link, useForm, usePage } from "@inertiajs/react";
+import { useState, useEffect } from "react";
 
 export default function VerifyEmail({ status }) {
     const { post, processing } = useForm({});
@@ -8,21 +9,44 @@ export default function VerifyEmail({ status }) {
     const submit = (e) => {
         e.preventDefault();
 
-        post(route('verification.send'));
+        post(route("verification.send"));
+    };
+
+    const user = usePage().props.auth.user;
+    const [isDarkTheme, setIsDarkTheme] = useState(false);
+
+    useEffect(() => {
+        // Retrieve the theme preference from local storage
+        const savedTheme = localStorage.getItem("theme");
+        if (savedTheme === "dark") {
+            document.body.classList.add("dark");
+            setIsDarkTheme(true);
+        }
+    }, []);
+
+    const toggleTheme = () => {
+        if (isDarkTheme) {
+            document.body.classList.remove("dark");
+            localStorage.setItem("theme", "light");
+        } else {
+            document.body.classList.add("dark");
+            localStorage.setItem("theme", "dark");
+        }
+        setIsDarkTheme(!isDarkTheme);
     };
 
     return (
         <GuestLayout>
             <Head title="Email Verification" />
-
-            <div className="mb-4 text-sm text-gray-600 dark:text-gray-400">
+            <h1 className="text-2xl mb-2">Verify you Account!</h1>
+            <div className="mb-4 text-sm text-muted-foreground">
                 Thanks for signing up! Before getting started, could you verify
                 your email address by clicking on the link we just emailed to
                 you? If you didn't receive the email, we will gladly send you
                 another.
             </div>
 
-            {status === 'verification-link-sent' && (
+            {status === "verification-link-sent" && (
                 <div className="mb-4 text-sm font-medium text-green-600 dark:text-green-400">
                     A new verification link has been sent to the email address
                     you provided during registration.
@@ -31,15 +55,22 @@ export default function VerifyEmail({ status }) {
 
             <form onSubmit={submit}>
                 <div className="mt-4 flex items-center justify-between">
-                    <PrimaryButton disabled={processing}>
+                    <Button
+                        className="figtree-semibold uppercase"
+                        disabled={processing}
+                    >
                         Resend Verification Email
-                    </PrimaryButton>
+                    </Button>
 
                     <Link
-                        href={route('logout')}
+                        href={route("logout")}
                         method="post"
                         as="button"
-                        className="rounded-md text-sm text-gray-600 underline hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:text-gray-400 dark:hover:text-gray-100 dark:focus:ring-offset-gray-800"
+                        className={`text-muted-foreground text-sm  ${buttonVariants(
+                            {
+                                variant: "link",
+                            }
+                        )} !p-0`}
                     >
                         Log Out
                     </Link>
