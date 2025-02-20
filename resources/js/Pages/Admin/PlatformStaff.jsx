@@ -1,6 +1,6 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect, useCallback } from "react";
 import AdminLayout from "@/Layouts/AdminLayout";
-import { Head } from "@inertiajs/react";
+import { Head, router } from "@inertiajs/react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/Components/ui/avatar";
 import { Input } from "@/Components/ui/input";
 import { Label } from "@/Components/ui/label";
@@ -16,200 +16,206 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Loader2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/Components/ui/card";
 
-export default function PlatformStaff() {
-    const [staff, setStaff] = useState([
-        { 
-            id: 1, 
-            name: "Dave Jamir Basa", 
-            role: "Project Manager", 
-            avatar: "/path/to/dave-avatar.jpg",
-            email: "dave.basa@example.com",
-            phone: "+1234567890",
-            externalLink: "www.facebook.com/davejamirbasa",
-            dateHired: "2021-08-01",
-            status: "Active",
-            officeLocation: "Main Office",
-            department: "Management"
-        },
-        { 
-            id: 2, 
-            name: "Carl Mosses Ramos", 
-            role: "Quality Assurance", 
-            avatar: "/path/to/carl-avatar.jpg",
-            email: "carl.ramos@example.com",
-            phone: "+1234567891",
-            externalLink: "www.facebook.com/carlmossesramos",
-            dateHired: "2021-08-02",
-            status: "Active",
-            officeLocation: "Main Office",
-            department: "Quality Assurance"
-        },
-        { 
-            id: 3, 
-            name: "Paul Daniel Ojales", 
-            role: "Data Analyst", 
-            avatar: "/path/to/paul-avatar.jpg",
-            email: "paul.ojales@example.com",
-            phone: "+1234567892",
-            externalLink: "www.facebook.com/pauldanielojales",
-            dateHired: "2021-08-03",
-            status: "Active",
-            officeLocation: "Main Office",
-            department: "Data Analysis"
-        },
-        { 
-            id: 4, 
-            name: "Art Michael Cadiz", 
-            role: "Lead Developer", 
-            avatar: "/path/to/art-avatar.jpg",
-            email: "art.cadiz@example.com",
-            phone: "+1234567893",
-            externalLink: "www.facebook.com/artmichaelcadiz",
-            dateHired: "2021-08-04",
-            status: "Active",
-            officeLocation: "Main Office",
-            department: "Development"
-        },
-        { 
-            id: 5, 
-            name: "Gioiel Guevarra", 
-            role: "UI/UX Designer", 
-            avatar: "/path/to/gioiel-avatar.jpg",
-            email: "gioiel.guevarra@example.com",
-            phone: "+1234567894",
-            externalLink: "www.facebook.com/gioielguevarra",
-            dateHired: "2021-08-05",
-            status: "Active",
-            officeLocation: "Main Office",
-            department: "Design"
-        },
-    ]);
+export default function PlatformStaff({ initialStaff = [], success = null, error = null }) {
+    const [staff, setStaff] = useState(initialStaff || []);
+    const [selectedStaff, setSelectedStaff] = useState(null);
+    const [editedStaff, setEditedStaff] = useState(null);
+    const [isStaffSelected, setIsStaffSelected] = useState(false);
 
-    const [selectedStaff, setSelectedStaff] = useState(staff[0]);
     const [newProfilePicture, setNewProfilePicture] = useState(null);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [isEditingGeneral, setIsEditingGeneral] = useState(false);
     const [isEditingAdditional, setIsEditingAdditional] = useState(false);
-    const [editedStaff, setEditedStaff] = useState({
-        ...staff[0],
-        dateHired: staff[0]?.dateHired || "2021-08-01",
-        status: staff[0]?.status || "Active",
-        officeLocation: staff[0]?.officeLocation || "N/A",
-        department: staff[0]?.department || "N/A"
-    });
 
     const [isNewStaffModalOpen, setIsNewStaffModalOpen] = useState(false);
-    const [newStaff, setNewStaff] = useState({
+
+    // Initialize with empty values
+    const emptyStaff = {
         name: '',
         role: '',
         email: '',
         phone: '',
-        dateHired: new Date().toISOString().split('T')[0],
-        status: 'Active',
-        officeLocation: 'Main Office',
+        avatar: null,
         department: '',
-        avatar: '/path/to/default-avatar.jpg'
-    });
+        office_location: '',
+        date_hired: new Date().toISOString().split('T')[0],
+        status: 'active'
+    };
+
+    const [newStaff, setNewStaff] = useState(emptyStaff);
 
     const [searchQuery, setSearchQuery] = useState("");
     const [filterBy, setFilterBy] = useState("all");
     const [isLoading, setIsLoading] = useState(false);
 
-    const handleAddNewStaff = () => {
-        const id = staff.length + 1;
-        setStaff([...staff, { id, ...newStaff }]);
-        setIsNewStaffModalOpen(false);
-        setNewStaff({
-            name: '',
-            role: '',
-            email: '',
-            phone: '',
-            dateHired: new Date().toISOString().split('T')[0],
-            status: 'Active',
-            officeLocation: 'Main Office',
-            department: '',
-            avatar: '/path/to/default-avatar.jpg'
-        });
+    const [filterByRole, setFilterByRole] = useState("all");
+    const [filterByStatus, setFilterByStatus] = useState("all");
+
+    const roleOptions = [
+        { value: "project_manager", label: "Project Manager" },
+        { value: "lead_developer", label: "Lead Developer" },
+        { value: "developer", label: "Developer" },
+        { value: "qa", label: "Quality Assurance" },
+        { value: "designer", label: "UI/UX Designer" },
+        { value: "data_analyst", label: "Data Analyst" }
+    ];
+
+    const statusOptions = [
+        { value: "active", label: "Active" },
+        { value: "inactive", label: "Inactive" },
+        { value: "on_leave", label: "On Leave" },
+        { value: "suspended", label: "Suspended" }
+    ];
+
+    const handleAddNewStaff = async () => {
+        try {
+            const response = await axios.post(route('platform-staff.store'), newStaff);
+            setStaff([...staff, response.data]);
+            setIsNewStaffModalOpen(false);
+            // Reset form
+            setNewStaff(emptyStaff);
+        } catch (error) {
+            console.error('Error adding staff:', error);
+        }
     };
-    
+
     const handleInputChange = (e) => {
         setEditedStaff({ ...editedStaff, [e.target.name]: e.target.value });
     };
-    
-    const handleSaveGeneral = () => {
-        setSelectedStaff(editedStaff);
-        setStaff(staff.map(s => s.id === editedStaff.id ? editedStaff : s));
-        setIsEditingGeneral(false);
+
+    const handleSaveGeneral = async () => {
+        try {
+            const response = await axios.put(
+                route('platform-staff.update', selectedStaff.id), 
+                editedStaff
+            );
+            setStaff(staff.map(s => s.id === selectedStaff.id ? response.data : s));
+            setSelectedStaff(response.data);
+            setIsEditingGeneral(false);
+        } catch (error) {
+            console.error('Error updating staff:', error);
+        }
     };
-    
+
     const handleCancelGeneral = () => {
         setEditedStaff({ ...selectedStaff });
         setIsEditingGeneral(false);
     };
-    
+
     const handleSaveAdditional = () => {
         setSelectedStaff(editedStaff);
         setStaff(staff.map(s => s.id === editedStaff.id ? editedStaff : s));
         setIsEditingAdditional(false);
     };
-    
+
     const handleCancelAdditional = () => {
         setEditedStaff({ ...selectedStaff });
         setIsEditingAdditional(false);
     };
-    
+
     const startEditingGeneral = () => {
         setEditedStaff({ ...selectedStaff });
         setIsEditingGeneral(true);
     };
-    
+
     const startEditingAdditional = () => {
         setEditedStaff({ ...selectedStaff });
         setIsEditingAdditional(true);
     };
-    
+
     const handleProfilePictureChange = (e) => {
         if (e.target.files && e.target.files[0]) {
             setNewProfilePicture(URL.createObjectURL(e.target.files[0]));
         }
     };
 
-    const handleProfilePictureUpload = () => {
-        // Here you would typically send the new profile picture to your server
-        // For now, we'll just update the local state
-        setStaff(staff.map(s => 
-            s.id === selectedStaff.id ? {...s, avatar: newProfilePicture} : s
-        ));
-        setSelectedStaff({...selectedStaff, avatar: newProfilePicture});
-        setNewProfilePicture(null);
+    const handleProfilePictureUpload = async () => {
+        const formData = new FormData();
+        formData.append('avatar', document.getElementById('picture').files[0]);
+
+        try {
+            const response = await axios.post(
+                route('platform-staff.avatar', selectedStaff.id),
+                formData,
+                {
+                    headers: {
+                        'Content-Type': 'multipart/form-data'
+                    }
+                }
+            );
+            
+            setStaff(staff.map(s => 
+                s.id === selectedStaff.id 
+                    ? {...s, avatar: response.data.avatar} 
+                    : s
+            ));
+            setSelectedStaff({...selectedStaff, avatar: response.data.avatar});
+            setNewProfilePicture(null);
+            setIsDialogOpen(false);
+        } catch (error) {
+            console.error('Error uploading avatar:', error);
+        }
     };
 
-    const filteredStaff = React.useMemo(() => {
+    const filteredStaff = useMemo(() => {
         setIsLoading(true);
         try {
-            const filtered = staff.filter((member) => {
+            return staff.filter((member) => {
                 const searchLower = searchQuery.toLowerCase();
-                const matchesSearch = !searchQuery || 
+                const matchesSearch = 
+                    !searchQuery || 
                     member.name.toLowerCase().includes(searchLower) ||
                     member.role.toLowerCase().includes(searchLower) ||
                     member.department.toLowerCase().includes(searchLower);
 
-                switch (filterBy) {
-                    case "active":
-                        return matchesSearch && member.status === "Active";
-                    case "department":
-                        return matchesSearch && member.department === selectedStaff.department;
-                    case "role":
-                        return matchesSearch && member.role === selectedStaff.role;
-                    default:
-                        return matchesSearch;
-                }
+                const matchesRole = 
+                    filterByRole === "all" || 
+                    member.role === filterByRole;
+
+                const matchesStatus = 
+                    filterByStatus === "all" || 
+                    member.status === filterByStatus;
+
+                return matchesSearch && matchesRole && matchesStatus;
             });
-            return filtered;
         } finally {
             setIsLoading(false);
         }
-    }, [staff, searchQuery, filterBy, selectedStaff]);
+    }, [staff, searchQuery, filterByRole, filterByStatus]);
+
+    useEffect(() => {
+        if (selectedStaff) {
+            setEditedStaff({
+                ...selectedStaff,
+                dateHired: selectedStaff.date_hired || new Date().toISOString().split('T')[0],
+                status: selectedStaff.status || "active",
+                officeLocation: selectedStaff.office_location || "N/A",
+                department: selectedStaff.department || "N/A"
+            });
+        }
+    }, [selectedStaff]);
+
+    useEffect(() => {
+        // Show success message if any
+        if (success) {
+            // Add your success notification here
+            console.log('Success:', success);
+        }
+        // Show error message if any
+        if (error) {
+            // Add your error notification here
+            console.error('Error:', error);
+        }
+    }, [success, error]);
+
+    const handleStaffSelect = useCallback((member) => {
+        if (member) {
+            setSelectedStaff(member);
+            setIsStaffSelected(true);
+            setIsEditingGeneral(false);
+            setIsEditingAdditional(false);
+        }
+    }, []);
 
     return (
         <AdminLayout>
@@ -226,86 +232,113 @@ export default function PlatformStaff() {
             </div>
 
             {/* Main Content */}
-            <div className="container mx-auto px-6 py-8">
-                <div className="grid grid-cols-12 gap-8">
-                    {/* Staff List Sidebar */}
-                    <div className="col-span-4">
-                        <Card className="sticky top-6">
-                            <CardHeader className="border-b space-y-4 pb-4">
-                                <div className="flex justify-between items-center">
-                                    <CardTitle className="text-lg">Staff List</CardTitle>
-                                    <Button 
-                                        onClick={() => setIsNewStaffModalOpen(true)}
-                                        variant="default"
-                                        size="sm"
-                                        className="w-28"
-                                    >
-                                        Add Staff
-                                    </Button>
-                                </div>
-                                <div className="space-y-3">
-                                    <Input
-                                        placeholder="Search staff..."
-                                        value={searchQuery}
-                                        onChange={(e) => setSearchQuery(e.target.value)}
-                                    />
-                                    <Select value={filterBy} onValueChange={setFilterBy}>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Filter by..." />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="all">All Staff</SelectItem>
-                                            <SelectItem value="active">Active Only</SelectItem>
-                                            <SelectItem value="department">Same Department</SelectItem>
-                                            <SelectItem value="role">Same Role</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                            </CardHeader>
-
-                            <div className="overflow-y-auto" style={{ maxHeight: "calc(100vh - 300px)" }}>
-                                <CardContent className="p-3">
-                                    {isLoading ? (
-                                        <div className="flex justify-center items-center py-8">
-                                            <Loader2 className="h-6 w-6 animate-spin text-olive-600" />
-                                        </div>
-                                    ) : (
-                                        <div className="space-y-1">
-                                            {filteredStaff.map((member) => (
-                                                <div 
-                                                    key={member.id} 
-                                                    className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all ${
-                                                        selectedStaff.id === member.id 
-                                                            ? 'bg-olive-50 dark:bg-olive-900/30' 
-                                                            : 'hover:bg-gray-50 dark:hover:bg-gray-800/50'
-                                                    }`}
-                                                    onClick={() => setSelectedStaff(member)}
-                                                >
-                                                    <Avatar className="h-10 w-10 border border-gray-200 dark:border-gray-700">
-                                                        <AvatarImage src={member.avatar} alt={member.name} />
-                                                        <AvatarFallback>{member.name.charAt(0)}</AvatarFallback>
-                                                    </Avatar>
-                                                    <div className="flex-1 min-w-0">
-                                                        <p className="font-medium truncate dark:text-gray-100">{member.name}</p>
-                                                        <p className="text-sm text-gray-500 dark:text-gray-400 truncate">{member.role}</p>
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    )}
-                                </CardContent>
+            <div className="container mx-auto px-6 py-8 space-y-6">
+                {/* Staff List */}
+                <Card>
+                    <CardHeader className="border-b space-y-4 pb-4">
+                        <div className="flex justify-between items-center">
+                            <CardTitle className="text-lg">Staff List</CardTitle>
+                            <Button 
+                                onClick={() => setIsNewStaffModalOpen(true)}
+                                variant="default"
+                                size="sm"
+                                className="w-28"
+                            >
+                                Add Staff
+                            </Button>
+                        </div>
+                        <div className="flex flex-col gap-4 lg:flex-row lg:items-center">
+                            <Input
+                                placeholder="Search by name, role, or department..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className="flex-1"
+                            />
+                            <div className="flex gap-2">
+                                <Select value={filterByRole} onValueChange={setFilterByRole}>
+                                    <SelectTrigger className="w-[200px]">
+                                        <SelectValue placeholder="Filter by Role" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="all">All Roles</SelectItem>
+                                        <SelectItem value="Project Manager">Project Manager</SelectItem>
+                                        <SelectItem value="Lead Developer">Lead Developer</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                                <Select value={filterByStatus} onValueChange={setFilterByStatus}>
+                                    <SelectTrigger className="w-[180px]">
+                                        <SelectValue placeholder="Filter by Status" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="all">All Status</SelectItem>
+                                        <SelectItem value="Active">Active</SelectItem>
+                                        <SelectItem value="Inactive">Inactive</SelectItem>
+                                    </SelectContent>
+                                </Select>
                             </div>
-                        </Card>
-                    </div>
+                        </div>
+                    </CardHeader>
 
-                    {/* Staff Details */}
-                    <div className="col-span-8 space-y-6">
+                    <CardContent className="p-4">
+                        {isLoading ? (
+                            <div className="flex justify-center items-center py-8">
+                                <Loader2 className="h-6 w-6 animate-spin text-olive-600" />
+                            </div>
+                        ) : (
+                            <div className="grid grid-cols-1 gap-2">
+                                {staff.length === 0 ? (
+                                    <div className="text-center py-8 text-gray-500">
+                                        No staff members found. Add your first staff member.
+                                    </div>
+                                ) : (
+                                    filteredStaff.map((member) => (
+                                        <div 
+                                            key={member.id} 
+                                            className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all border ${
+                                                selectedStaff?.id === member.id 
+                                                    ? 'bg-olive-50 border-olive-600 dark:bg-olive-900/30 dark:border-olive-500' 
+                                                    : 'border-transparent hover:bg-gray-50 dark:hover:bg-gray-800/50'
+                                            }`}
+                                            onClick={() => handleStaffSelect(member)}
+                                        >
+                                            <Avatar className="h-12 w-12 border border-gray-200 dark:border-gray-700">
+                                                <AvatarImage src={member.avatar} alt={member.name} />
+                                                <AvatarFallback>{member.name.charAt(0)}</AvatarFallback>
+                                            </Avatar>
+                                            <div className="flex-1 min-w-0">
+                                                <p className="font-medium truncate dark:text-gray-100">{member.name}</p>
+                                                <p className="text-sm text-gray-500 dark:text-gray-400 truncate">{member.role}</p>
+                                                <div className="flex items-center gap-2 mt-1">
+                                                    <span className={`text-xs px-2 py-0.5 rounded-full ${
+                                                        member.status === 'Active' 
+                                                            ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' 
+                                                            : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                                                    }`}>
+                                                        {member.status}
+                                                    </span>
+                                                    <span className="text-xs text-gray-400 dark:text-gray-500">{member.department}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))
+                                )}
+                            </div>
+                        )}
+                    </CardContent>
+                </Card>
+
+                {/* Staff Details Section - Only show when staff is selected */}
+                {selectedStaff && isStaffSelected && (
+                    <div className="space-y-6">
                         {/* Profile Card */}
                         <Card>
                             <CardContent className="flex items-center gap-6 p-6">
                                 <Avatar className="w-24 h-24 border-4 border-olive-600/10">
-                                    <AvatarImage src={selectedStaff.avatar} alt={selectedStaff.name} />
-                                    <AvatarFallback>{selectedStaff.name.charAt(0)}</AvatarFallback>
+                                    <AvatarImage 
+                                        src={selectedStaff.avatar || '/default-avatar.png'} 
+                                        alt={selectedStaff.name} 
+                                    />
+                                    <AvatarFallback>{selectedStaff.name ? selectedStaff.name.charAt(0) : '?'}</AvatarFallback>
                                 </Avatar>
                                 <div className="flex-1">
                                     <h2 className="text-2xl font-semibold dark:text-gray-100">{selectedStaff.name}</h2>
@@ -358,14 +391,29 @@ export default function PlatformStaff() {
                                     </div>
                                     <div>
                                         <Label htmlFor="role">Role</Label>
-                                        <Input
-                                            id="role"
-                                            name="role"
-                                            value={isEditingGeneral ? editedStaff.role : selectedStaff.role}
-                                            onChange={handleInputChange}
-                                            disabled={!isEditingGeneral}
-
-                                        />
+                                        {isEditingGeneral ? (
+                                            <Select 
+                                                value={editedStaff.role}
+                                                onValueChange={(value) => setEditedStaff({ ...editedStaff, role: value })}
+                                            >
+                                                <SelectTrigger className="w-full">
+                                                    <SelectValue placeholder="Select role" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {roleOptions.map((role) => (
+                                                        <SelectItem key={role.value} value={role.value}>
+                                                            {role.label}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                        ) : (
+                                            <Input
+                                                value={selectedStaff.role}
+                                                disabled
+                                                className="bg-gray-50"
+                                            />
+                                        )}
                                     </div>
                                     <div>
                                         <Label htmlFor="email">Email</Label>
@@ -452,126 +500,153 @@ export default function PlatformStaff() {
                                     </div>
                                     <div>
                                         <Label htmlFor="status">Status</Label>
-                                        <Input
-                                            id="status"
-                                            name="status"
-                                            value={isEditingAdditional ? editedStaff.status : selectedStaff.status}
-                                            onChange={handleInputChange}
-                                            disabled={!isEditingAdditional}
-
-                                        />
+                                        {isEditingAdditional ? (
+                                            <Select 
+                                                value={editedStaff.status}
+                                                onValueChange={(value) => setEditedStaff({ ...editedStaff, status: value })}
+                                            >
+                                                <SelectTrigger className="w-full">
+                                                    <SelectValue placeholder="Select status" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {statusOptions.map((status) => (
+                                                        <SelectItem key={status.value} value={status.value}>
+                                                            {status.label}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                        ) : (
+                                            <Input
+                                                value={selectedStaff.status}
+                                                disabled
+                                                className="bg-gray-50"
+                                            />
+                                        )}
                                     </div>
                                 </div>
                             </CardContent>
                         </Card>
                     </div>
-                </div>
-            </div>
+                )}
 
-            {/* Add Staff Modal */}
-            <Dialog open={isNewStaffModalOpen} onOpenChange={setIsNewStaffModalOpen}>
-                <DialogContent className="sm:max-w-[425px]">
-                    <DialogHeader>
-                        <DialogTitle>Add New Staff</DialogTitle>
-                    </DialogHeader>
-                    <div className="grid gap-4 py-4">
-                        <div className="grid gap-2">
-                            <Label htmlFor="newName">Name</Label>
-                            <Input
-                                id="newName"
-                                value={newStaff.name}
-                                onChange={(e) => setNewStaff({...newStaff, name: e.target.value})}
-                            />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label htmlFor="newRole">Role</Label>
-                            <Input
-                                id="newRole"
-                                value={newStaff.role}
-                                onChange={(e) => setNewStaff({...newStaff, role: e.target.value})}
-                            />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label htmlFor="newEmail">Email</Label>
-                            <Input
-                                id="newEmail"
-                                type="email"
-                                value={newStaff.email}
-                                onChange={(e) => setNewStaff({...newStaff, email: e.target.value})}
-                            />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label htmlFor="newPhone">Phone</Label>
-                            <Input
-                                id="newPhone"
-                                value={newStaff.phone}
-                                onChange={(e) => setNewStaff({...newStaff, phone: e.target.value})}
-                            />
-                        </div>
-                    </div>
-                    <DialogFooter>
-                        <Button variant="outline" onClick={() => setIsNewStaffModalOpen(false)}>
-                            Cancel
-                        </Button>
-                        <Button variant="default" onClick={handleAddNewStaff}>
-                            Add Staff
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
-
-            {/* Change Photo Modal */}
-            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                <DialogContent className="sm:max-w-[425px]">
-                    <DialogHeader>
-                        <DialogTitle>Update Profile Picture</DialogTitle>
-                    </DialogHeader>
-                    <div className="grid gap-4 py-4">
-                        <div className="flex flex-col items-center space-y-4">
-                            <div className="relative">
-                                <Avatar className="w-40 h-40">
-                                    <AvatarImage 
-                                        src={newProfilePicture || selectedStaff.avatar} 
-                                        alt={selectedStaff.name}
-                                    />
-                                    <AvatarFallback>{selectedStaff.name.charAt(0)}</AvatarFallback>
-                                </Avatar>
-                                {newProfilePicture && (
-                                    <div className="absolute -bottom-2 left-0 w-full text-center">
-                                        <span className="bg-olive-600 text-white text-xs px-2 py-1 rounded-full">
-                                            Preview
-                                        </span>
-                                    </div>
-                                )}
+                {/* Add Staff Modal */}
+                <Dialog open={isNewStaffModalOpen} onOpenChange={setIsNewStaffModalOpen}>
+                    <DialogContent className="sm:max-w-[425px]">
+                        <DialogHeader>
+                            <DialogTitle>Add New Staff</DialogTitle>
+                        </DialogHeader>
+                        <div className="grid gap-4 py-4">
+                            <div className="grid gap-2">
+                                <Label htmlFor="newName">Name</Label>
+                                <Input
+                                    id="newName"
+                                    value={newStaff.name}
+                                    onChange={(e) => setNewStaff({...newStaff, name: e.target.value})}
+                                />
                             </div>
-                            <Input
-                                id="picture"
-                                type="file"
-                                onChange={handleProfilePictureChange}
-                                accept="image/*"
-                            />
+                            <div className="grid gap-2">
+                                <Label htmlFor="newRole">Role</Label>
+                                <Select 
+                                    value={newStaff.role}
+                                    onValueChange={(value) => setNewStaff({...newStaff, role: value})}
+                                >
+                                    <SelectTrigger className="w-full">
+                                        <SelectValue placeholder="Select role" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {roleOptions.map((role) => (
+                                            <SelectItem key={role.value} value={role.value}>
+                                                {role.label}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div className="grid gap-2">
+                                <Label htmlFor="newEmail">Email</Label>
+                                <Input
+                                    id="newEmail"
+                                    type="email"
+                                    value={newStaff.email}
+                                    onChange={(e) => setNewStaff({...newStaff, email: e.target.value})}
+                                />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label htmlFor="newPhone">Phone</Label>
+                                <Input
+                                    id="newPhone"
+                                    value={newStaff.phone}
+                                    onChange={(e) => setNewStaff({...newStaff, phone: e.target.value})}
+                                />
+                            </div>
                         </div>
-                    </div>
-                    <DialogFooter>
-                        <Button
-                            variant="outline"
-                            onClick={() => {
-                                setNewProfilePicture(null);
-                                setIsDialogOpen(false);
-                            }}
-                        >
-                            Cancel
-                        </Button>
-                        <Button
-                            variant="default"
-                            onClick={handleProfilePictureUpload}
-                            disabled={!newProfilePicture}
-                        >
-                            Save Changes
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
+                        <DialogFooter>
+                            <Button variant="outline" onClick={() => setIsNewStaffModalOpen(false)}>
+                                Cancel
+                            </Button>
+                            <Button variant="default" onClick={handleAddNewStaff}>
+                                Add Staff
+                            </Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
+
+                {/* Change Photo Modal */}
+                <Dialog open={isDialogOpen && selectedStaff !== null} onOpenChange={setIsDialogOpen}>
+                    <DialogContent className="sm:max-w-[425px]">
+                        <DialogHeader>
+                            <DialogTitle>Update Profile Picture</DialogTitle>
+                        </DialogHeader>
+                        <div className="grid gap-4 py-4">
+                            <div className="flex flex-col items-center space-y-4">
+                                <div className="relative">
+                                    <Avatar className="w-40 h-40">
+                                        <AvatarImage 
+                                            src={newProfilePicture || (selectedStaff?.avatar || '/default-avatar.png')}
+                                            alt={selectedStaff?.name || 'Profile'}
+                                        />
+                                        <AvatarFallback>
+                                            {selectedStaff?.name ? selectedStaff.name.charAt(0) : '?'}
+                                        </AvatarFallback>
+                                    </Avatar>
+                                    {newProfilePicture && (
+                                        <div className="absolute -bottom-2 left-0 w-full text-center">
+                                            <span className="bg-olive-600 text-white text-xs px-2 py-1 rounded-full">
+                                                Preview
+                                            </span>
+                                        </div>
+                                    )}
+                                </div>
+                                <Input
+                                    id="picture"
+                                    type="file"
+                                    onChange={handleProfilePictureChange}
+                                    accept="image/*"
+                                />
+                            </div>
+                        </div>
+                        <DialogFooter>
+                            <Button
+                                variant="outline"
+                                onClick={() => {
+                                    setNewProfilePicture(null);
+                                    setIsDialogOpen(false);
+                                }}
+                            >
+                                Cancel
+                            </Button>
+                            <Button
+                                variant="default"
+                                onClick={handleProfilePictureUpload}
+                                disabled={!newProfilePicture}
+                            >
+                                Save Changes
+                            </Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
+            </div>
         </AdminLayout>
     );
 }
