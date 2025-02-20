@@ -15,11 +15,9 @@ class Appointments extends Model
     protected $fillable = [
         'user_id',
         'shop_id',
-        'branch_id',
-        'appointment_type_id',
         'service_id',
-        'appointment_date',
-        'appointment_time',
+        'date',
+        'time',
         'total_price',
         'status',
         'note',
@@ -40,8 +38,8 @@ class Appointments extends Model
         return $this->belongsTo(Shop::class);
     }
 
-    public function branch()
+    public function appointmentServices()
     {
-        return $this->belongsTo(ShopBranch::class);
+        return $this->hasMany(AppointmentServices::class, 'appointment_id');
     }
 }

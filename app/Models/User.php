@@ -72,4 +72,14 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->belongsTo(ShopStaffs::class, 'staff_id'); // Each user has many shop staffs
     }
+
+    public function userAppointments()
+    {
+        return $this->hasMany(UserAppointments::class); // Each user has many user appointments
+    }
+
+    public function appointmentServices()
+    {
+        return $this->hasMany(AppointmentServices::class); // Each user has many appointment services
+    }
 }

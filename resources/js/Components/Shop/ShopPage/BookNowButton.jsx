@@ -5,7 +5,7 @@ import { Link } from "@inertiajs/react";
 const BookNowButton = ({ shop_id }) => {
     return (
         <Link
-            href={`/${shop_id}/booking`}
+            href={`/${shop_id}/booking/1`}
             className={`${buttonVariants({
                 variant: "default",
             })} w-full rounded-sm mt-3 figtree-semibold `}

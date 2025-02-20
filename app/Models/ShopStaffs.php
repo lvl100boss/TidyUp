@@ -30,4 +30,9 @@ class ShopStaffs extends Model
     {
         return $this->belongsTo(User::class, 'staff_id');
     }
+
+    public function appointments()
+    {
+        return $this->hasMany(UserAppointments::class, 'staff_id');
+    }
 }

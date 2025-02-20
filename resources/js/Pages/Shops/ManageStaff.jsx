@@ -68,7 +68,7 @@ export default function ManageStaff({ staffs, shop, isOwner }) {
                 </div>
                 <div>
                     <Table>
-                        <TableCaption>List of {shop.name}'s Staffs </TableCaption>
+                        <TableCaption>List of {shop.name}'s Staffs ({staffs.length}) </TableCaption>
                         <TableHeader>
                             <TableRow>
                                 <TableHead>No.</TableHead>

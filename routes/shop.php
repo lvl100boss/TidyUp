@@ -9,20 +9,21 @@ use App\Http\Controllers\ManageStaffController;
 use App\Http\Controllers\ShopGalleryController;
 use Inertia\Inertia;
 
-Route::middleware(['auth', 'verified', EnsureShopOwner::class])->group(function () {
-    // Shop SETUP
-    Route::get('/shop/setup', [ShopController::class, 'create'])->name('shop.setup');
-    Route::post('/shop/setup', [ShopController::class, 'store'])->name('shop.setup.store');
+//Shop Owner and Shop Staff
+Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/shop/dashboard', [ShopDashboardController::class, 'index'])->name('shop.dashboard');
     Route::redirect('/shop', '/shop/dashboard');
+    Route::get('/shop/profile', [ShopProfileController::class, 'index'])->name('shop.profile');
     Route::get('/shop/appointments', function () {
         return Inertia::render('Shops/Appointments');
     })->name('shop.appointments');
     Route::get('/shop/catalog', function () {
         return Inertia::render('Shops/ShopCatalog');
     })->name('shop.catalog');
-    Route::get('/shop/profile', [ShopProfileController::class, 'index'])->name('shop.profile');
+});
 
+//Shop Owner and Manager
+Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/shop/manage/staff', [ManageStaffController::class, 'index'])->name('shop.manage.staff');
     Route::get('/shop/manage/staff/create', [ManageStaffController::class, 'create'])->name('shop.manage.staff.create');
     Route::post('/shop/manage/staff', [ManageStaffController::class, 'store'])->name('shop.manage.staff.store');
