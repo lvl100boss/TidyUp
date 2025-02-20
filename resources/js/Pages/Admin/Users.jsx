@@ -2,8 +2,8 @@ import AdminLayout from "@/Layouts/AdminLayout";
 import { Head } from "@inertiajs/react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { ArrowUpDown, Search, EllipsisVertical } from "lucide-react";
-import React, { useState } from "react";
+import { ArrowUpDown, Search, EllipsisVertical, Calendar as CalendarIcon } from "lucide-react";
+import React, { useState } from 'react';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -17,22 +17,118 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
+import { Calendar } from "@/components/ui/calendar";
+import { addDays, differenceInDays } from "date-fns";
+
+const DurationCalendarModal = ({ open, onClose, onSelect, startDate, endDate }) => {
+    return (
+        <Dialog open={open} onOpenChange={onClose}>
+            <DialogContent className="sm:max-w-[800px] p-6"> {/* Increased max width */}
+                <DialogHeader>
+                    <DialogTitle>Select Restriction Duration</DialogTitle>
+                </DialogHeader>
+                <div className="grid gap-6"> {/* Increased gap */}
+                    <div className="grid grid-cols-2 gap-8"> {/* Increased gap between calendars */}
+                        <div className="space-y-2"> {/* Added vertical spacing */}
+                            <p className="text-sm font-medium">Start Date:</p>
+                            <div className="p-3 border rounded-lg"> {/* Added padding and border */}
+                                <Calendar
+                                    mode="single"
+                                    selected={startDate}
+                                    onSelect={(date) => onSelect(date, 'start')}
+                                    disabled={(date) => date < new Date()}
+                                    className="rounded-md"
+                                    styles={{
+                                        calendar: { width: '100%' },
+                                        button: { width: '40px', height: '40px' } // Larger date buttons
+                                    }}
+                                />
+                            </div>
+                        </div>
+                        <div className="space-y-2">
+                            <p className="text-sm font-medium">End Date:</p>
+                            <div className="p-3 border rounded-lg">
+                                <Calendar
+                                    mode="single"
+                                    selected={endDate}
+                                    onSelect={(date) => onSelect(date, 'end')}
+                                    disabled={(date) => date <= startDate}
+                                    className="rounded-md"
+                                    styles={{
+                                        calendar: { width: '100%' },
+                                        button: { width: '40px', height: '40px' }
+                                    }}
+                                />
+                            </div>
+                        </div>
+                    </div>
+                    <div className="flex justify-end">
+                        <Button variant="outline" onClick={onClose}>
+                            Done
+                        </Button>
+                    </div>
+                </div>
+            </DialogContent>
+        </Dialog>
+    );
+};
 
 const RestrictModal = ({ isOpen, onClose, user }) => {
     const [reason, setReason] = useState("");
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [startDate, setStartDate] = useState(new Date());
+    const [endDate, setEndDate] = useState(addDays(new Date(), 7));
+    const [isDurationModalOpen, setIsDurationModalOpen] = useState(false);
+    
+
+    // Calculate duration whenever dates change
+    const duration = differenceInDays(endDate, startDate);
+
+    const handleDateSelect = (date, type) => {
+        if (type === 'start') {
+            setStartDate(date);
+            if (date > endDate) {
+                setEndDate(addDays(date, 1));
+            }
+        } else {
+            setEndDate(date);
+        }
+    };
 
     const handleRestrict = () => {
-        console.log({
-            username: user.username,
-            fullName: `${user.first_name} ${user.last_name}`,
-            email: user.email,
-            role: "User",
-            dateRestricted: new Date().toLocaleDateString(),
-            duration: "7 Days",
-            restrictedBy: "Admin",
-            reason,
+        setIsSubmitting(true);
+
+        window.axios.post(route('admin.users.restrict'), {
+            user_id: user.id,
+            reason: reason,
+            duration: duration,
+            start_date: startDate.toISOString(),
+            end_date: endDate.toISOString()
+        })
+        .then((response) => {
+            console.log('Success:', response);
+            onClose();
+            window.location.reload();
+        })
+        .catch((error) => {
+            console.error('Full error details:', error);
+            
+            if (error.response) {
+                if (error.response.data.errors) {
+                    const errorMessages = Object.values(error.response.data.errors).flat();
+                    alert('Validation errors:\n' + errorMessages.join('\n'));
+                } else if (error.response.data.message) {
+                    alert('Server error: ' + error.response.data.message);
+                }
+            } else if (error.request) {
+                alert('Network error: Could not connect to server');
+            } else {
+                alert('Error: ' + error.message);
+            }
+        })
+        .finally(() => {
+            setIsSubmitting(false);
         });
-        onClose();
     };
 
     return (
@@ -69,7 +165,22 @@ const RestrictModal = ({ isOpen, onClose, user }) => {
                         </div>
                         <div>
                             <p className="text-sm font-medium">Duration:</p>
-                            <Input value="7 Days" disabled />
+                            <div className="relative">
+                                <Input 
+                                    value={`${duration} days`}
+                                    disabled 
+                                    className="pr-10"
+                                />
+                                <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="icon"
+                                    className="absolute right-0 top-0"
+                                    onClick={() => setIsDurationModalOpen(true)}
+                                >
+                                    <CalendarIcon className="h-4 w-4" />
+                                </Button>
+                            </div>
                         </div>
                     </div>
 
@@ -103,55 +214,38 @@ const RestrictModal = ({ isOpen, onClose, user }) => {
                     </div>
 
                     <div className="flex justify-end space-x-2">
-                        <Button variant="outline" onClick={onClose}>
+                        <Button 
+                            variant="outline" 
+                            onClick={onClose}
+                            disabled={isSubmitting}
+                        >
                             Cancel
                         </Button>
-                        <Button
-                            className="bg-red-500 text-white"
+
+                        <Button 
+                            className="bg-red-500 text-foreground" 
                             onClick={handleRestrict}
+                            disabled={!reason || isSubmitting}
                         >
-                            Restrict User
+                            {isSubmitting ? 'Restricting...' : 'Restrict User'}
                         </Button>
                     </div>
                 </div>
             </DialogContent>
+
+            <DurationCalendarModal
+                open={isDurationModalOpen}
+                onClose={() => setIsDurationModalOpen(false)}
+                onSelect={handleDateSelect}
+                startDate={startDate}
+                endDate={endDate}
+            />
         </Dialog>
     );
 };
 
-export default function Users() {
-    const initialData = [
-        {
-            id: "01",
-            username: "paulstyle",
-            first_name: "Paul",
-            last_name: "Phoenix",
-            email: "paul@example.com",
-            dateRegistered: "10/5/24",
-            status: "Processing",
-        },
-        {
-            id: "02",
-            username: "gupitjohn",
-            first_name: "John",
-            last_name: "Doe",
-            email: "john@example.com",
-            dateRegistered: "10/5/24",
-            status: "Verified",
-        },
-        {
-            id: "03",
-            username: "lindabeauty",
-            first_name: "Linda",
-            last_name: "Batumbakal",
-            email: "linda@example.com",
-            dateRegistered: "10/5/24",
-            status: "Rejected",
-        },
-        // ... add more data as needed
-    ];
-
-    const [data, setData] = useState(initialData);
+export default function Users({ users }) {  // Accept users prop from backend
+    const [data, setData] = useState(users);  // Initialize with backend data
     const [searchTerm, setSearchTerm] = useState("");
     const [sortConfig, setSortConfig] = useState({
         key: null,
@@ -166,18 +260,19 @@ export default function Users() {
         setSearchTerm(term);
 
         if (term === "") {
-            setData(initialData);
+            setData(users);  // Reset to original data from backend
         } else {
-            const filteredData = initialData.filter((item) =>
-                Object.values(item).some((value) =>
-                    value.toLowerCase().includes(term)
+
+            const filteredData = users.filter(item =>
+                Object.values(item).some(value =>
+                    String(value).toLowerCase().includes(term)
                 )
             );
             setData(filteredData);
         }
     };
 
-    // Sorting functionality
+
     const handleSort = (key) => {
         const direction =
             sortConfig.key === key && sortConfig.direction === "asc"
