@@ -10,7 +10,7 @@ import {
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 
-const AvailableDays = ({ businessDays, setSelectedDate }) => {
+const AvailableDays = ({ businessDays, setSelectedDate, setData }) => {
     const today = new Date();
     const currentYear = today.getFullYear();
     const currentMonth = today.getMonth() + 1;
@@ -20,8 +20,11 @@ const AvailableDays = ({ businessDays, setSelectedDate }) => {
     const [selectedMonth, setSelectedMonth] = useState(currentMonth);
     const [selectedDay, setSelectedDay] = useState(null);
     const years = Array.from({ length: 5 }, (_, i) => currentYear + i);
-
     setSelectedDate(`${selectedYear}-${selectedMonth}-${selectedDay}`);
+
+    useEffect(() => {
+        setData("date", `${selectedYear}-${selectedMonth}-${selectedDay}`);
+    }, [selectedYear, selectedMonth, selectedDay]);
 
     // Map day names to numbers (0=Sunday ... 6=Saturday)
     const dayNameToNumber = {
@@ -134,7 +137,7 @@ const AvailableDays = ({ businessDays, setSelectedDate }) => {
                 )}
             </div>
             {/* {`${selectedYear}-${selectedMonth}-${selectedDay}`} */}
-        </div>
+        </div >
     );
 };
 

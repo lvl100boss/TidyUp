@@ -49,7 +49,6 @@ import ServiceTabs from "@/Components/Shop/ShopPage/ServiceTabs";
 import BusinessHoursContent from "@/Components/Shop/ShopPage/BusinessHoursContent";
 
 export default function Shop({ shop, randomShops }) {
-    console.log(shop);
     const categories = [
         ...new Set(
             shop?.shop_service_categories?.map(
@@ -76,11 +75,10 @@ export default function Shop({ shop, randomShops }) {
                             {shop?.shop_name}
                         </h1>
                         <Badge
-                            className={`${
-                                shop?.availability === 1
+                            className={`${shop?.availability === 1
                                     ? "bg-green-300"
                                     : "bg-secondary text-foreground"
-                            } pointer-events-none`}
+                                } pointer-events-none`}
                         >
                             {shop?.availability === 1
                                 ? "Available"
@@ -106,11 +104,10 @@ export default function Shop({ shop, randomShops }) {
                                 {shop?.shop_name}
                             </h1>
                             <Badge
-                                className={`${
-                                    shop?.availability === 1
+                                className={`${shop?.availability === 1
                                         ? "bg-green-300"
                                         : "bg-secondary text-foreground"
-                                } pointer-events-none`}
+                                    } pointer-events-none`}
                             >
                                 {shop?.availability === 1
                                     ? "Available"

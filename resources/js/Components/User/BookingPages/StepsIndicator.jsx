@@ -9,8 +9,8 @@ import {
 
 const StepsIndicator = ({ step }) => {
     const steps = [
-        { number: 1, label: 'Schedule', tooltip: 'Select the date and time for your appointment' },
-        { number: 2, label: 'Service Details', tooltip: 'Provide additional details for your appointment' },
+        { number: 1, label: 'Choose Schedule', tooltip: 'Select the date and time for your appointment' },
+        { number: 2, label: 'Choose Service', tooltip: 'Choose the service you want' },
         { number: 3, label: 'Confirmation', tooltip: 'Review and confirm your appointment' },
     ];
 
@@ -43,9 +43,9 @@ const StepsIndicator = ({ step }) => {
                 ))}
 
                 {/* Progress line */}
-                <div className="absolute top-4 h-[2px] bg-secondary w-full -z-10"></div>
+                <div className="absolute top-4 h-[4px] bg-secondary w-full -z-10 mt-[3px] rounded-full"></div>
                 <div
-                    className="absolute top-4 h-[2px] bg-foreground -z-10"
+                    className="absolute top-4 h-[4px] bg-foreground -z-10 mt-[3px] rounded-full"
                     style={{ width: `${(step - 1) * 50}%` }}
                 ></div>
             </div>
