@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/select";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { Terminal, Trash2, Info } from "lucide-react";
+import { Label } from "@/Components/ui/label";
 
 const Catalog = ({
     serviceCategories,
@@ -29,8 +30,8 @@ const Catalog = ({
     const [service, setService] = useState({
         service_name: "",
         cost: "",
-        duration_hour: "",
-        duration_minute: "",
+        duration_hour: "" || "0",
+        duration_minute: "" || "0",
         category_id: "",
         category_name: "",
     });
@@ -74,8 +75,8 @@ const Catalog = ({
         setService({
             service_name: "",
             cost: "",
-            duration_hour: "",
-            duration_minute: "",
+            duration_hour: "" || "0",
+            duration_minute: "" || "0",
             category_id: "",
             category_name: "",
         });
@@ -92,88 +93,118 @@ const Catalog = ({
             <h2 className="text-xl font-semibold">Add Services</h2>
             {/* Service Input Fields */}
             <div className="grid grid-cols-1 gap-4">
-                <Select
-                    value={service.category_id}
-                    onValueChange={handleCategorySelect}
-                >
-                    <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Select a category *" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        {serviceCategories.map((category) => (
-                            <SelectItem key={category.id} value={category.id}>
-                                {category.name}
-                            </SelectItem>
-                        ))}
-                    </SelectContent>
-                </Select>
-
-                <div className="grid grid-cols-4 gap-2">
-                    <Input
-                        type="text"
-                        name="service_name"
-                        placeholder="Service Name *"
-                        value={service.service_name}
-                        onChange={handleChange}
-                    />
-                    <Input
-                        type="number"
-                        name="cost"
-                        placeholder="Cost *"
-                        value={service.cost}
-                        onChange={handleChange}
-                    />
+                <div>
+                    <Label htmlFor="category_id" className="font-bold">
+                        Service Category
+                    </Label>
                     <Select
-                        value={service.duration_hour}
-                        onValueChange={(value) =>
-                            handleChange({
-                                target: { name: "duration_hour", value },
-                            })
-                        }
+                        value={service.category_id}
+                        onValueChange={handleCategorySelect}
                     >
-                        <SelectTrigger>
-                            <SelectValue placeholder="Hours" />
+                        <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Select a category *" />
                         </SelectTrigger>
                         <SelectContent>
-                            {Array.from({ length: 13 }, (_, i) => i).map(
-                                (hour) => (
+                            {serviceCategories.map((category) => (
+                                <SelectItem
+                                    key={category.id}
+                                    value={category.id}
+                                >
+                                    {category.name}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                </div>
+
+                <div className="grid grid-cols-4 gap-2 items-center">
+                    <div>
+                        <Label htmlFor="service_name" className="font-bold">
+                            Service Name
+                        </Label>
+                        <Input
+                            type="text"
+                            name="service_name"
+                            placeholder="Service Name *"
+                            value={service.service_name}
+                            onChange={handleChange}
+                        />
+                    </div>
+                    <div>
+                        <Label htmlFor="cost" className="font-bold">
+                            Cost
+                        </Label>
+                        <Input
+                            type="number"
+                            name="cost"
+                            placeholder="Cost *"
+                            value={service.cost}
+                            onChange={handleChange}
+                        />
+                    </div>
+                    <div>
+                        <Label htmlFor="duration" className="font-bold">
+                            Duration Hour
+                        </Label>
+                        <Select
+                            value={service.duration_hour}
+                            onValueChange={(value) =>
+                                handleChange({
+                                    target: { name: "duration_hour", value },
+                                })
+                            }
+                        >
+                            <SelectTrigger>
+                                <SelectValue placeholder="Hours" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="0">0</SelectItem>
+                                {Array.from(
+                                    { length: 12 },
+                                    (_, i) => i + 1
+                                ).map((hour) => (
                                     <SelectItem
                                         key={hour}
                                         value={hour.toString()}
                                     >
                                         {hour}
                                     </SelectItem>
-                                )
-                            )}
-                        </SelectContent>
-                    </Select>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
 
-                    <Select
-                        value={service.duration_minute}
-                        onValueChange={(value) =>
-                            handleChange({
-                                target: { name: "duration_minute", value },
-                            })
-                        }
-                    >
-                        <SelectTrigger>
-                            <SelectValue placeholder="Minutes" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="0">0</SelectItem>
-                            {Array.from(
-                                { length: 11 },
-                                (_, i) => i * 5 + 5
-                            ).map((minutes) => (
-                                <SelectItem
-                                    key={minutes}
-                                    value={minutes.toString()}
-                                >
-                                    {minutes}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
+                    <div>
+                        <Label htmlFor="duration" className="font-bold">
+                            Duration Minute
+                        </Label>
+                        <Select
+                            value={service.duration_minute}
+                            onValueChange={(value) =>
+                                handleChange({
+                                    target: { name: "duration_minute", value },
+                                })
+                            }
+                        >
+                            <SelectTrigger>
+                                <SelectValue placeholder="Minutes" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="0">0</SelectItem>
+                                {Array.from(
+                                    { length: 11 },
+                                    (_, i) => i * 5 + 5
+                                ).map((minutes) => (
+                                    <SelectItem
+                                        key={minutes}
+                                        value={minutes.toString()}
+                                    >
+                                        {minutes}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
                 </div>
             </div>
             {/* Add Service Button */}

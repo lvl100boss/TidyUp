@@ -49,4 +49,14 @@ class Shop extends Model
     {
         return $this->hasMany(Appointments::class);
     }
+
+    public function staffs()
+    {
+        return $this->hasMany(ShopStaffs::class, 'shop_id');
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 }

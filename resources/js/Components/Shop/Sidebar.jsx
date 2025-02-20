@@ -48,7 +48,7 @@ const Sidebar = () => {
 
     return (
         <div className="hidden lg:block">
-            <div className="w-48 sticky top-5">
+            <div className="w-48 sticky top-20">
                 {mainLinks.map((link) => (
                     <Link
                         key={link.href}

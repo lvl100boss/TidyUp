@@ -12,7 +12,7 @@ import {
     CircleUser,
     Store,
     Wallet,
-    ShoppingBag,
+    BookOpenCheck,
     Users,
     TrendingUp,
     Calendar,
@@ -23,7 +23,7 @@ import {
     Activity,
     DollarSign,
     CheckCircle2,
-    XCircle,
+    Coins,
 } from "lucide-react";
 import ShopsLayout from "@/Layouts/ShopsLayout";
 import { Head } from "@inertiajs/react";
@@ -45,16 +45,17 @@ const Dashboard = ({ shop, user }) => {
             trend: "positive",
         },
         {
-            title: "Total Orders",
+            title: "Commpleted Bookings",
             value: "1,429",
-            icon: <ShoppingBag className="h-4 w-4 text-muted-foreground" />,
+            icon: <BookOpenCheck className="h-4 w-4 text-muted-foreground" />,
+
             change: "+19% from last month",
             trend: "positive",
         },
         {
             title: "Available Tokens",
             value: "20",
-            icon: <TrendingUp className="h-4 w-4 text-muted-foreground" />,
+            icon: <Coins className="h-4 w-4 text-muted-foreground" />,
             change: "5 used this month",
             trend: "neutral",
         },
@@ -220,7 +221,7 @@ const Dashboard = ({ shop, user }) => {
     return (
         <ShopsLayout>
             <Head title="Dashboard" />
-            <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
+            <div className="flex-1 space-y-4">
                 <div className="flex items-center justify-between space-y-2">
                     <div>
                         <h2 className="text-3xl font-bold tracking-tight">
@@ -229,22 +230,6 @@ const Dashboard = ({ shop, user }) => {
                         <p className="text-muted-foreground">
                             Welcome back, {user.first_name}!
                         </p>
-                    </div>
-
-                    <div className="flex items-center space-x-4">
-                        <Bell className="h-5 w-5 text-muted-foreground" />
-                        <Avatar className="h-10 w-10">
-                            {user.profile_photo_path ? (
-                                <AvatarImage
-                                    src={`/storage/${user.profile_photo_path}`}
-                                />
-                            ) : (
-                                <AvatarFallback>
-                                    {user.first_name?.[0]}
-                                    {user.last_name?.[0]}
-                                </AvatarFallback>
-                            )}
-                        </Avatar>
                     </div>
                 </div>
 
