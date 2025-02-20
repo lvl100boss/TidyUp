@@ -32,4 +32,9 @@ class ShopServiceCategories extends Model
     {
         return $this->belongsTo(ServiceCategories::class, 'service_category_id');
     }
+
+    public function appointmentServices()
+    {
+        return $this->hasMany(AppointmentServices::class);
+    }
 }

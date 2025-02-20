@@ -2,23 +2,33 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Appointments;
+use App\Models\Shop;
+use App\Models\ShopServiceCategories;
+use App\Models\ShopStaffs;
+use App\Models\UserAppointments;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
-use App\Models\Shop;
-use App\Models\ShopBranch;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class BookingController extends Controller
 {
-    //
-    public function show($shop_id, $branch_id)
+    public function stepOne(Shop $shop)
     {
-        $shop = Shop::find($shop_id)->with('branches')->where('id', $shop_id)->first();
-        $branch = ShopBranch::with(['gallery', 'services.serviceCategory', 'operationHours'])->where('id', $branch_id)->first();
-        return Inertia::render('Users/Booking', [
-            'shop_id' => $shop_id,
-            'branch_id' => $branch_id,
+        $shop->load(['shopGallery', 'shopServiceCategories.serviceCategories', 'shopOperationHours']);
+        $shopStaff = ShopStaffs::with('appointments.appointment.appointmentServices.shopService', 'staff')->where('shop_id', $shop->id)->get();
+        $business_days = $shop->shopOperationHours->where('is_open', 1)->pluck('day')->toArray();
+
+
+
+
+        return Inertia::render('Users/BookingPages/BookingStepOne', [
             'shop' => $shop,
-            'branch' => $branch
+            'businessDays' => $business_days,
+            'shopStaff' => $shopStaff,
         ]);
     }
 }

@@ -26,6 +26,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'contact_number',
         'profile_photo_path',
         'gender',
+        'date_of_birth',
         'is_service_provider',
     ];
 
@@ -62,8 +63,23 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(Appointments::class); // Each user has many appointments
     }
 
-    public function shopAccount()
+    public function shop()
     {
-        return $this->hasOne(ShopAccount::class, 'shop_owner_id'); // Each user has one shop account
+        return $this->hasOne(Shop::class); // Each user has one shop
+    }
+
+    public function shopStaffs()
+    {
+        return $this->belongsTo(ShopStaffs::class, 'staff_id'); // Each user has many shop staffs
+    }
+
+    public function userAppointments()
+    {
+        return $this->hasMany(UserAppointments::class); // Each user has many user appointments
+    }
+
+    public function appointmentServices()
+    {
+        return $this->hasMany(AppointmentServices::class); // Each user has many appointment services
     }
 }
