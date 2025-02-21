@@ -19,7 +19,6 @@ return new class extends Migration
             $table->string('restricted_by');
             $table->string('lifted_by')->nullable(); // Who lifted the restriction
             $table->text('reason');
-            $table->text('lift_reason')->nullable(); // Why it was lifted early
             $table->timestamps();
         });
     }
