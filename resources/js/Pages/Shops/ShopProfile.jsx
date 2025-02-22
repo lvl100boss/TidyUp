@@ -1,6 +1,6 @@
 import React from "react";
 import ShopsLayout from "@/Layouts/ShopsLayout";
-import { Head } from "@inertiajs/react";
+import { Head, Link } from "@inertiajs/react";
 import {
     Card,
     CardContent,
@@ -19,9 +19,13 @@ import {
     Globe,
     Users,
     Scissors,
+    ArrowUpRight,
+    Pencil
 } from "lucide-react";
 
 import ShopGalleryCard from "@/Components/Shop/ShopProfile/ShopGalleryCard";
+import { Button } from "@/Components/ui/button";
+import { Separator } from "@/Components/ui/separator";
 
 const ShopProfile = ({ shop }) => {
     // Sample shop data structure
@@ -50,22 +54,7 @@ const ShopProfile = ({ shop }) => {
             facebook: "GlamourSalonPH",
             website: "www.glamoursalon.com",
         },
-        services: [
-            { name: "Haircut", price: "₱500 - ₱800", duration: "1 hour" },
-            {
-                name: "Hair Color",
-                price: "₱2,500 - ₱4,500",
-                duration: "2-3 hours",
-            },
-            { name: "Manicure", price: "₱350", duration: "45 mins" },
-            { name: "Pedicure", price: "₱400", duration: "1 hour" },
-            { name: "Facial", price: "₱1,200", duration: "1 hour" },
-            {
-                name: "Full Body Massage",
-                price: "₱1,500",
-                duration: "1.5 hours",
-            },
-        ],
+
         staff: [
             {
                 name: "Maria Santos",
@@ -109,16 +98,6 @@ const ShopProfile = ({ shop }) => {
                                             <h2 className="text-2xl font-bold">
                                                 {shop.shop_name}
                                             </h2>
-                                            <div className="flex items-center gap-2">
-                                                <Badge variant="secondary">
-                                                    Verified
-                                                </Badge>
-                                                <span className="text-sm text-muted-foreground">
-                                                    ⭐ {sampleShop.rating} (
-                                                    {sampleShop.totalReviews}{" "}
-                                                    reviews)
-                                                </span>
-                                            </div>
                                         </div>
                                         <p className="text-muted-foreground">
                                             {shop.bio}
@@ -131,29 +110,35 @@ const ShopProfile = ({ shop }) => {
                         {/* Services Section */}
                         <Card>
                             <CardHeader>
-                                <CardTitle className="flex items-center gap-2">
-                                    <Scissors className="h-5 w-5" />
-                                    Services
+                                <CardTitle className="flex justify-between items-center">
+                                    <Link className="flex items-center gap-2 hover:underline" href={`/shop/catalog`}>
+                                        <Scissors className="h-5 w-5" />
+                                        <span>Services ({shop.shop_service_categories.length})</span>
+                                    </Link>
+                                    <Link href={`/shop/catalog`} className="flex items-center gap-2 hover:underline">
+                                        <span className="text-sm text-accent-foreground">View All</span>
+                                        <ArrowUpRight className="h-5 w-5" />
+                                    </Link>
                                 </CardTitle>
                             </CardHeader>
                             <CardContent>
                                 <div className="grid gap-4 md:grid-cols-2">
-                                    {sampleShop.services.map(
+                                    {shop.shop_service_categories.slice(0, 6).map(
                                         (service, index) => (
                                             <div
                                                 key={index}
                                                 className="border rounded-lg p-4"
                                             >
                                                 <h3 className="font-medium">
-                                                    {service.name}
+                                                    {service.service_name}
                                                 </h3>
                                                 <div className="mt-2 space-y-1 text-sm">
-                                                    <p className="text-green-600 font-medium">
-                                                        {service.price}
+                                                    <p className="text-green-600 font-bold">
+                                                        Php {service.cost}
                                                     </p>
                                                     <p className="text-muted-foreground">
                                                         Duration:{" "}
-                                                        {service.duration}
+                                                        {service.duration_hour + ' hours ' + service.duration_minute + ' minutes'}
                                                     </p>
                                                 </div>
                                             </div>
@@ -166,33 +151,44 @@ const ShopProfile = ({ shop }) => {
                         {/* Staff Section */}
                         <Card>
                             <CardHeader>
-                                <CardTitle className="flex items-center gap-2">
-                                    <Users className="h-5 w-5" />
-                                    Our Team
+                                <CardTitle className="flex items-center justify-between">
+                                    <Link href={`/shop/manage/staff`} className="flex items-center gap-2 hover:underline">
+                                        <Users className="h-5 w-5" />
+                                        <span>Our Team ({shop.staffs.length})</span>
+                                    </Link>
+                                    <Link className="flex items-center gap-2 hover:underline" href={`/shop/manage/staff`}>
+                                        <span className="text-sm text-accent-foreground">View All</span>
+                                        <ArrowUpRight className="h-5 w-5" />
+                                    </Link>
                                 </CardTitle>
                             </CardHeader>
                             <CardContent>
                                 <div className="grid gap-4 md:grid-cols-2">
-                                    {sampleShop.staff.map((member, index) => (
+                                    {shop.staffs.slice(0, 4).map((member, index) => (
                                         <div
                                             key={index}
                                             className="flex items-center gap-4 border rounded-lg p-4"
                                         >
                                             <Avatar>
+                                                <AvatarImage
+                                                    src={`/storage/${member.staff.profile_photo_path}`}
+                                                    className="object-cover"
+                                                />
                                                 <AvatarFallback>
-                                                    {member.name[0]}
+                                                    {member.staff.first_name[0]}
                                                 </AvatarFallback>
                                             </Avatar>
                                             <div>
                                                 <h3 className="font-medium">
-                                                    {member.name}
+                                                    {member.staff.first_name}{" "}
+                                                    {member.staff.last_name}
                                                 </h3>
                                                 <p className="text-sm text-muted-foreground">
-                                                    {member.role}
+                                                    {member.staff.email}
                                                 </p>
                                                 <p className="text-sm text-muted-foreground">
-                                                    Experience:{" "}
-                                                    {member.experience}
+                                                    {member.role[0].toUpperCase() + member.role.slice(1)}
+
                                                 </p>
                                             </div>
                                         </div>
@@ -227,36 +223,42 @@ const ShopProfile = ({ shop }) => {
                         </Card>
 
                         <Card>
-                            <CardHeader>
-                                <CardTitle>Business Hours</CardTitle>
+                            <CardHeader >
+                                <div className="flex justify-between ">
+                                    <CardTitle>Business Hours</CardTitle>
+                                    <Pencil className="size-4 cursor-pointer hover:scale-125 transition-transform" />
+                                </div>
                             </CardHeader>
                             <CardContent className="space-y-2">
                                 {shop.shop_operation_hours.map((hours) => (
-                                    <div
-                                        key={hours.day}
-                                        className="flex justify-between text-sm"
-                                    >
-                                        <span className="capitalize">
-                                            {hours.day}
-                                        </span>
-                                        <span>
-                                            {hours.is_open
-                                                ? `${new Date(
-                                                      `1970-01-01T${hours.open_time}Z`
-                                                  ).toLocaleTimeString([], {
-                                                      hour: "2-digit",
-                                                      minute: "2-digit",
-                                                      hour12: true,
-                                                  })} - ${new Date(
-                                                      `1970-01-01T${hours.close_time}Z`
-                                                  ).toLocaleTimeString([], {
-                                                      hour: "2-digit",
-                                                      minute: "2-digit",
-                                                      hour12: true,
-                                                  })}`
-                                                : "Closed"}
-                                        </span>
-                                    </div>
+                                    <>
+                                        <div
+                                            key={hours.day}
+                                            className="flex justify-between text-sm p-2 hover:bg-muted rounded-md"
+                                        >
+                                            <span className="capitalize">
+                                                {hours.day}
+                                            </span>
+                                            <span className={hours.is_open ? "font-bold" : "text-red-600 font-bold"}>
+                                                {hours.is_open
+                                                    ? `${new Date(
+                                                        `1970-01-01T${hours.open_time}Z`
+                                                    ).toLocaleTimeString([], {
+                                                        hour: "2-digit",
+                                                        minute: "2-digit",
+                                                        hour12: true,
+                                                    })} - ${new Date(
+                                                        `1970-01-01T${hours.close_time}Z`
+                                                    ).toLocaleTimeString([], {
+                                                        hour: "2-digit",
+                                                        minute: "2-digit",
+                                                        hour12: true,
+                                                    })}`
+                                                    : "Closed"}
+                                            </span>
+                                        </div>
+                                        <Separator />
+                                    </>
                                 ))}
                             </CardContent>
                         </Card>

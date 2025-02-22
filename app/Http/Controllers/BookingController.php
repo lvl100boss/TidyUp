@@ -124,7 +124,7 @@ class BookingController extends Controller
             }
 
             session()->forget('form_data');
-            return redirect()->route('appointments')->with('message', 'Appointment has been booked successfully')->with('success', true);
+            return redirect()->route('appointments')->with('message', value: 'Appointment has been booked successfully')->with('success', true);
         } catch (\Exception $e) {
             return redirect()->back()->with('message', 'Something went wrong')->with('success', false);
         }

@@ -18,7 +18,6 @@ class BarbershopShopsController extends Controller
         }, 'shopCategories.categories'])->whereHas('shopCategories.categories', function ($query) {
             $query->where('name', 'Barbershop');
         })->inRandomOrder()->limit(20)->get();
-
         return Inertia::render(
             'Users/Barbershops',
             [
