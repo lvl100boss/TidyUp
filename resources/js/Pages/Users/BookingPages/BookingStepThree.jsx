@@ -43,7 +43,9 @@ export default function BookingStepThree({ shop, shopStaff, data }) {
                     <header className="flex justify-center relative ">
                         <Button className="absolute rounded-none border-b border-foreground left-0" variant="ghost" asChild>
                             <Link href={`/${shop.id}/booking/2`}>
-                                <span><ChevronLeft className="mr-2" /></span>
+                                <span>
+                                    <ChevronLeft className="mr-2" />
+                                </span>
                                 Back
                             </Link>
                         </Button>
@@ -59,94 +61,95 @@ export default function BookingStepThree({ shop, shopStaff, data }) {
                         <StepsIndicator step={3} />
                     </div>
                     <section>
+                        <h1 className='text-2xl font-bold mb-5'>Confirm your Appointment</h1>
                         <form onSubmit={handleSubmit} className="grid sm:grid-cols-2 gap-5">
                             <div>
-                                <Card>
-                                    <CardHeader>
-                                        <h1 className='text-xl font-bold'>Confirm Appointment</h1>
-                                    </CardHeader>
+                                <Card className="overflow-hidden">
+                                    <img className='w-full aspect-video mb-5' src={`/${shop.shop_gallery[0].url}`} />
                                     <CardContent>
                                         <CardTitle>Shop Name</CardTitle>
-                                        <CardDescription className="text-xl">
+                                        <CardDescription className="">
                                             {shop.shop_name}
                                         </CardDescription>
                                     </CardContent>
                                     <CardContent>
                                         <CardTitle>Location</CardTitle>
-                                        <CardDescription className="text-xl">
+                                        <CardDescription className="">
                                             {shop.detailed_address}
                                         </CardDescription>
                                     </CardContent>
                                     <CardContent>
                                         <CardTitle>Schedule</CardTitle>
-                                        <CardDescription className="text-xl">
+                                        <CardDescription className="">
                                             {new Date(data.date).toLocaleDateString('en-US', { weekday: 'short', year: 'numeric', month: 'long', day: 'numeric' })}
                                         </CardDescription>
-                                        <CardDescription className="text-xl">
+                                        <CardDescription className="">
                                             {new Date(`2024-01-01T${data.time}`).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
                                         </CardDescription>
                                     </CardContent>
                                 </Card>
                             </div>
-                            <Card>
-                                <CardHeader>
-                                    <h1 className='text-xl font-bold'>Services</h1>
-                                </CardHeader>
-                                <CardContent>
-                                    <CardTitle>Stylist</CardTitle>
-                                    <CardDescription className="text-xl">
-                                        {shopStaff[data.staff_index].staff.first_name} {shopStaff[data.staff_index].staff.last_name}
-                                    </CardDescription>
-                                </CardContent>
-                                <CardContent>
-                                    <CardTitle>Services</CardTitle>
-                                    <CardDescription className="text-xl">
-                                        {shop.shop_service_categories.map((service) => (
-                                            data.service_id.map((selectedService) => {
-                                                if (service.id === selectedService) {
-                                                    return (
-                                                        <div key={service.id} className='flex items-center justify-between gap-2'>
-                                                            <p className='text-xl'>
-                                                                - {service.service_name}
-                                                            </p>
-                                                            <p className='text-sm'>
-                                                                Php {service.cost}
-                                                            </p>
-                                                        </div>
-                                                    )
-                                                }
-                                            })
-                                        ))}
-                                    </CardDescription>
-                                </CardContent>
-
-                                <CardContent>
-                                    <CardTitle>Note</CardTitle>
-                                    <CardDescription>
-                                        Leave a note (optional)
-                                    </CardDescription>
-                                    <Textarea
-                                        placeholder="Type your message here."
-                                        onChange={(e) => setData('note', e.target.value)}
-                                        rows={8}
-                                    />
-
-                                </CardContent>
-
-                                <CardFooter className='w-full'>
-                                    <div className='flex justify-between items-center w-full'>
-                                        <CardTitle>Total Cost</CardTitle>
-                                        <CardDescription className="text-xl">
-                                            Php {data.total_price}
+                            <div>
+                                <Card>
+                                    <CardHeader>
+                                        <h1 className=' font-bold text-xl'>Services Summary</h1>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <CardTitle>Stylist</CardTitle>
+                                        <CardDescription className="">
+                                            {shopStaff[data.staff_index].staff.first_name} {shopStaff[data.staff_index].staff.last_name}
                                         </CardDescription>
-                                    </div>
-                                </CardFooter>
-                                <CardContent>
-                                    <Button type="submit" className="w-full font-bold">
-                                        Confirm Appointment
-                                    </Button>
-                                </CardContent>
-                            </Card>
+                                    </CardContent>
+                                    <CardContent>
+                                        <CardTitle>Services</CardTitle>
+                                        <CardDescription className="">
+                                            {shop.shop_service_categories.map((service) => (
+                                                data.service_id.map((selectedService) => {
+                                                    if (service.id === selectedService) {
+                                                        return (
+                                                            <div key={service.id} className='flex items-center justify-between gap-2'>
+                                                                <p className=''>
+                                                                    - {service.service_name}
+                                                                </p>
+                                                                <p className='text-sm'>
+                                                                    Php {service.cost}
+                                                                </p>
+                                                            </div>
+                                                        )
+                                                    }
+                                                })
+                                            ))}
+                                        </CardDescription>
+                                    </CardContent>
+
+                                    <CardContent>
+                                        <CardTitle>Note</CardTitle>
+                                        <CardDescription>
+                                            Leave a note (optional)
+                                        </CardDescription>
+                                        <Textarea
+                                            placeholder="Type your message here."
+                                            onChange={(e) => setData('note', e.target.value)}
+                                            rows={8}
+                                        />
+
+                                    </CardContent>
+
+                                    <CardFooter className='w-full'>
+                                        <div className='flex justify-between items-center w-full'>
+                                            <CardTitle>Total Cost</CardTitle>
+                                            <CardDescription className="">
+                                                Php {data.total_price}
+                                            </CardDescription>
+                                        </div>
+                                    </CardFooter>
+                                    <CardContent>
+                                        <Button type="submit" className="w-full font-bold">
+                                            Confirm Appointment
+                                        </Button>
+                                    </CardContent>
+                                </Card>
+                            </div>
                         </form>
                     </section>
 

@@ -68,6 +68,7 @@ class ManageStaffController extends Controller
                 'regex:/[@$!%*?&#]/',
                 'confirmed',
             ],
+            'is_active' => ['required', 'boolean'],
             'profile_photo_path' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:24048'],
             'contact_number' => ['nullable', 'string', 'max:255'],
         ], [
@@ -75,6 +76,7 @@ class ManageStaffController extends Controller
             'email.unique' => 'This email address is already registered.',
             'password.regex' => 'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character.',
         ]);
+
         try {
             DB::beginTransaction();
             $user = User::create([
@@ -98,11 +100,10 @@ class ManageStaffController extends Controller
                 $user->save(); // Save the user again to store the profile photo path
             }
 
+
             // Get the shop ID based on the authenticated user's association
             $authenticatedUser = Auth::user();
-            $userShopAssociation = ShopStaffs::where('staff_id', $authenticatedUser->id)
-                ->where('is_active', true)
-                ->first();
+            $userShopAssociation = ShopStaffs::where('staff_id', $authenticatedUser->id)->first();
 
             if (!$userShopAssociation || !$userShopAssociation->shop_id) {
                 throw ValidationException::withMessages([
@@ -114,7 +115,7 @@ class ManageStaffController extends Controller
                 'staff_id' => $user->id,
                 'role' => $validated['role'],
                 'position' => $validated['position'],
-                'is_active' => true,
+                'is_active' => $validated['is_active'] === "1" ? true : false,
                 'started_at' => now(),
             ]);
 
@@ -139,7 +140,6 @@ class ManageStaffController extends Controller
         // Check if the authenticated user has access to this staff member
         $authenticatedUser = Auth::user();
         $userShopAssociation = ShopStaffs::where('staff_id', $authenticatedUser->id)
-            ->where('is_active', true)
             ->first();
 
         if (!$userShopAssociation || $staff->shop_id !== $userShopAssociation->shop_id) {

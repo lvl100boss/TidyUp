@@ -13,7 +13,7 @@ export default function EditsStaff({ staff, isOwner }) {
         username: staff.username,
         email: staff.email,
         is_active: staff.is_active,
-        profile_photo_path: staff.profile_photo_path,
+        profile_photo_path: null,
         contact_number: staff.contact_number,
         password: "",
         password_confirmation: "",
@@ -40,6 +40,8 @@ export default function EditsStaff({ staff, isOwner }) {
 
         if (data.profile_photo_path) {
             formData.append("profile_photo_path", data.profile_photo_path);
+        } else {
+            formData.append("profile_photo_path", null);
         }
         post(route("shop.manage.staff.update", staff.id), {
             preserveScroll: true,

@@ -147,14 +147,13 @@ export default function AvailableTimeSlots({
                     className="flex flex-wrap justify-start gap-3"
                 >
                     {shopStaff
-                        .filter(staff => staff.is_active)
                         .map((staff, index) => (
                             <ToggleGroupItem
                                 key={staff.id}
                                 value={staff.id}
                                 aria-label={`Select ${staff.staff.first_name} ${staff.staff.last_name}`}
                                 className="data-[state=on]:bg-foreground data-[state=on]:text-background"
-                                onClick={(e) => setSelectedStaff(index)}
+                                onClick={() => setSelectedStaff(index)}
                             >
                                 <h1 className="font-bold">
                                     {`${staff.staff.first_name} ${staff.staff.last_name}`}

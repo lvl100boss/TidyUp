@@ -35,33 +35,38 @@ import {
 import { Head, Link, usePage } from "@inertiajs/react";
 import { Terminal, EllipsisVertical } from "lucide-react"
 import { useEffect, useState } from "react";
-import { FlashMessage } from "@/Components/FlashMessage"
 import ViewInfoModal from "@/Components/Shop/ManageStaff.jsx/ViewInfoModal";
 import DeleteStaffModal from "@/Components/Shop/ManageStaff.jsx/DeleteStaffModal";
+import { toast, Toaster } from 'sonner';
 
 export default function ManageStaff({ staffs, shop, isOwner }) {
     const { flash } = usePage().props;
-    const [flashMsg, setFlashMsg] = useState(flash.message);
-    const [flashSuccess, setFlashSuccess] = useState(flash.success);
     useEffect(() => {
         if (flash.message) {
-            setFlashMsg(flash.message);
-            setFlashSuccess(flash.success);
-            const timer = setTimeout(() => setFlashMsg(""), 4000);
-            return () => clearTimeout(timer);
+            if (flash.success) {
+                toast("Heads up!", {
+                    description: flash.message,
+                    duration: 5000,
+                });
+            } else {
+                toast.error("Uh oh! Something went wrong.", {
+                    description: flash.message,
+                    duration: 5000,
+                });
+            }
         }
-    }, [flash.message, flash.success]);
+    }, [flash.message]);
 
     return (
         <ShopsLayout>
             <Head title="Manage Staff" />
-            <FlashMessage message={flashMsg} success={flashSuccess} />
+            <Toaster />
             <div>
                 <div className="flex justify-between items-center mb-6">
                     <h1 className="text-2xl font-bold">Manage Staff</h1>
                     <Link
                         href="/shop/manage/staff/create"
-                        className={`flex items-center ${buttonVariants({ variant: "default", size: "sm", })}`}
+                        className={`flex items-center font-bold ${buttonVariants({ variant: "default", size: "sm", })}`}
                     >
                         Add New Staff
                     </Link>

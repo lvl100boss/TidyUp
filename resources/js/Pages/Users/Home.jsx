@@ -181,7 +181,7 @@ export default function Home({ shops }) {
             <div className="mb-10">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                     {cardData.map((card, index) => (
-                        <Card key={index}>
+                        <Card key={index} className="hover:shadow-md transition-all ease-in-out">
                             <CardHeader>
                                 <CardTitle className="text-xl font-semibold inline-flex gap-2 items-center">
                                     <card.icon size={20} />
