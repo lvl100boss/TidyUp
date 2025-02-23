@@ -72,6 +72,7 @@ export default function ManageStaff({ staffs, shop, isOwner }) {
                         <TableHeader>
                             <TableRow>
                                 <TableHead>No.</TableHead>
+                                <TableHead>Avatar</TableHead>
                                 <TableHead>Name</TableHead>
                                 <TableHead>Role</TableHead>
                                 <TableHead>Position</TableHead>
@@ -83,7 +84,16 @@ export default function ManageStaff({ staffs, shop, isOwner }) {
                         <TableBody>
                             {staffs.map((member, index) => (
                                 <TableRow key={member.staff_id}>
-                                    <TableCell>{index + 1}</TableCell>
+                                    <TableCell className>{index + 1}</TableCell>
+                                    <TableCell>
+                                        {member.staff.profile_photo_path ? (
+                                            <img src={`/storage/${member.staff.profile_photo_path}`} className="size-20 object-cover rounded-md" />
+                                        ) : (
+                                            <div className="size-20 bg-secondary rounded-md flex items-center justify-center">
+                                                <span className="text-2xl font-bold3q">{member.staff.first_name[0] + member.staff.last_name[0]}</span>
+                                            </div>
+                                        )}
+                                    </TableCell>
                                     <TableCell>{`${member.staff.first_name} ${member.staff.last_name}`}</TableCell>
                                     <TableCell>{member.role[0].toUpperCase() + member.role.slice(1)}</TableCell>
                                     <TableCell>{member.position[0].toUpperCase() + member.position.slice(1)}</TableCell>

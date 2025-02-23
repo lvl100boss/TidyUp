@@ -28,7 +28,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/shop/manage/staff/create', [ManageStaffController::class, 'create'])->name('shop.manage.staff.create');
     Route::post('/shop/manage/staff', [ManageStaffController::class, 'store'])->name('shop.manage.staff.store');
     Route::get('/shop/manage/staff/{id}/edit', [ManageStaffController::class, 'edit'])->name('shop.manage.staff.edit');
-    Route::put('/shop/manage/staff/{id}', [ManageStaffController::class, 'update'])->name('shop.manage.staff.update');
+    Route::patch('/shop/manage/staff/{id}', [ManageStaffController::class, 'update'])->name('shop.manage.staff.update');
     Route::delete('/shop/manage/staff/{id}/delete', [ManageStaffController::class, 'destroy'])->name('shop.manage.staff.destroy');
 
     Route::post('upload', [ShopGalleryController::class, 'upload'])->name('shop.gallery.upload');

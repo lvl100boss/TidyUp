@@ -22,6 +22,7 @@ class ManageStaffController extends Controller
         $staffs = $shop->staffs;
         $currentStaff = $staffs->where('staff_id', $user_id)->first();
         $isOwner = $currentStaff->position === 'owner';
+
         return Inertia::render('Shops/ManageStaff', [
             'staffs' => $staffs,
             'shop' => [
@@ -67,12 +68,13 @@ class ManageStaffController extends Controller
                 'regex:/[@$!%*?&#]/',
                 'confirmed',
             ],
+            'profile_photo_path' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:24048'],
+            'contact_number' => ['nullable', 'string', 'max:255'],
         ], [
             'username.unique' => 'This username is already taken.',
             'email.unique' => 'This email address is already registered.',
             'password.regex' => 'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character.',
         ]);
-
         try {
             DB::beginTransaction();
             $user = User::create([
@@ -83,7 +85,18 @@ class ManageStaffController extends Controller
                 'date_of_birth' => $validated['date_of_birth'],
                 'gender' => $validated['gender'],
                 'password' => Hash::make($validated['password']),
+                'contact_number' => $validated['contact_number'] ?? null,
             ]);
+
+            // Save the user to the database before handling the profile photo
+            $user->save();
+
+            if ($request->hasFile('profile_photo_path')) {
+                // Store the uploaded file and get the path
+                $path = $request->file('profile_photo_path')->store('profile-photos', 'public');
+                $user->profile_photo_path = $path;
+                $user->save(); // Save the user again to store the profile photo path
+            }
 
             // Get the shop ID based on the authenticated user's association
             $authenticatedUser = Auth::user();
@@ -103,6 +116,11 @@ class ManageStaffController extends Controller
                 'position' => $validated['position'],
                 'is_active' => true,
                 'started_at' => now(),
+            ]);
+
+            $user->userRole()->create([
+                'user_id' => $user->id,
+                'role_id' => 4,
             ]);
 
             DB::commit();
@@ -146,6 +164,8 @@ class ManageStaffController extends Controller
                 'date_of_birth' => $staff->staff->date_of_birth,
                 'gender' => $staff->staff->gender,
                 'is_active' => $staff->is_active,
+                'profile_photo_path' => $staff->staff->profile_photo_path,
+                'contact_number' => $staff->staff->contact_number,
             ],
             'isOwner' => $isOwner,
         ]);
@@ -174,6 +194,12 @@ class ManageStaffController extends Controller
                 'regex:/[@$!%*?&#]/',
                 'confirmed',
             ],
+            'profile_photo_path' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:24048'],
+            'contact_number' => ['nullable', 'string', 'max:255'],
+        ], [
+            'username.unique' => 'This username is already taken.',
+            'email.unique' => 'This email address is already registered.',
+            'password.regex' => 'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character.',
         ]);
 
         try {
@@ -186,7 +212,15 @@ class ManageStaffController extends Controller
                 'email' => $validated['email'],
                 'date_of_birth' => $validated['date_of_birth'],
                 'gender' => $validated['gender'],
+                'contact_number' => $validated['contact_number'] ?? null,
             ];
+
+            if ($request->hasFile('profile_photo_path')) {
+                // Store the uploaded file and get the path
+                $path = $request->file('profile_photo_path')->store('profile-photos', 'public');
+                $userData['profile_photo_path'] = $path;
+            }
+
 
             if (!empty($validated['password'])) {
                 $userData['password'] = Hash::make($validated['password']);

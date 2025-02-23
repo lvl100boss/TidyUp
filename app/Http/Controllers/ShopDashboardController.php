@@ -16,6 +16,8 @@ class ShopDashboardController extends Controller
         $user = User::find(auth()->user()->id);
 
         $shop = Shop::where('user_id', $user->id)->first();
+
+
         return Inertia::render('Shops/Dashboard', [
             'shop' => $shop,
             'user' => $user

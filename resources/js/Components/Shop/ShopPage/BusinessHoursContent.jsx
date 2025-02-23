@@ -45,13 +45,13 @@ function BusinessHoursContent(props) {
                         <div
                             className={
                                 !day.is_open &&
-                                "text-muted-foreground uppercase"
+                                "text-red-500 uppercase font-bold"
                             }
                         >
                             {day.is_open
                                 ? `${formatTime(day.open_time)} - ${formatTime(
-                                      day.close_time
-                                  )}`
+                                    day.close_time
+                                )}`
                                 : "Closed"}
                         </div>
                     </div>
