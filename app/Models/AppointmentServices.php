@@ -24,7 +24,7 @@ class AppointmentServices extends Model
 
     public function shopService()
     {
-        return $this->belongsTo(ShopServiceCategories::class);
+        return $this->belongsTo(ShopServiceCategories::class, 'service_id');
     }
 
     public function user()

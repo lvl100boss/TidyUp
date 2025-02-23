@@ -27,8 +27,11 @@ import {
 } from "lucide-react";
 import ShopsLayout from "@/Layouts/ShopsLayout";
 import { Head } from "@inertiajs/react";
+import { ScrollArea } from "@/components/ui/scroll-area"
 
-const Dashboard = ({ shop, user }) => {
+const Dashboard = ({ shop, user, pendingAppointments, upcomingAppointments }) => {
+
+    console.log(pendingAppointments);
     const stats = [
         {
             title: "Total Revenue",
@@ -61,62 +64,62 @@ const Dashboard = ({ shop, user }) => {
         },
     ];
 
-    const pendingAppointments = [
-        {
-            id: 1,
-            customer: "John Doe",
-            service: "Haircut",
-            time: "2:30 PM",
-            price: "₱500",
-            status: "pending",
-        },
-        {
-            id: 2,
-            customer: "Sarah Wilson",
-            service: "Facial",
-            time: "3:00 PM",
-            price: "₱1,200",
-            status: "pending",
-        },
-        {
-            id: 3,
-            customer: "Mike Johnson",
-            service: "Massage",
-            time: "4:15 PM",
-            price: "₱800",
-            status: "pending",
-        },
-    ];
+    // const pendingAppointments = [
+    //     {
+    //         id: 1,
+    //         customer: "John Doe",
+    //         service: "Haircut",
+    //         time: "2:30 PM",
+    //         price: "₱500",
+    //         status: "pending",
+    //     },
+    //     {
+    //         id: 2,
+    //         customer: "Sarah Wilson",
+    //         service: "Facial",
+    //         time: "3:00 PM",
+    //         price: "₱1,200",
+    //         status: "pending",
+    //     },
+    //     {
+    //         id: 3,
+    //         customer: "Mike Johnson",
+    //         service: "Massage",
+    //         time: "4:15 PM",
+    //         price: "₱800",
+    //         status: "pending",
+    //     },
+    // ];
 
-    const upcomingAppointments = [
-        {
-            id: 4,
-            customer: "Jane Smith",
-            service: "Manicure",
-            time: "3:45 PM",
-            date: "Today",
-            price: "₱350",
-            status: "confirmed",
-        },
-        {
-            id: 5,
-            customer: "Robert Brown",
-            service: "Pedicure",
-            time: "11:00 AM",
-            date: "Tomorrow",
-            price: "₱400",
-            status: "confirmed",
-        },
-        {
-            id: 6,
-            customer: "Emily Davis",
-            service: "Hair Color",
-            time: "2:00 PM",
-            date: "Tomorrow",
-            price: "₱2,500",
-            status: "confirmed",
-        },
-    ];
+    // const upcomingAppointments = [
+    //     {
+    //         id: 4,
+    //         customer: "Jane Smith",
+    //         service: "Manicure",
+    //         time: "3:45 PM",
+    //         date: "Today",
+    //         price: "₱350",
+    //         status: "confirmed",
+    //     },
+    //     {
+    //         id: 5,
+    //         customer: "Robert Brown",
+    //         service: "Pedicure",
+    //         time: "11:00 AM",
+    //         date: "Tomorrow",
+    //         price: "₱400",
+    //         status: "confirmed",
+    //     },
+    //     {
+    //         id: 6,
+    //         customer: "Emily Davis",
+    //         service: "Hair Color",
+    //         time: "2:00 PM",
+    //         date: "Tomorrow",
+    //         price: "₱2,500",
+    //         status: "confirmed",
+    //     },
+    // ];
 
     const recentActivity = [
         {
@@ -165,7 +168,7 @@ const Dashboard = ({ shop, user }) => {
             <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                     {icon}
-                    {title}
+                    {title} ({appointments.length})
                 </CardTitle>
             </CardHeader>
             <CardContent>
@@ -174,45 +177,71 @@ const Dashboard = ({ shop, user }) => {
                         {emptyMessage}
                     </p>
                 ) : (
-                    <div className="space-y-4">
-                        {appointments.map((apt) => (
-                            <div
-                                key={apt.id}
-                                className="flex items-center justify-between border-b pb-4 last:border-0"
-                            >
-                                <div className="space-y-1">
-                                    <p className="text-sm font-medium leading-none">
-                                        {apt.customer}
-                                    </p>
-                                    <p className="text-sm text-muted-foreground">
-                                        {apt.service}
-                                    </p>
-                                    <p className="text-sm font-medium text-green-600">
-                                        {apt.price}
-                                    </p>
-                                </div>
-                                <div className="text-right space-y-1">
-                                    <Badge
-                                        variant={
-                                            apt.status === "confirmed"
-                                                ? "success"
-                                                : "secondary"
-                                        }
-                                    >
-                                        {apt.status}
-                                    </Badge>
-                                    <p className="text-sm font-medium">
-                                        {apt.time}
-                                    </p>
-                                    {apt.date && (
-                                        <p className="text-sm text-muted-foreground">
-                                            {apt.date}
+                    <ScrollArea className="h-72 -m-2 p-2">
+                        <div className="space-y-4">
+                            {appointments.map((apt) => (
+                                <div
+                                    key={apt.id}
+                                    className="flex items-center justify-between border-b pb-4 last:border-0"
+                                >
+                                    <div className="flex items-center gap-4">
+                                        <Avatar className="border size-14">
+                                            <AvatarImage
+                                                src={`/storage/${apt.user.profile_photo_path}`}
+                                                alt={apt.user.first_name}
+                                            />
+                                            <AvatarFallback>
+                                                <CircleUser className="h-6 w-6" />
+                                            </AvatarFallback>
+                                        </Avatar>
+                                        <div className="space-y-1">
+                                            <p className="text-sm font-medium leading-none">
+                                                {apt.user.first_name} {apt.user.last_name}
+                                            </p>
+                                            <p className="text-sm text-muted-foreground">
+                                                {apt.user.appointment_services
+                                                    .filter(
+                                                        (service) => service.appointment_id === apt.id
+                                                    ).map(
+                                                        (service) => service.shop_service.service_name
+                                                    ).join(", ")}
+                                            </p>
+                                            <p className="text-sm text-green-600 font-bold">
+                                                ₱{apt.total_price}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div className="text-right space-y-1">
+                                        <Badge
+                                            variant={
+                                                apt.status === "confirmed"
+                                                    ? "success"
+                                                    : "secondary"
+                                            }
+                                        >
+                                            {apt.status[0].toUpperCase() + apt.status.slice(1)}
+                                        </Badge>
+                                        <p className="text-sm font-medium">
+                                            {new Date(`2000-01-01T${apt.time}`).toLocaleTimeString('en-US', {
+                                                hour: '2-digit',
+                                                minute: '2-digit',
+                                            })}
                                         </p>
-                                    )}
+                                        {apt.date && (
+                                            <p className="text-sm text-muted-foreground">
+                                                {new Date(apt.date).toLocaleDateString('en-US', {
+                                                    weekday: 'short',
+                                                    month: 'short',
+                                                    day: 'numeric',
+                                                    year: 'numeric',
+                                                })}
+                                            </p>
+                                        )}
+                                    </div>
                                 </div>
-                            </div>
-                        ))}
-                    </div>
+                            ))}
+                        </div>
+                    </ScrollArea>
                 )}
             </CardContent>
         </Card>
@@ -247,13 +276,12 @@ const Dashboard = ({ shop, user }) => {
                                     {stat.value}
                                 </div>
                                 <p
-                                    className={`text-xs ${
-                                        stat.trend === "positive"
-                                            ? "text-green-600"
-                                            : stat.trend === "negative"
+                                    className={`text-xs ${stat.trend === "positive"
+                                        ? "text-green-600"
+                                        : stat.trend === "negative"
                                             ? "text-red-600"
                                             : "text-muted-foreground"
-                                    }`}
+                                        }`}
                                 >
                                     {stat.change}
                                 </p>

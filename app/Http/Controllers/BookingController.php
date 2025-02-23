@@ -23,7 +23,10 @@ class BookingController extends Controller
     {
         // session()->forget('form_data');
         $shop->load(['shopGallery', 'shopServiceCategories.serviceCategories', 'shopOperationHours']);
-        $shopStaff = ShopStaffs::with('appointments.appointment.appointmentServices.shopService', 'staff')->where('shop_id', $shop->id)->get();
+        $shopStaff = ShopStaffs::with('appointments.appointment.appointmentServices.shopService', 'staff')
+            ->where('shop_id', $shop->id)
+            ->where('is_active', 1)
+            ->get();
         $business_days = $shop->shopOperationHours->where('is_open', 1)->pluck('day')->toArray();
         $shopServiceCategories = ShopServiceCategories::with('serviceCategories')->where('shop_id', $shop->id)->get();
 
@@ -55,7 +58,10 @@ class BookingController extends Controller
     {
         $data = session()->get('form_data', []);
         $shop->load(['shopGallery', 'shopServiceCategories.serviceCategories', 'shopOperationHours']);
-        $shopStaff = ShopStaffs::with('appointments.appointment.appointmentServices.shopService', 'staff')->where('shop_id', $shop->id)->get();
+        $shopStaff = ShopStaffs::with('appointments.appointment.appointmentServices.shopService', 'staff')
+            ->where('shop_id', $shop->id)
+            ->where('is_active', 1)
+            ->get();
 
         return Inertia::render('Users/BookingPages/BookingStepTwo', [
             'shop' => $shop,
@@ -80,7 +86,10 @@ class BookingController extends Controller
     {
         $data = session()->get('form_data', []);
         $shop->load(['shopGallery', 'shopServiceCategories.serviceCategories', 'shopOperationHours']);
-        $shopStaff = ShopStaffs::with('appointments.appointment.appointmentServices.shopService', 'staff')->where('shop_id', $shop->id)->get();
+        $shopStaff = ShopStaffs::with('appointments.appointment.appointmentServices.shopService', 'staff')
+            ->where('shop_id', $shop->id)
+            ->where('is_active', 1)
+            ->get();
         // dd($data);
         return Inertia::render('Users/BookingPages/BookingStepThree', [
             'shop' => $shop,

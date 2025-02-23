@@ -13,14 +13,12 @@ const ThemeButton = ({ isDarkTheme, ...props }) => {
             <Tooltip>
                 <TooltipTrigger asChild>
                     <Button
-                        className={`fixed bottom-[4.3rem] lg:bottom-5 right-5 ${buttonVariants(
-                            {
-                                size: "icon",
-                            }
-                        )}`}
+                        className="size-9"
+                        variant="outline"
+                        size="icon"
                         {...props}
                     >
-                        {isDarkTheme ? <Moon /> : <Sun />}
+                        {isDarkTheme ? <Moon className="stroke-foreground" /> : <Sun className="stroke-foreground" />}
                     </Button>
                 </TooltipTrigger>
                 <TooltipContent className="mr-5">

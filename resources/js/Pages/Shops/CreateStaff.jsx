@@ -1,9 +1,27 @@
 import ShopsLayout from "@/Layouts/ShopsLayout";
-import { Head, useForm } from "@inertiajs/react";
+import { Head, useForm, usePage } from "@inertiajs/react";
 import StaffForm from "@/Components/Shop/ManageStaff.jsx/StaffForm";
-
+import { useEffect } from 'react';
+import { toast, Toaster } from 'sonner';
 
 export default function CreateStaff({ isOwner }) {
+    const { flash } = usePage().props;
+    useEffect(() => {
+        if (flash.message) {
+            if (flash.success) {
+                toast("Heads up!", {
+                    description: flash.message,
+                    duration: 5000,
+                });
+            } else {
+                toast.error("Uh oh! Something went wrong.", {
+                    description: flash.message,
+                    duration: 5000,
+                });
+            }
+        }
+    }, [flash.message]);
+
     const { data, setData, post, processing, errors, reset } = useForm({
         role: "",
         position: "",
@@ -30,6 +48,7 @@ export default function CreateStaff({ isOwner }) {
 
     return (
         <ShopsLayout>
+            <Toaster richColors />
             <Head title="Create Staff Account" />
             <h1 className="text-2xl font-bold">Create Staff Account</h1>
             <StaffForm

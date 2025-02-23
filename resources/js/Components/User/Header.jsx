@@ -19,8 +19,10 @@ import {
     DropdownMenuTrigger,
 } from "@/Components/ui/dropdown-menu";
 import { Bell, Menu } from "lucide-react";
+import ThemeButton from "@/Components/ThemeButton";
 
-const Header = ({ onClick, isDarkTheme }) => {
+
+const Header = ({ onClick, isDarkTheme, setIsDarkTheme }) => {
     const user = usePage().props.auth.user;
     const isLogged = user ? true : false;
     const role = usePage().props.auth.userRole || {};
@@ -33,6 +35,8 @@ const Header = ({ onClick, isDarkTheme }) => {
         window.addEventListener("scroll", handleScroll);
         return () => window.removeEventListener("scroll", handleScroll);
     }, []);
+
+
     return (
         <header
             className={`flex justify-between items-center mb-3 fixed top-0 left-0 right-0 z-50 px-5 py-3 bg-background/90 backdrop-blur border-dashed ${isScrolled ? "border-b" : ""
@@ -181,21 +185,25 @@ const Header = ({ onClick, isDarkTheme }) => {
                         </DropdownMenu>
                     </div>
                     <div className="lg:flex items-center gap-2 hidden">
-                        <Link
-                            href="/register"
-                            className={`${buttonVariants({
-                                variant: "outline",
-                            })}`}
-                        >
-                            Sign Up
-                        </Link>
+                        {!user && (
+                            <ThemeButton
+                                onClick={onClick}
+                                isDarkTheme={isDarkTheme}
+                            />
+                        )}
+                        <Button asChild variant="outline">
+                            <Link href="/register" >
+                                Sign Up
+                            </Link>
+                        </Button>
                         <Button asChild>
                             <Link href="/login">Sign In</Link>
                         </Button>
                     </div>
                 </>
-            )}
-        </header>
+            )
+            }
+        </header >
     );
 };
 

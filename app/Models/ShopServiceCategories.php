@@ -35,6 +35,6 @@ class ShopServiceCategories extends Model
 
     public function appointmentServices()
     {
-        return $this->hasMany(AppointmentServices::class);
+        return $this->hasMany(AppointmentServices::class, 'service_id');
     }
 }
