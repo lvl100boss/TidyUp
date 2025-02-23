@@ -104,13 +104,15 @@ export default function Home({ shops }) {
             <Head title="Home" />
             <div className="relative flex items-center justify-center text-white dark:text-black overflow-hidden sm:rounded-lg mb-5 -mx-5 sm:mx-0 ">
                 <AspectRatio ratio={ratio}>
-                    <video
-                        className="invert w-full h-full object-cover "
-                        src="/assets/videos/bg-gradient.mp4"
-                        autoPlay
-                        muted
-                        loop
-                    ></video>
+                    <div>
+                        <video
+                            className="invert w-full h-full object-cover "
+                            src="/assets/videos/bg-gradient.mp4"
+                            autoPlay
+                            muted
+                            loop
+                        ></video>
+                    </div>
                 </AspectRatio>
                 <div className="flex items-center justify-center min-h-[90%]  px-6 absolute">
                     <div className="text-center max-w-2xl">
@@ -143,7 +145,7 @@ export default function Home({ shops }) {
                             className="mt-6"
                         >
                             <Link
-                                href="/explore"
+                                href="/discover"
                                 className={`${buttonVariants({
                                     variant: "outline",
                                 })} text-foreground px-6 py-3 text-lg`}
