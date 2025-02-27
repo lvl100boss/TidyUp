@@ -82,6 +82,7 @@ export default function ManageStaff({ staffs, shop, isOwner }) {
                                 <TableHead>Role</TableHead>
                                 <TableHead>Position</TableHead>
                                 <TableHead>Email</TableHead>
+                                <TableHead>Contact Number</TableHead>
                                 <TableHead>Status</TableHead>
                                 <TableHead>Actions</TableHead>
                             </TableRow>
@@ -103,6 +104,7 @@ export default function ManageStaff({ staffs, shop, isOwner }) {
                                     <TableCell>{member.role[0].toUpperCase() + member.role.slice(1)}</TableCell>
                                     <TableCell>{member.position[0].toUpperCase() + member.position.slice(1)}</TableCell>
                                     <TableCell>{member.staff.email}</TableCell>
+                                    <TableCell>{member.staff.contact_number}</TableCell>
                                     <TableCell>
                                         <span
                                             className={`px-2 py-1 rounded-sm figtree-semibold uppercase ${member.is_active

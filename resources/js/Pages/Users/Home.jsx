@@ -44,7 +44,6 @@ export default function Home({ shops }) {
 
         preloadImages();
     }, [shops]);
-    console.log(shops);
     const sm = useMediaQuery({ minWidth: 640 });
     const md = useMediaQuery({ minWidth: 768 });
     const lg = useMediaQuery({ minWidth: 1024 });
@@ -54,22 +53,16 @@ export default function Home({ shops }) {
     let ratio;
     if (xxl) {
         ratio = 16 / 4.5;
-        console.log("xxl");
     } else if (xl) {
         ratio = 16 / 6.3;
-        console.log("xl");
     } else if (lg) {
         ratio = 16 / 7.3;
-        console.log("lg");
     } else if (md) {
         ratio = 16 / 9;
-        console.log("md");
     } else if (sm) {
         ratio = 16 / 8;
-        console.log("sm");
     } else {
         ratio = 16 / 11;
-        console.log("default");
     }
 
     // Define the card data
@@ -120,7 +113,7 @@ export default function Home({ shops }) {
                             initial={{ opacity: 0, y: -20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.8 }}
-                            className="text-2xl md:text-6xl font-extrabold text-foreground dark:text-background"
+                            className="text-2xl md:text-6xl font-medium text-foreground dark:text-background"
                         >
                             Transformation in a <br />
                             <span className="text-green-200 dark:text-green-300">
@@ -157,7 +150,7 @@ export default function Home({ shops }) {
                 </div>
             </div>
             <div className="flex items-end justify-between mb-5">
-                <h4 className="text-lg figtree-medium p-2 border-b border-foreground">
+                <h4 className="text-lg font-medium p-2 border-b border-foreground">
                     Customer's Choice
                 </h4>
                 <Link
@@ -174,7 +167,7 @@ export default function Home({ shops }) {
                 ))}
             </div>
             <div className="flex items-center justify-between mb-5">
-                <h4 className="text-lg figtree-medium p-2 border-b border-foreground">
+                <h4 className="text-lg font-medium p-2 border-b border-foreground">
                     How It Works
                 </h4>
             </div>

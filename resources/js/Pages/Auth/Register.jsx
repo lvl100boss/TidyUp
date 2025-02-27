@@ -53,7 +53,7 @@ export default function Register() {
                 break;
             case 75:
                 setPasswordStrengthString("Good password");
-                setPasswordStrengthColor("-yellow-500");
+                setPasswordStrengthColor("-blue-500");
 
                 break;
             case 100:

@@ -1,6 +1,6 @@
 import UserLayout from "@/Layouts/UserLayout";
-import { Head } from "@inertiajs/react";
 import ShopCard from "@/Components/User/ShopCard";
+import { Head } from "@inertiajs/react";
 import { useEffect, useState } from "react";
 import {
     Pagination,
@@ -11,6 +11,8 @@ import {
     PaginationNext,
     PaginationPrevious,
 } from "@/components/ui/pagination"
+import { Button } from "@/Components/ui/button";
+import { SlidersHorizontal } from "lucide-react";
 
 
 export default function Popular({ shops }) {
@@ -39,22 +41,33 @@ export default function Popular({ shops }) {
     return (
         <UserLayout>
             <Head title="Popular" />
-            <Pagination className="justify-end my-2">
-                <PaginationContent>
-                    <PaginationItem>
-                        <PaginationPrevious href="#" />
-                    </PaginationItem>
-                    <PaginationItem>
-                        <PaginationLink href="#">1</PaginationLink>
-                    </PaginationItem>
-                    <PaginationItem>
-                        <PaginationEllipsis />
-                    </PaginationItem>
-                    <PaginationItem>
-                        <PaginationNext href="#" />
-                    </PaginationItem>
-                </PaginationContent>
-            </Pagination>
+            <div>
+                <h1 className="text-nowrap text-2xl font-semibold">
+                    Most Popular
+                </h1>
+            </div>
+            <div className="flex justify-between items-center">
+                <Button size="sm" variant="secondary">
+                    <SlidersHorizontal />
+                    Filter
+                </Button>
+                <Pagination className="justify-end my-2">
+                    <PaginationContent>
+                        <PaginationItem>
+                            <PaginationPrevious href="#" />
+                        </PaginationItem>
+                        <PaginationItem>
+                            <PaginationLink href="#">1</PaginationLink>
+                        </PaginationItem>
+                        <PaginationItem>
+                            <PaginationEllipsis />
+                        </PaginationItem>
+                        <PaginationItem>
+                            <PaginationNext href="#" />
+                        </PaginationItem>
+                    </PaginationContent>
+                </Pagination>
+            </div>
 
             <div className="mb-5 grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-5">
                 {shops.map((shop) => (

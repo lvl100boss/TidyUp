@@ -1,29 +1,34 @@
 @font-face {
     font-family: "figtree-light";
-    src: url("../fonts/Figtree/ttf/Figtree-Light.ttf") format("truetype"),
-        url("../fonts/Figtree/webfonts/Figtree-Light.woff2") format("woff2");
+    src: url("../fonts/SF_Pro/SF-Pro-Display-Light.otf") format("opentype");
+    /* src: url("../fonts/Figtree/ttf/Figtree-Light.ttf") format("truetype"), */
+    /* url("../fonts/Figtree/webfonts/Figtree-Light.woff2") format("woff2"); */
 }
 
 @font-face {
     font-family: "figtree-medium";
-    src: url("../fonts/Figtree/ttf/Figtree-Medium.ttf") format("truetype"),
-        url("../fonts/Figtree/webfonts/Figtree-Medium.woff2") format("woff2");
+    src: url("../fonts/SF_Pro/SF-Pro-Display-Medium.otf") format("opentype");
+    /* src: url("../fonts/Figtree/ttf/Figtree-Medium.ttf") format("truetype"), */
+    /* url("../fonts/Figtree/webfonts/Figtree-Medium.woff2") format("woff2"); */
 }
 
 @font-face {
     font-family: "figtree";
-    src: url("../fonts/Figtree/ttf/Figtree-Regular.ttf") format("truetype"),
-        url("../fonts/Figtree/webfonts/Figtree-Regular.woff2") format("woff2");
+    src: url("../fonts/SF_Pro/SF-Pro.ttf") format("truetype");
+    /* src: url("../fonts/Figtree/ttf/Figtree-Regular.ttf") format("truetype"), */
+    /* url("../fonts/Figtree/webfonts/Figtree-Regular.woff2") format("woff2"); */
 }
 
 @font-face {
     font-family: "figtree-semibold";
-    src: url("../fonts/Figtree/ttf/Figtree-SemiBold.ttf") format("truetype"),
-        url("../fonts/Figtree/webfonts/Figtree-SemiBold.woff2") format("woff2");
+    src: url("../fonts/SF_Pro/SF-Pro-Display-Semibold.otf") format("opentype");
+    /* src: url("../fonts/Figtree/ttf/Figtree-SemiBold.ttf") format("truetype"), */
+    /* url("../fonts/Figtree/webfonts/Figtree-SemiBold.woff2") format("woff2"); */
 }
 
 @font-face {
     font-family: "figtree-bold";
-    src: url("../fonts/Figtree/ttf/Figtree-Bold.ttf") format("truetype"),
-        url("../fonts/Figtree/webfonts/Figtree-Bold.woff2") format("woff2");
+    src: url("../fonts/SF_Pro/SF-Pro-Display-Bold.otf") format("opentype");
+    /* src: url("../fonts/Figtree/ttf/Figtree-Bold.ttf") format("truetype"), */
+    /* url("../fonts/Figtree/webfonts/Figtree-Bold.woff2") format("woff2"); */
 }

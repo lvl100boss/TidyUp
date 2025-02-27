@@ -47,4 +47,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::post('/admin/restrictions/lift', [UserRestrictionController::class, 'lift'])
         ->name('admin.restrictions.lift');
+    //  Platform Staff Routes
+    // Route::get('/admin/staff', [PlatformStaffController::class, 'index'])->name('staff.index');
+    // Route::post('/admin/staff', [PlatformStaffController::class, 'store'])->name('staff.store');
+    // Route::put('/admin/staff/{staff}', [PlatformStaffController::class, 'update'])->name('staff.update');
+    // Route::post('/admin/staff/{staff}/avatar', [PlatformStaffController::class, 'updateAvatar'])->name('staff.avatar');
+    // Route::delete('/admin/staff/{staff}', [PlatformStaffController::class, 'destroy'])->name('staff.destroy');
 });

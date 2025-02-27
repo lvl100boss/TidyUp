@@ -9,6 +9,7 @@ use App\Http\Controllers\HairSalonShopsController;
 use App\Http\Controllers\ShopController;
 use App\Http\Controllers\PopularShopsController;
 use Illuminate\Foundation\Application;
+
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -16,7 +17,7 @@ use App\Http\Middleware\EnsureVerifiedIfAuthenticated;
 
 Route::middleware(EnsureVerifiedIfAuthenticated::class)->group(function () {
     Route::get('/', [HomeController::class, 'index'])->name('home');
-
+    Route::redirect('/dashboard', '/');
     Route::get('/discover', [DiscoverController::class, 'index'])->name('Discover');
     Route::get('/popular', [PopularShopsController::class, 'index'])->name('Popular');
     Route::get('barbershops', [BarbershopShopsController::class, 'index'])->name('Barbershops');
@@ -28,9 +29,7 @@ Route::middleware(EnsureVerifiedIfAuthenticated::class)->group(function () {
     Route::get('{shop_id}/shop', [ShopController::class, 'show'])->name('shop.show');
 });
 
-Route::get('/dashboard', function () {
-    return Inertia::render('Dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+
 
 Route::middleware(['auth', 'verified'])->group(function () {
 
@@ -49,12 +48,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         return Inertia::render('Users/ReportAnIssue');
     })->name('ReportAnIssue');
 
-    // Platform Staff Routes
-    Route::get('/admin/staff', [PlatformStaffController::class, 'index'])->name('staff.index');
-    Route::post('/admin/staff', [PlatformStaffController::class, 'store'])->name('staff.store');
-    Route::put('/admin/staff/{staff}', [PlatformStaffController::class, 'update'])->name('staff.update');
-    Route::post('/admin/staff/{staff}/avatar', [PlatformStaffController::class, 'updateAvatar'])->name('staff.avatar');
-    Route::delete('/admin/staff/{staff}', [PlatformStaffController::class, 'destroy'])->name('staff.destroy');
+    //
 });
 
 require __DIR__ . '/auth.php';
