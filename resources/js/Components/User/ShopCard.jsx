@@ -49,7 +49,7 @@ const ShopCard = ({ shop, isLoading }) => {
                         <TooltipProvider>
                             <Tooltip>
                                 <TooltipTrigger asChild className="cursor-pointer">
-                                    <h5 className="mt-2 figtree-medium cursor-default">
+                                    <h5 className="mt-2 cursor-default">
                                         {shop.shop_name}
                                     </h5>
                                 </TooltipTrigger>
@@ -79,7 +79,7 @@ const ShopCard = ({ shop, isLoading }) => {
                     {isLoading ? (
                         <Skeleton className="h-3 w-3/4 mt-2" />
                     ) : (
-                        <h5 className="text-xs text-muted-foreground">
+                        <h5 className="text-xs text-muted-foreground font-light">
                             {shop.detailed_address}
                         </h5>
                     )}
