@@ -25,6 +25,7 @@ class ShopDashboardController extends Controller
             'user.appointmentServices.shopService',
         )->where('shop_id', $shop->id)
             ->where('date', '>', now())
+            ->where('status', 'upcoming')
             ->orderBy('date')
             ->get();
         return Inertia::render('Shops/Dashboard', [

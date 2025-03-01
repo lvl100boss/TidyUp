@@ -52,8 +52,7 @@ export default function EditsStaff({ staff, isOwner }) {
     return (
         <ShopsLayout>
             <Head title="Edit Staff Account" />
-            <div className="max-w-screen-md mx-auto">
-                <h1 className="text-2xl font-bold">Edit Staff Account</h1>
+            <div className="max-w-screen-lg mx-auto">
                 <StaffForm
                     isOwner={isOwner}
                     data={data}

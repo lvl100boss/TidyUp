@@ -29,7 +29,7 @@ export default function ManageStaff({ staffs, shop, isOwner }) {
             <Head title="Manage Staff" />
             <Toaster />
             <div>
-                <div className="flex justify-between items-center mb-6">
+                <div className="flex justify-between items-center">
                     <h1 className="text-3xl font-semibold tracking-tight">Manage Staff</h1>
                     <Link
                         href="/shop/manage/staff/create"

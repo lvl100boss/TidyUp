@@ -68,7 +68,7 @@ export default function BookingStepThree({ shop, shopStaff, data }) {
                         <form onSubmit={handleSubmit} className="grid sm:grid-cols-2 gap-5">
                             <div>
                                 <Card className="overflow-hidden">
-                                    <img className='w-full aspect-video mb-5' src={`/${shop.shop_gallery[0].url}`} />
+                                    <img className='w-full aspect-video mb-5 object-cover' src={`/${shop.shop_gallery[0].url}`} />
                                     <CardContent>
                                         <CardTitle>Shop Name</CardTitle>
                                         <CardDescription className="">

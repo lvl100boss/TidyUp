@@ -50,8 +50,7 @@ export default function CreateStaff({ isOwner }) {
         <ShopsLayout>
             <Toaster richColors />
             <Head title="Create Staff Account" />
-            <div className="max-w-screen-md mx-auto">
-                <h1 className="text-2xl font-bold">Create Staff Account</h1>
+            <div className="max-w-screen-lg mx-auto">
                 <StaffForm
                     isOwner={isOwner}
                     data={data}
