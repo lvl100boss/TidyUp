@@ -27,7 +27,6 @@ class ShopDashboardController extends Controller
             ->where('date', '>', now())
             ->orderBy('date')
             ->get();
-
         return Inertia::render('Shops/Dashboard', [
             'shop' => $shop,
             'user' => $user,

@@ -86,7 +86,7 @@ function StaffForm(props) {
     }, [previewUrl]);
 
     return (
-        <form onSubmit={props.handleSubmit} className="max-w-screen-md border border-border p-6 rounded-md mt-6 mb-10 shadow-md">
+        <form onSubmit={props.handleSubmit} className=" border border-border p-6 rounded-md mt-6 mb-10 shadow-md">
             <div className="">
                 <div className="col-span-2">
                     <div className="flex gap-5 items-center">

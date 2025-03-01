@@ -15,6 +15,8 @@ import {
 } from "@/components/ui/card"
 import { useForm } from "@inertiajs/react";
 import { Textarea } from "@/components/ui/textarea";
+import { Avatar, AvatarImage, AvatarFallback } from '@/Components/ui/avatar';
+import { Separator } from '@/Components/ui/separator';
 
 
 
@@ -34,6 +36,7 @@ export default function BookingStepThree({ shop, shopStaff, data }) {
         e.preventDefault();
         post(`/${shop.id}/booking/3`);
     };
+    console.log(shopStaff);
 
     return (
         <>
@@ -94,14 +97,38 @@ export default function BookingStepThree({ shop, shopStaff, data }) {
                                     <CardHeader>
                                         <h1 className=' font-bold text-xl'>Services Summary</h1>
                                     </CardHeader>
-                                    <CardContent>
+                                    <CardContent className="pb-3">
                                         <CardTitle>Stylist</CardTitle>
-                                        <CardDescription className="">
-                                            {shopStaff[data.staff_index].staff.first_name} {shopStaff[data.staff_index].staff.last_name}
-                                        </CardDescription>
+                                        <div className="py-3 inline-flex items-center gap-3">
+                                            <Avatar className="size-16">
+                                                <AvatarImage src={'/storage/' + shopStaff[data.staff_index].staff.profile_photo_path} />
+                                                <AvatarFallback>
+                                                    {shopStaff[data.staff_index].staff.first_name[0] + shopStaff[data.staff_index].staff.last_name[0]}
+                                                </AvatarFallback>
+                                            </Avatar>
+                                            <div>
+                                                <h3 className="font-medium">
+                                                    {shopStaff[data.staff_index].staff.first_name} {shopStaff[data.staff_index].staff.last_name}
+                                                </h3>
+                                                <h4 className="text-sm text-muted-foreground">
+                                                    {shopStaff[data.staff_index].role}
+                                                </h4>
+                                            </div>
+                                        </div>
                                     </CardContent>
                                     <CardContent>
-                                        <CardTitle>Services</CardTitle>
+                                        <CardTitle>Note</CardTitle>
+                                        <CardDescription className="mb-3">
+                                            Leave a note (optional)
+                                        </CardDescription>
+                                        <Textarea
+                                            placeholder="Type your message here."
+                                            onChange={(e) => setData('note', e.target.value)}
+                                            rows={8}
+                                        />
+                                    </CardContent>
+                                    <CardContent className="pb-3">
+                                        <CardTitle className="mb-2">Services</CardTitle>
                                         <CardDescription className="">
                                             {shop.shop_service_categories.map((service) => (
                                                 data.service_id.map((selectedService) => {
@@ -111,8 +138,8 @@ export default function BookingStepThree({ shop, shopStaff, data }) {
                                                                 <p className=''>
                                                                     - {service.service_name}
                                                                 </p>
-                                                                <p className='text-sm'>
-                                                                    Php {service.cost}
+                                                                <p className='text-sm '>
+                                                                    ₱{service.cost}
                                                                 </p>
                                                             </div>
                                                         )
@@ -122,25 +149,16 @@ export default function BookingStepThree({ shop, shopStaff, data }) {
                                         </CardDescription>
                                     </CardContent>
 
-                                    <CardContent>
-                                        <CardTitle>Note</CardTitle>
-                                        <CardDescription>
-                                            Leave a note (optional)
-                                        </CardDescription>
-                                        <Textarea
-                                            placeholder="Type your message here."
-                                            onChange={(e) => setData('note', e.target.value)}
-                                            rows={8}
-                                        />
+                                    <div className='mx-6'>
+                                        <Separator className="" />
+                                    </div>
 
-                                    </CardContent>
-
-                                    <CardFooter className='w-full'>
+                                    <CardFooter className='w-full pt-3'>
                                         <div className='flex justify-between items-center w-full'>
-                                            <CardTitle>Total Cost</CardTitle>
-                                            <CardDescription className="">
-                                                Php {data.total_price}
-                                            </CardDescription>
+                                            <CardTitle className="text-2xl">Total Cost</CardTitle>
+                                            <CardTitle className="text-2xl ">
+                                                ₱{data.total_price}
+                                            </CardTitle>
                                         </div>
                                     </CardFooter>
                                     <CardContent>
@@ -151,10 +169,10 @@ export default function BookingStepThree({ shop, shopStaff, data }) {
                                 </Card>
                             </div>
                         </form>
-                    </section>
+                    </section >
 
-                </div>
-            </UserLayout>
+                </div >
+            </UserLayout >
         </>
     );
 }

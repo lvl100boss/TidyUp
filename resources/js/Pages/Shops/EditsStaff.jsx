@@ -52,16 +52,18 @@ export default function EditsStaff({ staff, isOwner }) {
     return (
         <ShopsLayout>
             <Head title="Edit Staff Account" />
-            <h1 className="text-2xl font-bold">Edit Staff Account</h1>
-            <StaffForm
-                isOwner={isOwner}
-                data={data}
-                setData={setData}
-                processing={processing}
-                errors={errors}
-                handleSubmit={handleSubmit}
-                staff={staff}
-            />
+            <div className="max-w-screen-md mx-auto">
+                <h1 className="text-2xl font-bold">Edit Staff Account</h1>
+                <StaffForm
+                    isOwner={isOwner}
+                    data={data}
+                    setData={setData}
+                    processing={processing}
+                    errors={errors}
+                    handleSubmit={handleSubmit}
+                    staff={staff}
+                />
+            </div>
 
         </ShopsLayout>
     );

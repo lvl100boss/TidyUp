@@ -25,7 +25,7 @@ export function LoopingShopCards({ shops }) {
                 {shops.map((shop, index) => (
                     <CarouselItem key={index} className="group">
                         <Link href={`/${shop.id}/shop`}>
-                            <Card className="relative overflow-hidden rounded-lg">
+                            <Card className="relative overflow-hidden rounded-lg border-none">
                                 <div>
                                     <img
                                         src={shop.shop_gallery[0].url}
