@@ -11,5 +11,8 @@ npm install recharts
 ```sh
 npm install @tanstack/react-table
 ```
-
+3. Select Philippines Address (for Region, Province, City, Barangay Select Fields)
+```sh
+npm i select-philippines-address
+```
 I will just add the other commands later on
