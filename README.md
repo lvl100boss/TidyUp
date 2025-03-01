@@ -3,11 +3,11 @@
 ## Package needed to install
 Execute these commands to install:
 
-1. Recharts
+1. Recharts (for the graphs in analytics)
 ```sh
 npm install recharts
 ```
-2. tanstack/react-table dependency for Data Table of Shad CN UI
+2. tanstack/react-table dependency (for Data Table of Shad CN UI)
 ```sh
 npm install @tanstack/react-table
 ```
