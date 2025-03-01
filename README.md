@@ -7,5 +7,9 @@ Execute these commands to install:
 ```sh
 npm install recharts
 ```
+2. tanstack/react-table dependency for Data Table of Shad CN UI
+```sh
+npm install @tanstack/react-table
+```
 
 I will just add the other commands later on
