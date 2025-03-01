@@ -6,6 +6,7 @@ import {
     CardHeader,
     CardTitle,
 } from "@/components/ui/card"
+import { Avatar, AvatarImage } from "@/Components/ui/avatar"
 
 const AppointmentSummaryCard = ({
     shop,
@@ -23,12 +24,17 @@ const AppointmentSummaryCard = ({
 
             </CardContent>
             <CardContent>
-                <div className="space-y-1">
-                    <CardTitle>{shop.shop_name}</CardTitle>
-                    <CardDescription>
-                        <p className="text-sm text-muted-foreground">{shop.detailed_address}</p>
-                        <p className="text-sm text-muted-foreground">{shop.contact_number}</p>
-                    </CardDescription>
+                <div className="inline-flex gap-3">
+                    <Avatar className="size-14">
+                        <AvatarImage src={`/${shop.shop_photo}`} />
+                    </Avatar>
+                    <div className="space-y-1">
+                        <CardTitle>{shop.shop_name}</CardTitle>
+                        <CardDescription>
+                            <p className="text-xs text-muted-foreground">{shop.detailed_address}</p>
+                            <p className="text-xs text-muted-foreground">{shop.contact_number}</p>
+                        </CardDescription>
+                    </div>
                 </div>
             </CardContent>
             <CardContent>

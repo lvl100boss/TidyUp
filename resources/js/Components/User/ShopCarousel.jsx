@@ -36,7 +36,7 @@ export default function ShopCarousel({ shops }) {
                     <CarouselNext className="static" />
                 </div>
             </div>
-            <CarouselContent className="max-w-[90vw]">
+            <CarouselContent className="max-w-[94vw]">
                 {shops.map((shop, index) => (
                     <CarouselItem
                         key={index}
@@ -82,6 +82,9 @@ export default function ShopCarousel({ shops }) {
                                             </TooltipContent>
                                         </Tooltip>
                                     </TooltipProvider>
+                                    <h5 className="text-xs text-muted-foreground font-light">
+                                        {shop.detailed_address}
+                                    </h5>
                                 </div>
                             </div>
                             <div>
