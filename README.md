@@ -3,6 +3,7 @@
 ## Package needed to install
 Execute these commands to install:
 
+1. Recharts
 ```sh
 npm install recharts
 ```
