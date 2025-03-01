@@ -18,7 +18,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/shop/appointments', function () {
         return Inertia::render('Shops/Appointments');
     })->name('shop.appointments');
+
     Route::get('/shop/catalog', [ShopCatalogController::class, 'index'])->name('shop.catalog');
+    Route::post('/shop/catalog', [ShopCatalogController::class, 'store'])->name('shop.catalog.store');
+    Route::patch('/shop/catalog/{id}', [ShopCatalogController::class, 'update'])->name('shop.catalog.update');
+    Route::delete('/shop/catalog/{id}', [ShopCatalogController::class, 'destroy'])->name('shop.catalog.destroy');
 });
 
 //Shop Owner and Manager
