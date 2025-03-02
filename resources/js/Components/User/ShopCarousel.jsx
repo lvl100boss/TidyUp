@@ -19,7 +19,6 @@ import {
 
 // this is the comment
 export default function ShopCarousel({ shops }) {
-    console.log(shops);
     return (
         <Carousel
             opts={{

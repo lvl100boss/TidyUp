@@ -29,9 +29,8 @@ import ShopsLayout from "@/Layouts/ShopsLayout";
 import { Head } from "@inertiajs/react";
 import { ScrollArea } from "@/components/ui/scroll-area"
 
-const Dashboard = ({ shop, user, pendingAppointments, upcomingAppointments }) => {
-
-    console.log(pendingAppointments);
+const Dashboard = ({ shop, user, pendingAppointments, upcomingAppointments, popularServices }) => {
+    console.log("popularServices", popularServices);
     const stats = [
         {
             title: "Total Revenue",
@@ -64,62 +63,7 @@ const Dashboard = ({ shop, user, pendingAppointments, upcomingAppointments }) =>
         },
     ];
 
-    // const pendingAppointments = [
-    //     {
-    //         id: 1,
-    //         customer: "John Doe",
-    //         service: "Haircut",
-    //         time: "2:30 PM",
-    //         price: "₱500",
-    //         status: "pending",
-    //     },
-    //     {
-    //         id: 2,
-    //         customer: "Sarah Wilson",
-    //         service: "Facial",
-    //         time: "3:00 PM",
-    //         price: "₱1,200",
-    //         status: "pending",
-    //     },
-    //     {
-    //         id: 3,
-    //         customer: "Mike Johnson",
-    //         service: "Massage",
-    //         time: "4:15 PM",
-    //         price: "₱800",
-    //         status: "pending",
-    //     },
-    // ];
 
-    // const upcomingAppointments = [
-    //     {
-    //         id: 4,
-    //         customer: "Jane Smith",
-    //         service: "Manicure",
-    //         time: "3:45 PM",
-    //         date: "Today",
-    //         price: "₱350",
-    //         status: "confirmed",
-    //     },
-    //     {
-    //         id: 5,
-    //         customer: "Robert Brown",
-    //         service: "Pedicure",
-    //         time: "11:00 AM",
-    //         date: "Tomorrow",
-    //         price: "₱400",
-    //         status: "confirmed",
-    //     },
-    //     {
-    //         id: 6,
-    //         customer: "Emily Davis",
-    //         service: "Hair Color",
-    //         time: "2:00 PM",
-    //         date: "Tomorrow",
-    //         price: "₱2,500",
-    //         status: "confirmed",
-    //     },
-    // ];
 
     const recentActivity = [
         {
@@ -156,12 +100,6 @@ const Dashboard = ({ shop, user, pendingAppointments, upcomingAppointments }) =>
         },
     ];
 
-    const popularServices = [
-        { name: "Haircut", bookings: 45, revenue: "₱22,500" },
-        { name: "Hair Color", bookings: 32, revenue: "₱80,000" },
-        { name: "Manicure", bookings: 28, revenue: "₱9,800" },
-        { name: "Facial", bookings: 25, revenue: "₱30,000" },
-    ];
 
     const AppointmentCard = ({ title, appointments, icon, emptyMessage }) => (
         <Card>
@@ -340,42 +278,62 @@ const Dashboard = ({ shop, user, pendingAppointments, upcomingAppointments }) =>
                     </Card>
                 </div>
 
+                {/* Popular Services Section */}
                 <div className="grid gap-4">
                     <Card>
                         <CardHeader>
                             <CardTitle>Popular Services</CardTitle>
                             <CardDescription>
-                                Top performing services this month
+                                Top booked services
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
-                            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                                {popularServices.map((service, index) => (
-                                    <div key={index} className="space-y-2">
-                                        <h3 className="font-medium">
-                                            {service.name}
-                                        </h3>
-                                        <div className="space-y-1">
+                            {popularServices.length === 0 ? (
+                                <p className="text-center text-muted-foreground py-6">
+                                    No service booking data available yet
+                                </p>
+                            ) : (
+                                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                                    {popularServices.slice(0, 4).map((item, index) => (
+                                        <div key={index} className="border rounded-lg p-4 space-y-3">
                                             <div className="flex items-center justify-between">
-                                                <span className="text-sm text-muted-foreground">
-                                                    Bookings
-                                                </span>
-                                                <span className="font-medium">
-                                                    {service.bookings}
-                                                </span>
+                                                <h3 className="font-medium line-clamp-1 text-sm">
+                                                    {item.service.service_name}
+                                                </h3>
+                                                <Badge variant="secondary">
+                                                    #{index + 1}
+                                                </Badge>
                                             </div>
-                                            <div className="flex items-center justify-between">
-                                                <span className="text-sm text-muted-foreground">
-                                                    Revenue
-                                                </span>
-                                                <span className="font-medium text-green-600">
-                                                    {service.revenue}
-                                                </span>
+                                            <div className="space-y-2">
+                                                <div className="flex items-center justify-between">
+                                                    <span className="text-sm text-muted-foreground">
+                                                        Bookings
+                                                    </span>
+                                                    <span className="font-medium">
+                                                        {item.count}
+                                                    </span>
+                                                </div>
+                                                <div className="flex items-center justify-between">
+                                                    <span className="text-sm text-muted-foreground">
+                                                        Price
+                                                    </span>
+                                                    <span className="font-medium text-green-600">
+                                                        ₱{parseFloat(item.service.cost).toFixed(2)}
+                                                    </span>
+                                                </div>
+                                                <div className="flex items-center justify-between">
+                                                    <span className="text-sm text-muted-foreground">
+                                                        Total Revenue
+                                                    </span>
+                                                    <span className="font-semibold text-green-600">
+                                                        ₱{parseFloat(item.service.cost * item.count).toFixed(2)}
+                                                    </span>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                ))}
-                            </div>
+                                    ))}
+                                </div>
+                            )}
                         </CardContent>
                     </Card>
                 </div>
