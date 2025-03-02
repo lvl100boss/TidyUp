@@ -15,4 +15,8 @@ npm install @tanstack/react-table
 ```sh
 npm i select-philippines-address
 ```
+4. Zod hookform
+```sh
+npm install zod @hookform/resolvers
+```
 I will just add the other commands later on
