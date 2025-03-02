@@ -18,6 +18,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/shop/profile', [ShopProfileController::class, 'index'])->name('shop.profile');
     Route::post('/shop/profile/update-hours', [ShopProfileController::class, 'updateOperationHours'])->name('shop.profile.update-hours');
     Route::post('/shop/update-contact-info', [ShopProfileController::class, 'updateContactInfo'])->name('shop.update-contact-info');
+    Route::post('/shop/update-shop-profile', [ShopProfileController::class, 'updateShopProfile'])->name('shop.update-shop-profile');
 
     // Social Media Routes
     Route::post('/shop/social-media', [ShopSocialMediaController::class, 'store'])->name('shop.social-media.store');

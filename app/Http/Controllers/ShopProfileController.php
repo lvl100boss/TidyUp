@@ -7,6 +7,7 @@ use App\Models\OperationHours;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 class ShopProfileController extends Controller
 {
@@ -110,6 +111,64 @@ class ShopProfileController extends Controller
         } catch (\Exception $e) {
             Log::error('Error updating contact information: ' . $e->getMessage());
             return redirect()->back()->with('message', 'Failed to update contact information: ' . $e->getMessage())->with('success', false);
+        }
+    }
+
+    public function updateShopProfile(Request $request)
+    {
+        try {
+            // Log the entire request for debugging
+            Log::info('Shop Profile Update Request', [
+                'data' => $request->all(),
+                'files' => $request->hasFile('shop_photo') ? 'Has photo' : 'No photo',
+            ]);
+
+            // Validate the request
+            $validated = $request->validate([
+                'shop_name' => 'required|string|max:255',
+                'bio' => 'nullable|string|max:500',
+                'shop_photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            ]);
+
+            $user_id = auth()->user()->id;
+            $shop = Shop::where('user_id', $user_id)->first();
+
+            if (!$shop) {
+                return redirect()->back()->with('message', 'Shop not found')->with('success', false);
+            }
+
+            // Update shop name and bio
+            $shop->shop_name = $validated['shop_name'];
+            $shop->bio = $validated['bio'] ?? $shop->bio;
+
+            // Handle photo upload if provided
+            if ($request->hasFile('shop_photo')) {
+                try {
+                    // Delete old photo if it exists and is not a default image
+                    if ($shop->shop_photo && !str_contains($shop->shop_photo, 'default') && Storage::disk('public')->exists($shop->shop_photo)) {
+                        Storage::disk('public')->delete($shop->shop_photo);
+                    }
+
+                    // Store the new photo with proper path handling
+                    $photoName = time() . '_' . $request->file('shop_photo')->getClientOriginalName();
+                    $photoPath = $request->file('shop_photo')->storeAs('shop_photos', $photoName, 'public');
+                    $shop->shop_photo = $photoPath;
+
+                    Log::info('Photo uploaded successfully', ['path' => $photoPath]);
+                } catch (\Exception $e) {
+                    Log::error('Error uploading photo: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+                    return redirect()->back()->with('message', 'Failed to upload photo: ' . $e->getMessage())->with('success', false);
+                }
+            }
+
+            $shop->save();
+
+            Log::info('Shop updated successfully', ['shop' => $shop->toArray()]);
+
+            return redirect()->back()->with('message', 'Shop profile updated successfully')->with('success', true);
+        } catch (\Exception $e) {
+            Log::error('Error updating shop profile: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+            return redirect()->back()->with('message', 'Failed to update shop profile: ' . $e->getMessage())->with('success', false);
         }
     }
 }

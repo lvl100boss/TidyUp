@@ -18,7 +18,6 @@ const ShopProfile = ({ shop }) => {
             website: "www.glamoursalon.com",
         },
     };
-    console.log(shop.shop_operation_hours);
     return (
         <ShopsLayout>
             <Head title="Shop Profile" />
