@@ -8,6 +8,9 @@ import {
     Handshake,
     Store,
     CalendarFold,
+    Calendar,
+    Clock,
+    Star,
 } from "lucide-react";
 import { AspectRatio } from "@/Components/ui/aspect-ratio";
 import { useMediaQuery } from "react-responsive";
@@ -20,6 +23,7 @@ import {
 } from "@/Components/ui/card";
 import ShopCard from "@/Components/User/ShopCard";
 import { useEffect, useState } from "react";
+import HeroSection from "@/Components/User/Home/HeroSection";
 
 export default function Home({ shops }) {
     const [isLoading, setIsLoading] = useState(true);
@@ -95,60 +99,9 @@ export default function Home({ shops }) {
     return (
         <UserLayout>
             <Head title="Home" />
-            <div className="relative flex items-center justify-center text-white dark:text-black overflow-hidden sm:rounded-lg mb-5 -mx-5 sm:mx-0 ">
-                <AspectRatio ratio={ratio}>
-                    <div>
-                        <video
-                            className="invert w-full h-full object-cover "
-                            src="/assets/videos/bg-gradient.mp4"
-                            autoPlay
-                            muted
-                            loop
-                        ></video>
-                    </div>
-                </AspectRatio>
-                <div className="flex items-center justify-center min-h-[90%]  px-6 absolute">
-                    <div className="text-center max-w-2xl">
-                        <motion.h1
-                            initial={{ opacity: 0, y: -20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.8 }}
-                            className="text-2xl md:text-6xl font-medium text-foreground dark:text-background"
-                        >
-                            Transformation in a <br />
-                            <span className="text-green-200 dark:text-green-300">
-                                Click of a Button
-                            </span>
-                        </motion.h1>
 
-                        <motion.p
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.3, duration: 0.8 }}
-                            className="text-sm md:text-xl mt-4 text-foreground dark:text-background"
-                        >
-                            A comprehensive booking platform for beauty-related
-                            services, offering users ease and comfort.
-                        </motion.p>
+            <HeroSection />
 
-                        <motion.div
-                            initial={{ opacity: 0, scale: 0.8 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            transition={{ delay: 0.6, duration: 0.5 }}
-                            className="mt-6"
-                        >
-                            <Link
-                                href="/discover"
-                                className={`${buttonVariants({
-                                    variant: "outline",
-                                })} text-foreground px-6 py-3 text-lg`}
-                            >
-                                Get Started
-                            </Link>
-                        </motion.div>
-                    </div>
-                </div>
-            </div>
             <div className="flex items-end justify-between mb-5">
                 <h4 className="text-lg font-medium p-2 border-b border-foreground">
                     Customer's Choice

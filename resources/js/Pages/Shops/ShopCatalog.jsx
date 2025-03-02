@@ -172,7 +172,7 @@ export default function ShopCatalog({ shopServices, serviceCategories }) {
         <ShopsLayout>
             <Head title="Shop Services" />
             <Toaster />
-            <div className="max-w-7xl mx-auto space-y-8">
+            <div className="max-w-7xl mx-auto space-y-8 pb-8">
                 <div className="space-y-2">
                     <h1 className="text-3xl font-bold tracking-tight">Services Management</h1>
                     <p className="text-muted-foreground">

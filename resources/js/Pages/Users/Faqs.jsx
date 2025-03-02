@@ -12,7 +12,7 @@ export default function Faqs() {
     return (
         <UserLayout>
             <Head title="FAQ's" />
-            <div className="container mx-auto py-8">
+            <div className="mx-auto min-h-screen">
                 <h1 className="text-3xl font-bold mb-8">
                     Frequently Asked Questions
                 </h1>
