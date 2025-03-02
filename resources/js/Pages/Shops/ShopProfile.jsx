@@ -38,7 +38,7 @@ const ShopProfile = ({ shop }) => {
                         {/* Contact Information */}
                         <ShopContactInfoCard shop={shop} />
                         {/* Social Media */}
-                        <ShopSocialMedia shop={sampleShop} />
+                        <ShopSocialMedia shop={shop} />
                     </div>
                 </div>
                 {/* Shop Gallery */}

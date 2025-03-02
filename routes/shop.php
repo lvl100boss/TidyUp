@@ -8,6 +8,7 @@ use App\Http\Middleware\EnsureShopOwner;
 use App\Http\Controllers\ManageStaffController;
 use App\Http\Controllers\ShopGalleryController;
 use App\Http\Controllers\ShopCatalogController;
+use App\Http\Controllers\ShopSocialMediaController;
 use Inertia\Inertia;
 
 //Shop Owner and Shop Staff
@@ -17,6 +18,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/shop/profile', [ShopProfileController::class, 'index'])->name('shop.profile');
     Route::post('/shop/profile/update-hours', [ShopProfileController::class, 'updateOperationHours'])->name('shop.profile.update-hours');
     Route::post('/shop/update-contact-info', [ShopProfileController::class, 'updateContactInfo'])->name('shop.update-contact-info');
+
+    // Social Media Routes
+    Route::post('/shop/social-media', [ShopSocialMediaController::class, 'store'])->name('shop.social-media.store');
+    Route::patch('/shop/social-media/{id}', [ShopSocialMediaController::class, 'update'])->name('shop.social-media.update');
+    Route::delete('/shop/social-media/{id}', [ShopSocialMediaController::class, 'destroy'])->name('shop.social-media.destroy');
 
     Route::get('/shop/appointments', function () {
         return Inertia::render('Shops/Appointments');
