@@ -32,6 +32,7 @@ import { router } from "@inertiajs/react";
 const ShopBusinessHoursCard = ({ shop }) => {
     const [open, setOpen] = useState(false);
     const [hours, setHours] = useState([]);
+    const [editedHours, setEditedHours] = useState([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     // Generate time slots for the dropdown (30-minute intervals)
@@ -53,25 +54,32 @@ const ShopBusinessHoursCard = ({ shop }) => {
         }
     }, [shop]);
 
+    // Initialize edited hours when dialog opens
+    useEffect(() => {
+        if (open && hours.length > 0) {
+            setEditedHours(JSON.parse(JSON.stringify(hours)));
+        }
+    }, [open, hours]);
+
     // Handle business hours toggling
     const handleToggleDay = (index) => {
-        const newHours = [...hours];
+        const newHours = [...editedHours];
         newHours[index].is_open = newHours[index].is_open ? 0 : 1;
-        setHours(newHours);
+        setEditedHours(newHours);
     };
 
     // Handle time change for opening hours
     const handleOpenTimeChange = (index, value) => {
-        const newHours = [...hours];
+        const newHours = [...editedHours];
         newHours[index].open_time = value;
-        setHours(newHours);
+        setEditedHours(newHours);
     };
 
     // Handle time change for closing hours
     const handleCloseTimeChange = (index, value) => {
-        const newHours = [...hours];
+        const newHours = [...editedHours];
         newHours[index].close_time = value;
-        setHours(newHours);
+        setEditedHours(newHours);
     };
 
     // Format time for display in readable format
@@ -100,10 +108,12 @@ const ShopBusinessHoursCard = ({ shop }) => {
         setIsSubmitting(true);
 
         router.post(route('shop.profile.update-hours'), {
-            operation_hours: hours
+            operation_hours: editedHours
         }, {
             preserveScroll: true,
             onSuccess: () => {
+                // Only update the displayed hours after successful save
+                setHours([...editedHours]);
                 toast.success("Business hours updated successfully");
                 setOpen(false);
                 setIsSubmitting(false);
@@ -122,12 +132,21 @@ const ShopBusinessHoursCard = ({ shop }) => {
         return slot ? slot.display : formatTime(timeValue);
     };
 
+    // Handle dialog close - discard unsaved changes
+    const handleDialogClose = (isOpen) => {
+        if (!isOpen) {
+            // Reset edited hours when dialog is closed without saving
+            setEditedHours([]);
+        }
+        setOpen(isOpen);
+    };
+
     return (
         <Card>
             <CardHeader>
                 <div className="flex justify-between">
                     <CardTitle>Business Hours</CardTitle>
-                    <Dialog open={open} onOpenChange={setOpen}>
+                    <Dialog open={open} onOpenChange={handleDialogClose}>
                         <DialogTrigger asChild>
                             <button type="button" className="focus:outline-none">
                                 <Pencil className="size-4 cursor-pointer hover:scale-125 transition-transform" />
@@ -141,8 +160,8 @@ const ShopBusinessHoursCard = ({ shop }) => {
                                 </DialogDescription>
                             </DialogHeader>
                             <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
-                                {hours.map((day, index) => (
-                                    <div key={day.id} className="rounded-lg border p-3">
+                                {editedHours.map((day, index) => (
+                                    <div key={`edit-${day.id}`} className="rounded-lg border p-3">
                                         <div className="flex items-center justify-between mb-2">
                                             <span className="font-medium capitalize">{day.day}</span>
                                             <div className="flex items-center gap-2">
@@ -227,6 +246,7 @@ const ShopBusinessHoursCard = ({ shop }) => {
                 </div>
             </CardHeader>
             <CardContent className="space-y-2">
+                {/* Always use shop data directly for the display section */}
                 {shop.shop_operation_hours.map((hours) => (
                     <div key={hours.id}>
                         <div className="flex justify-between text-sm p-2 hover:bg-muted rounded-md">
