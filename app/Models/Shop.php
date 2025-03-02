@@ -22,7 +22,7 @@ class Shop extends Model
         'availability',
         'is_verified',
         'bio',
-        'tokens',
+        // 'tokens',
     ];
 
     public function shopGallery()

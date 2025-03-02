@@ -5,7 +5,7 @@ import {
     CardTitle,
     CardDescription,
 } from "@/components/ui/card";
-import { Instagram, Facebook, Globe } from "lucide-react";
+import { Instagram, Facebook, Twitter, Youtube, Globe } from "lucide-react";
 
 const ShopSocialMedia = ({ shop }) => {
     return (

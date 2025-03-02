@@ -32,6 +32,7 @@ class ShopDashboardController extends Controller
 
         $popularServices = Appointments::with('appointmentServices.shopService')
             ->where('shop_id', $shop->id)
+            ->where('status', ['completed', 'upcoming', 'started'])
             ->get();
 
         // Extract popular services

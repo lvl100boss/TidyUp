@@ -76,4 +76,34 @@ class ShopProfileController extends Controller
             return redirect()->back()->with('message', 'Failed to update operation hours: ' . $e->getMessage())->with('success', false);
         }
     }
+
+    public function updateContactInfo(Request $request)
+    {
+        try {
+            // Validate the request
+            $validated = $request->validate([
+                'email' => 'required|email|max:255',
+                'contact_number' => 'required|string|max:20',
+                'detailed_address' => 'required|string|max:255',
+            ]);
+
+            $user_id = auth()->user()->id;
+            $shop = Shop::where('user_id', $user_id)->first();
+
+            if (!$shop) {
+                return redirect()->back()->with('message', 'Shop not found')->with('success', false);
+            }
+
+            // Update shop contact information
+            $shop->email = $validated['email'];
+            $shop->contact_number = $validated['contact_number'];
+            $shop->detailed_address = $validated['detailed_address'];
+            $shop->save();
+
+            return redirect()->back()->with('message', 'Contact information updated successfully')->with('success', true);
+        } catch (\Exception $e) {
+            Log::error('Error updating contact information: ' . $e->getMessage());
+            return redirect()->back()->with('message', 'Failed to update contact information: ' . $e->getMessage())->with('success', false);
+        }
+    }
 }
