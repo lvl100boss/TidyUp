@@ -64,62 +64,7 @@ const Dashboard = ({ shop, user, pendingAppointments, upcomingAppointments }) =>
         },
     ];
 
-    // const pendingAppointments = [
-    //     {
-    //         id: 1,
-    //         customer: "John Doe",
-    //         service: "Haircut",
-    //         time: "2:30 PM",
-    //         price: "₱500",
-    //         status: "pending",
-    //     },
-    //     {
-    //         id: 2,
-    //         customer: "Sarah Wilson",
-    //         service: "Facial",
-    //         time: "3:00 PM",
-    //         price: "₱1,200",
-    //         status: "pending",
-    //     },
-    //     {
-    //         id: 3,
-    //         customer: "Mike Johnson",
-    //         service: "Massage",
-    //         time: "4:15 PM",
-    //         price: "₱800",
-    //         status: "pending",
-    //     },
-    // ];
 
-    // const upcomingAppointments = [
-    //     {
-    //         id: 4,
-    //         customer: "Jane Smith",
-    //         service: "Manicure",
-    //         time: "3:45 PM",
-    //         date: "Today",
-    //         price: "₱350",
-    //         status: "confirmed",
-    //     },
-    //     {
-    //         id: 5,
-    //         customer: "Robert Brown",
-    //         service: "Pedicure",
-    //         time: "11:00 AM",
-    //         date: "Tomorrow",
-    //         price: "₱400",
-    //         status: "confirmed",
-    //     },
-    //     {
-    //         id: 6,
-    //         customer: "Emily Davis",
-    //         service: "Hair Color",
-    //         time: "2:00 PM",
-    //         date: "Tomorrow",
-    //         price: "₱2,500",
-    //         status: "confirmed",
-    //     },
-    // ];
 
     const recentActivity = [
         {

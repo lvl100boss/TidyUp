@@ -15,6 +15,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/shop/dashboard', [ShopDashboardController::class, 'index'])->name('shop.dashboard');
     Route::redirect('/shop', '/shop/dashboard');
     Route::get('/shop/profile', [ShopProfileController::class, 'index'])->name('shop.profile');
+    Route::post('/shop/profile/update-hours', [ShopProfileController::class, 'updateOperationHours'])->name('shop.profile.update-hours');
+
     Route::get('/shop/appointments', function () {
         return Inertia::render('Shops/Appointments');
     })->name('shop.appointments');
