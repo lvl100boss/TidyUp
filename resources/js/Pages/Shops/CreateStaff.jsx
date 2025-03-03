@@ -50,16 +50,17 @@ export default function CreateStaff({ isOwner }) {
         <ShopsLayout>
             <Toaster richColors />
             <Head title="Create Staff Account" />
-            <h1 className="text-2xl font-bold">Create Staff Account</h1>
-            <StaffForm
-                isOwner={isOwner}
-                data={data}
-                setData={setData}
-                processing={processing}
-                errors={errors}
-                handleSubmit={handleSubmit}
-                create
-            />
+            <div className="max-w-screen-lg mx-auto">
+                <StaffForm
+                    isOwner={isOwner}
+                    data={data}
+                    setData={setData}
+                    processing={processing}
+                    errors={errors}
+                    handleSubmit={handleSubmit}
+                    create
+                />
+            </div>
         </ShopsLayout>
     );
 }

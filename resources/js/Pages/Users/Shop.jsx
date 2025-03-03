@@ -157,10 +157,10 @@ export default function Shop({ shop, randomShops }) {
                                 <DialogContent className="max-w-sm">
                                     <DialogHeader>
                                         <DialogTitle>
-                                            Business Hours
+                                            Shop's Business Hours
                                         </DialogTitle>
-                                        <BusinessHoursContent shop={shop} />
                                     </DialogHeader>
+                                    <BusinessHoursContent shop={shop} />
                                 </DialogContent>
                             </Dialog>
 

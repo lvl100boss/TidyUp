@@ -59,7 +59,7 @@ const Sidebar = () => {
 
                 <hr className="my-5 h-0.5 border-t-0 bg-neutral-100 dark:bg-white/10" />
                 <div>
-                    <h3 className="figtree-medium mb-2">CATEGORIES</h3>
+                    <h3 className="font-medium mb-2">CATEGORIES</h3>
                 </div>
                 {categoryLinks.map((link) => (
                     <Link
@@ -76,7 +76,7 @@ const Sidebar = () => {
 
                 <hr className="my-5 h-0.5 border-t-0 bg-neutral-100 dark:bg-white/10" />
                 <div>
-                    <h3 className="figtree-medium mb-2">HELP CENTER</h3>
+                    <h3 className="font-medium mb-2">HELP CENTER</h3>
                 </div>
                 {helpLinks.map((link) => (
                     <Link
