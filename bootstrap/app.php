@@ -14,9 +14,12 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->web(append: [
             \App\Http\Middleware\HandleInertiaRequests::class,
             \Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets::class,
+            \App\Http\Middleware\CheckUserRestriction::class, // Add this line
         ]);
 
-        //
+        $middleware->alias([
+            'check.restriction' => \App\Http\Middleware\CheckUserRestriction::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //

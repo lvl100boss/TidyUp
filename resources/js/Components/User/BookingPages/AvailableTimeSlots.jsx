@@ -7,18 +7,39 @@ import {
     CardHeader,
     CardTitle,
 } from "@/components/ui/card"
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 
-export default function AvailableTimeSlots({ shop, shopStaff, businessDays, selectedDate }) {
+export default function AvailableTimeSlots({
+    shop,
+    shopStaff,
+    selectedDate,
+    shopServiceCategories,
+    selectedStaff,
+    setSelectedStaff,
+    setSelectedTime,
+    selectedTime,
+    setData
+}) {
+    useEffect(() => {
+        setData("staff_id", shopStaff[selectedStaff]?.id);
+        setData("staff_index", selectedStaff);
+        setData("time", selectedTime);
+    }, [selectedStaff, selectedTime]);
 
-    const [selectedStaff, setSelectedStaff] = useState(null);
-    const [selectedTime, setSelectedTime] = useState(null);
+
     const businessHours = shop.shop_operation_hours;
     const timeSlots = [
         "00:00:00", "00:30:00", "01:00:00", "01:30:00", "02:00:00", "02:30:00", "03:00:00", "03:30:00", "04:00:00", "04:30:00", "05:00:00", "05:30:00", "06:00:00", "06:30:00", "07:00:00", "07:30:00", "08:00:00", "08:30:00", "09:00:00", "09:30:00", "10:00:00", "10:30:00", "11:00:00", "11:30:00", "12:00:00", "12:30:00", "13:00:00", "13:30:00", "14:00:00", "14:30:00", "15:00:00", "15:30:00", "16:00:00", "16:30:00", "17:00:00", "17:30:00", "18:00:00", "18:30:00", "19:00:00", "19:30:00", "20:00:00", "20:30:00", "21:00:00", "21:30:00", "22:00:00", "22:30:00", "23:00:00", "23:30:00"
     ];
 
+    // Helper to parse "HH:MM:SS" into total minutes
+    function parseTimeToMinutes(time) {
+        const [hour, minute] = time.split(":").map(Number);
+        return hour * 60 + minute;
+    }
+
+    // console.log("shopStaff", shopStaff[selectedStaff]?.appointments.map(({ appointment }) => appointment.appointment_services.map(service => service.service_id)));
     //get selectedDate day of the week fort example "monday"
     const selectedDay = new Date(selectedDate).toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
 
@@ -26,17 +47,65 @@ export default function AvailableTimeSlots({ shop, shopStaff, businessDays, sele
     const closingTime = businessHours.find(hour => hour.day === selectedDay)?.close_time || null;
     const isOpen = businessHours.find(hour => hour.day === selectedDay)?.is_open || 0;
 
+    const service_ids = shopStaff[selectedStaff]?.appointments?.map(({ appointment }) =>
+        appointment.appointment_services.map(service => service.service_id)
+    ) || [];
+
+    // Flatten the nested arrays of service_ids
+    const flattenedServiceIds = service_ids.flat();
+
+    const appointmentServices = shopServiceCategories?.filter(service =>
+        flattenedServiceIds.includes(service.id)
+    )?.map(service => ({
+        id: service.id,
+        name: service.service_name,
+        category: service.service_categories.name,
+        duration_hours: service.duration_hour,
+        duration_minutes: service.duration_minute
+    })) || [];
 
 
-    const availableTimeSlots = timeSlots.filter(time => {
-        if (isOpen) {
-            return time >= openingTime && time <= closingTime;
-        }
-        return false;
+    const availableTimeSlots = isOpen ? timeSlots.filter(time => {
+        const isWithinHours = time >= openingTime && time <= closingTime;
+        const staffAppointments = shopStaff[selectedStaff]?.appointments || [];
+
+        const bookedRanges = staffAppointments
+            .filter(appointment =>
+                new Date(appointment.appointment.date).toLocaleDateString() ===
+                new Date(selectedDate).toLocaleDateString()
+            )
+            .map(appointment => {
+                // Calculate total duration for all services in this appointment
+                const totalDuration = appointment.appointment.appointment_services.reduce(
+                    (sum, svc) => {
+                        const serviceInfo = shopServiceCategories.find(
+                            s => s.id === svc.service_id
+                        );
+                        if (!serviceInfo) return sum;
+                        // Convert hours & minutes to total minutes
+                        const serviceMinutes = serviceInfo.duration_hour * 60 + serviceInfo.duration_minute;
+                        return sum + serviceMinutes;
+                    },
+                    0
+                );
+                const startMinutes = parseTimeToMinutes(appointment.appointment.time);
+                const endMinutes = startMinutes + totalDuration;
+                return [startMinutes, endMinutes];
+            });
+
+        const currentMinutes = parseTimeToMinutes(time);
+
+        // Check if this time falls within any booked range
+        const isBooked = bookedRanges.some(([startM, endM]) =>
+            currentMinutes >= startM && currentMinutes < endM
+        );
+
+        return isWithinHours && !isBooked;
+    }) : [];
+
+    const staffAppointmentDates = shopStaff[selectedStaff]?.appointments.map(appointment => {
+        return appointment.appointment.date;
     });
-
-    console.log(shopStaff[selectedStaff]?.appointments[0]?.appointment?.time);
-    console.log(shopStaff[selectedStaff])
 
     return (
         <div>
@@ -57,7 +126,6 @@ export default function AvailableTimeSlots({ shop, shopStaff, businessDays, sele
                                             {shopStaff[selectedStaff].staff.first_name[0] + shopStaff[selectedStaff].staff.last_name[0]}
                                         </div>
                                     )}
-
                                 </div>
                                 <div className="pt-3">
                                     <CardTitle className="text-xl">
@@ -79,14 +147,13 @@ export default function AvailableTimeSlots({ shop, shopStaff, businessDays, sele
                     className="flex flex-wrap justify-start gap-3"
                 >
                     {shopStaff
-                        .filter(staff => staff.is_active)
                         .map((staff, index) => (
                             <ToggleGroupItem
                                 key={staff.id}
                                 value={staff.id}
                                 aria-label={`Select ${staff.staff.first_name} ${staff.staff.last_name}`}
                                 className="data-[state=on]:bg-foreground data-[state=on]:text-background"
-                                onClick={(e) => setSelectedStaff(index)}
+                                onClick={() => setSelectedStaff(index)}
                             >
                                 <h1 className="font-bold">
                                     {`${staff.staff.first_name} ${staff.staff.last_name}`}
@@ -113,8 +180,8 @@ export default function AvailableTimeSlots({ shop, shopStaff, businessDays, sele
                                 key={index}
                                 value={time}
                                 aria-label={`Select ${time}`}
-                                className="data-[state=on]:bg-foreground data-[state=on]:text-background block w-full text-left h-14 font-bold"
-                                onClick={(e) => setSelectedTime(time)}
+                                className="data-[state=on]:bg-foreground data-[state=on]:text-background block w-full text-left pl-6 h-14 font-bold"
+                                onClick={() => { setSelectedTime(time); }}
                                 disabled={selectedStaff === null}
                             >
                                 {/* Make the time into 10:00AM or 10:30PM */}

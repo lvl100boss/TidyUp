@@ -47,9 +47,9 @@ import ShopDetailsCard from "@/Components/Shop/ShopPage/ShopDetailsCard";
 import BookNowButton from "@/Components/Shop/ShopPage/BookNowButton";
 import ServiceTabs from "@/Components/Shop/ShopPage/ServiceTabs";
 import BusinessHoursContent from "@/Components/Shop/ShopPage/BusinessHoursContent";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
 export default function Shop({ shop, randomShops }) {
-    console.log(shop);
     const categories = [
         ...new Set(
             shop?.shop_service_categories?.map(
@@ -76,11 +76,10 @@ export default function Shop({ shop, randomShops }) {
                             {shop?.shop_name}
                         </h1>
                         <Badge
-                            className={`${
-                                shop?.availability === 1
-                                    ? "bg-green-300"
-                                    : "bg-secondary text-foreground"
-                            } pointer-events-none`}
+                            className={`${shop?.availability === 1
+                                ? "bg-green-300"
+                                : "bg-secondary text-foreground"
+                                } pointer-events-none`}
                         >
                             {shop?.availability === 1
                                 ? "Available"
@@ -101,24 +100,31 @@ export default function Shop({ shop, randomShops }) {
                 </div>
                 <div className="lg:w-[15rem] 2xl:w-[22rem] hidden lg:block">
                     <div className="border p-5 rounded-md sticky top-20">
-                        <div className="mb-3">
-                            <h1 className="figtree-semibold text-2xl">
-                                {shop?.shop_name}
-                            </h1>
-                            <Badge
-                                className={`${
-                                    shop?.availability === 1
+                        <div className="flex gap-3 items-center">
+                            <div>
+                                <Avatar className="size-14">
+                                    <AvatarImage src={'/' + shop.shop_photo} className="" />
+                                    <AvatarFallback className="uppercase">{shop.shop_name.slice(0, 2)}</AvatarFallback>
+                                </Avatar>
+                            </div>
+                            <div className="mb-3">
+                                <h1 className="figtree-semibold text-2xl">
+                                    {shop?.shop_name}
+                                </h1>
+                                <Badge
+                                    className={`${shop?.availability === 1
                                         ? "bg-green-300"
                                         : "bg-secondary text-foreground"
-                                } pointer-events-none`}
-                            >
-                                {shop?.availability === 1
-                                    ? "Available"
-                                    : "Unavailable"}
-                            </Badge>
+                                        } pointer-events-none`}
+                                >
+                                    {shop?.availability === 1
+                                        ? "Available"
+                                        : "Unavailable"}
+                                </Badge>
+                            </div>
                         </div>
                         <div>
-                            <p className="text-center text-xs text-muted-foreground italic pointer-events-none">
+                            <p className="text-xs text-muted-foreground italic pointer-events-none">
                                 {shop?.bio}
                             </p>
                         </div>

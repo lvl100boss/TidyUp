@@ -104,13 +104,15 @@ export default function Home({ shops }) {
             <Head title="Home" />
             <div className="relative flex items-center justify-center text-white dark:text-black overflow-hidden sm:rounded-lg mb-5 -mx-5 sm:mx-0 ">
                 <AspectRatio ratio={ratio}>
-                    <video
-                        className="invert w-full h-full object-cover "
-                        src="/assets/videos/bg-gradient.mp4"
-                        autoPlay
-                        muted
-                        loop
-                    ></video>
+                    <div>
+                        <video
+                            className="invert w-full h-full object-cover "
+                            src="/assets/videos/bg-gradient.mp4"
+                            autoPlay
+                            muted
+                            loop
+                        ></video>
+                    </div>
                 </AspectRatio>
                 <div className="flex items-center justify-center min-h-[90%]  px-6 absolute">
                     <div className="text-center max-w-2xl">
@@ -143,7 +145,7 @@ export default function Home({ shops }) {
                             className="mt-6"
                         >
                             <Link
-                                href="/explore"
+                                href="/discover"
                                 className={`${buttonVariants({
                                     variant: "outline",
                                 })} text-foreground px-6 py-3 text-lg`}
@@ -179,7 +181,7 @@ export default function Home({ shops }) {
             <div className="mb-10">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                     {cardData.map((card, index) => (
-                        <Card key={index}>
+                        <Card key={index} className="hover:shadow-md transition-all ease-in-out">
                             <CardHeader>
                                 <CardTitle className="text-xl font-semibold inline-flex gap-2 items-center">
                                     <card.icon size={20} />

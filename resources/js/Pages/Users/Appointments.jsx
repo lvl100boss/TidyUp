@@ -8,9 +8,11 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/Components/ui/select";
-import { Head } from "@inertiajs/react";
-import { useState } from "react";
+import { Head, usePage } from "@inertiajs/react";
+import { useState, useEffect } from "react";
 import ApplicationLogo from "@/Components/ApplicationLogo";
+import { FlashMessage } from "@/Components/FlashMessage"
+
 
 export default function Appointments({
     pendingAppointments,
@@ -21,8 +23,25 @@ export default function Appointments({
     declinedAppointments,
     startedAppointments,
 }) {
-    console.log(pendingAppointments);
+    const { flash } = usePage().props;
+    const [flashState, setFlashState] = useState({ message: flash.message, success: flash.success });
     const [activeTab, setActiveTab] = useState("upcoming");
+
+    // Handle flash message display
+    useEffect(() => {
+        if (flash.message) {
+            setFlashState({ message: flash.message, success: flash.success });
+            const timer = setTimeout(() => setFlashState({ message: "", success: flash.success }), 4000);
+            return () => clearTimeout(timer);
+        }
+    }, [flash.message, flash.success]);
+
+    // Handle tab change on successful booking
+    useEffect(() => {
+        if (flash.message === "Appointment has been booked successfully") {
+            setActiveTab("pending");
+        }
+    }, [flash.message]);
 
     const appointmentTypes = [
         "pending",
@@ -76,11 +95,14 @@ export default function Appointments({
 
     return (
         <UserLayout>
+            <FlashMessage message={flashState.message} success={flashState.success} />
+
             <Head title="Appointments" />
             <h1 className="text-2xl figtree-semibold mt-2 lg:mb-3 lg:mt-0 uppercase">
                 My Appointments
             </h1>
             <Tabs
+                defaultValue={activeTab}
                 value={activeTab}
                 onValueChange={setActiveTab}
                 className="overflow-x-auto whitespace-nowrap  min-h-screen"
