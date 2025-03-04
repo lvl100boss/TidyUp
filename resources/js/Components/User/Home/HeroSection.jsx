@@ -15,7 +15,7 @@ export default function HeroSection() {
 
     return (
         // Hero Section with animated radial gradient
-        <div className={`relative p-8 rounded-lg mb-8 shadow-sm overflow-hidden ${mounted ? 'animate-radial-gradient' : 'bg-gradient-to-r from-blue-50 to-indigo-50'}`}
+        <div className={`relative p-8 rounded-lg mb-8 shadow-md border overflow-hidden ${mounted ? 'animate-radial-gradient' : 'bg-gradient-to-r from-blue-50 to-indigo-50'}`}
             style={{
                 backgroundSize: '300% 300%',
                 backgroundImage: 'radial-gradient(circle at center,  #ede9fe 0%, #e0f2fe 20%,  #fafafa 60%, #ede9fe 75%, #e0f2fe 100%)', // blue-50, indigo-50, neutral-50, purple-50

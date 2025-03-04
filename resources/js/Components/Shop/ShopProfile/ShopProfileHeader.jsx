@@ -22,10 +22,13 @@ export default function ShopProfileHeader({ shop }) {
             if (shop.shop_photo.startsWith('http')) {
                 setShopPhotoUrl(shop.shop_photo);
             } else {
-                setShopPhotoUrl(`/storage/${shop.shop_photo}`);
+                setShopPhotoUrl(`/${shop.shop_photo}`);
             }
         }
     }, [shop.shop_photo]);
+
+
+
 
     return (
         <Card>

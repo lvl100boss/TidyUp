@@ -127,7 +127,7 @@ class ShopController extends Controller
 
     public function show($id)
     {
-        $shop = Shop::with(['shopGallery', 'shopServiceCategories.serviceCategories', 'shopOperationHours'])->find($id);
+        $shop = Shop::with(['shopGallery', 'shopServiceCategories.serviceCategories', 'shopOperationHours', 'socialMedia'])->find($id);
         $randomShops = Shop::with(['shopGallery', 'shopCategories.categories'])->inRandomOrder()->limit(10)->get();
         return Inertia::render('Users/Shop', [
             'shop' => $shop,
@@ -135,80 +135,3 @@ class ShopController extends Controller
         ]);
     }
 }
-
-// this is the output of dd($validated);
-// array:18 [▼ // app\Http\Controllers\ShopController.php:29
-//   "shop_name" => "Gupit ni John"
-//   "bio" => null
-//   "email" => "test@gmail.com"
-//   "phone" => "09877899876"
-//   "region" => "Region II (Cagayan Valley)"
-//   "province" => "Batanes"
-//   "city" => "Ivana"
-//   "barangay" => "Salagao"
-//   "detailed_address" => "WMSU, Baliwasan, Z.C."
-//   "categories" => array:2 [▼
-//     0 => "1"
-//     1 => "2"
-//   ]
-// "operation_hours" => array:7 [▼
-// "Monday" => array:3 [▼
-//   "isOpen" => "1"
-//   "openTime" => "9:00 AM"
-//   "closeTime" => "5:00 PM"
-// ]
-// "Tuesday" => array:3 [▼
-//   "isOpen" => "1"
-//   "openTime" => "9:00 AM"
-//   "closeTime" => "5:00 PM"
-// ]
-// "Wednesday" => array:3 [▼
-//   "isOpen" => "1"
-//   "openTime" => "9:00 AM"
-//   "closeTime" => "5:00 PM"
-// ]
-// "Thursday" => array:3 [▼
-//   "isOpen" => "0"
-//   "openTime" => "9:00 AM"
-//   "closeTime" => "5:00 PM"
-// ]
-// "Friday" => array:3 [▼
-//   "isOpen" => "0"
-//   "openTime" => "9:00 AM"
-//   "closeTime" => "5:00 PM"
-// ]
-// "Saturday" => array:3 [▼
-//   "isOpen" => "0"
-//   "openTime" => "9:00 AM"
-//   "closeTime" => "5:00 PM"
-// ]
-// "Sunday" => array:3 [▼
-//   "isOpen" => "0"
-//   "openTime" => "9:00 AM"
-//   "closeTime" => "5:00 PM"
-// ]
-// ]
-//   "catalog_items" => array:1 [▼
-//     0 => array:6 [▼
-//       "service_name" => "12345"
-//       "cost" => "2000"
-//       "duration_hour" => "0"
-//       "duration_minute" => "30"
-//       "category_id" => "2"
-//       "category_name" => "Hair Styling"
-//     ]
-//   ]
-//   "shop_bio" => "12345"
-//   "shop_photo" => 
-// Illuminate\Http\UploadedFile {#1342 ▶}
-//   "shop_gallery" => array:5 [▼
-//     0 => Illuminate\Http\UploadedFile {#1340 ▶}
-//     1 => Illuminate\Http\UploadedFile {#1343 ▶}
-//     2 => Illuminate\Http\UploadedFile {#1347 ▶}
-//     3 => Illuminate\Http\UploadedFile {#1345 ▶}
-//     4 => Illuminate\Http\UploadedFile {#1348 ▶}
-//   ]
-//   "business_permit" => Illuminate\Http\UploadedFile {#1074 ▶}
-//   "dti_registration" => Illuminate\Http\UploadedFile {#1349 ▶}
-//   "valid_id" => Illuminate\Http\UploadedFile {#1350 ▶}
-// ]

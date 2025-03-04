@@ -4,33 +4,41 @@ import { Button } from "@/Components/ui/button";
 import { ChevronLeft, LogOut } from "lucide-react";
 import AppointmentSummaryCard from "@/Components/User/BookingPages/AppointmentSummaryCard";
 import StepsIndicator from "@/Components/User/BookingPages/StepsIndicator";
-import AvailableDays from "@/Components/User/BookingPages/AvailableDays";
 import { useState } from "react";
-import AvailableTimeSlots from "@/Components/User/BookingPages/AvailableTimeSlots";
 import { useForm } from "@inertiajs/react";
+import BookingServiceTabs from "@/Components/Shop/ShopPage/BookingServiceTabs";
 
-export default function Booking({ shop, businessDays, shopStaff, shopServiceCategories, data }) {
-    const [selectedDate, setSelectedDate] = useState(null);
-    const [selectedStaff, setSelectedStaff] = useState(null);
-    const [selectedTime, setSelectedTime] = useState(null);
-
+export default function BookingStepOne({ shop, shopStaff, data }) {
     const { data: formData, setData, post, processing, errors } = useForm({
         shop_id: shop.id,
-        staff_id: "",
-        staff_index: "",
-        date: "",
-        time: "",
+        service_id: [],
+        total_price: 0,
     });
 
     const handleSubmit = (e) => {
         e.preventDefault();
-
         post(`/${shop.id}/booking/1`);
-    }
+    };
+
+    const categories = [
+        ...new Set(
+            shop?.shop_service_categories?.map(
+                (service) => service.service_categories?.name
+            ) || []
+        ),
+    ];
+
+    const groupedServices = categories.map((category) => ({
+        category,
+        services:
+            shop?.shop_service_categories?.filter(
+                (service) => service.service_categories?.name === category
+            ) || [],
+    }));
 
     return (
         <>
-            <Head title="Booking" />
+            <Head title="Choose Services" />
             <UserLayout>
                 <div className="min-h-screen">
                     <header className="flex justify-center relative ">
@@ -53,44 +61,28 @@ export default function Booking({ shop, businessDays, shopStaff, shopServiceCate
                     </div>
                     <section className="mt-4 flex gap-5">
                         <div className="flex-1">
-                            <AvailableDays
-                                shop={shop}
-                                businessDays={businessDays}
-                                setSelectedDate={setSelectedDate}
-                                setData={setData}
-                            />
-                            <AvailableTimeSlots
-                                shop={shop}
-                                shopStaff={shopStaff}
-                                selectedDate={selectedDate}
-                                shopServiceCategories={shopServiceCategories}
-                                setSelectedStaff={setSelectedStaff}
-                                selectedStaff={selectedStaff}
-                                setSelectedTime={setSelectedTime}
-                                selectedTime={selectedTime}
-                                setData={setData}
-                            />
+                            <div className="space-y-3">
+                                <h1 className="text-2xl font-bold">Choose Service</h1>
+                                <BookingServiceTabs
+                                    categories={categories}
+                                    groupedServices={groupedServices}
+                                    setData={setData}
+                                />
+                            </div>
                         </div>
                         <div>
-                            <div className=" sticky top-20 space-y-5">
+                            <div className="sticky top-20 space-y-5">
                                 <AppointmentSummaryCard
                                     shop={shop}
                                     shopStaff={shopStaff}
-                                    selectedDate={selectedDate}
-                                    selectedStaff={selectedStaff}
-                                    selectedTime={selectedTime}
                                 />
                                 <form onSubmit={handleSubmit}>
                                     <input type="hidden" name="shop_id" value={formData.shop_id} />
-                                    <input type="hidden" name="staff_id" value={formData.staff_id} />
-                                    <input type="hidden" name="staff_index" value={formData.staff_index} />
-                                    <input type="hidden" name="date" value={formData.date} />
-                                    <input type="hidden" name="time" value={formData.time} />
                                     <Button
                                         className="w-full"
                                         type="submit"
                                         loading={processing}
-                                        disabled={!selectedTime}
+                                        disabled={!formData.service_id || formData.service_id.length === 0}
                                     >
                                         Next
                                     </Button>
@@ -98,7 +90,6 @@ export default function Booking({ shop, businessDays, shopStaff, shopServiceCate
                             </div>
                         </div>
                     </section>
-
                 </div>
             </UserLayout>
         </>

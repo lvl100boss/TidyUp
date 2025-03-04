@@ -98,7 +98,7 @@ export default function Appointments({
             <FlashMessage message={flashState.message} success={flashState.success} />
 
             <Head title="Appointments" />
-            <h1 className="text-2xl figtree-semibold mt-2 lg:mb-3 lg:mt-0 uppercase">
+            <h1 className="text-3xl font-semibold mt-2 lg:mb-3 lg:mt-0 uppercase">
                 My Appointments
             </h1>
             <Tabs

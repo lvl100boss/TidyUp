@@ -12,7 +12,7 @@ export function EditShopProfileForm({ shop, setOpen }) {
     const initialImageUrl = shop.shop_photo
         ? (shop.shop_photo.startsWith('http')
             ? shop.shop_photo
-            : `/storage/${shop.shop_photo}`)
+            : `/${shop.shop_photo}`)
         : null;
 
     const [previewUrl, setPreviewUrl] = useState(initialImageUrl);
@@ -52,12 +52,7 @@ export function EditShopProfileForm({ shop, setOpen }) {
             forceFormData: true,
             preserveScroll: true,
             onSuccess: () => {
-                toast.success("Shop profile updated successfully");
                 setOpen(false);
-            },
-            onError: (errors) => {
-                console.error("Submission errors:", errors);
-                toast.error("Failed to update shop profile");
             },
         });
     };

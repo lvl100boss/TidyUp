@@ -126,7 +126,7 @@ const Header = ({ onClick, isDarkTheme, setIsDarkTheme }) => {
                                 <Link href="/profile">
                                     <DropdownMenuItem>Profile</DropdownMenuItem>
                                 </Link>
-                                {role.role_id === 3 ? (
+                                {role.role_id === 3 || role.role_id === 4 ? (
                                     <Link href={route("shop.dashboard")}>
                                         <DropdownMenuItem>
                                             Manage Shop

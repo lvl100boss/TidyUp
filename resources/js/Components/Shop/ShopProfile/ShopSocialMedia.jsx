@@ -92,11 +92,7 @@ const ShopSocialMedia = ({ shop }) => {
             onSuccess: () => {
                 setIsAddOpen(false);
                 addReset();
-                toast.success('Social media added successfully');
             },
-            onError: (errors) => {
-                toast.error(Object.values(errors)[0]);
-            }
         });
     };
 
@@ -117,10 +113,8 @@ const ShopSocialMedia = ({ shop }) => {
             onSuccess: () => {
                 setIsEditOpen(false);
                 editReset();
-                toast.success('Social media updated successfully');
             },
             onError: (errors) => {
-                toast.error(Object.values(errors)[0]);
             }
         });
     };
@@ -134,10 +128,8 @@ const ShopSocialMedia = ({ shop }) => {
         deleteAction(route('shop.social-media.destroy', deletingId), {
             onSuccess: () => {
                 setIsDeleteOpen(false);
-                toast.success('Social media deleted successfully');
             },
             onError: (errors) => {
-                toast.error(Object.values(errors)[0]);
             }
         });
     };

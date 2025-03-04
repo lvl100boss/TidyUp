@@ -127,7 +127,7 @@ class ShopProfileController extends Controller
             $validated = $request->validate([
                 'shop_name' => 'required|string|max:255',
                 'bio' => 'nullable|string|max:500',
-                'shop_photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+                'shop_photo' => 'nullable|image|mimes:jpeg,png,jpg,webp,gif|max:24048',
             ]);
 
             $user_id = auth()->user()->id;
@@ -151,7 +151,7 @@ class ShopProfileController extends Controller
 
                     // Store the new photo with proper path handling
                     $photoName = time() . '_' . $request->file('shop_photo')->getClientOriginalName();
-                    $photoPath = $request->file('shop_photo')->storeAs('shop_photos', $photoName, 'public');
+                    $photoPath = 'storage/' . $request->file('shop_photo')->storeAs('shop_photos', $photoName, 'public');
                     $shop->shop_photo = $photoPath;
 
                     Log::info('Photo uploaded successfully', ['path' => $photoPath]);
