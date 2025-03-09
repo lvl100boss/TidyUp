@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Shop;
 use App\Models\OperationHours;
+use App\Models\ShopStaffs;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Log;
@@ -13,14 +15,17 @@ class ShopProfileController extends Controller
 {
     public function index()
     {
-        $user_id = auth()->user()->id;
-        $shop = Shop::with([
+        $user = User::find(auth()->id());
+        $shopStaff = ShopStaffs::where('staff_id', $user->id)->first();
+        $shop = $shopStaff->shop;
+        $shop = $shop->load([
             'shopGallery',
             'shopOperationHours',
             'shopServiceCategories.serviceCategories',
             'staffs.staff',
             'socialMedia'
-        ])->where('user_id', $user_id)->first();
+        ]);
+
 
         return Inertia::render('Shops/ShopProfile', [
             'shop' => $shop,
@@ -127,7 +132,7 @@ class ShopProfileController extends Controller
             $validated = $request->validate([
                 'shop_name' => 'required|string|max:255',
                 'bio' => 'nullable|string|max:500',
-                'shop_photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+                'shop_photo' => 'nullable|image|mimes:jpeg,png,jpg,webp,gif|max:24048',
             ]);
 
             $user_id = auth()->user()->id;
@@ -151,7 +156,7 @@ class ShopProfileController extends Controller
 
                     // Store the new photo with proper path handling
                     $photoName = time() . '_' . $request->file('shop_photo')->getClientOriginalName();
-                    $photoPath = $request->file('shop_photo')->storeAs('shop_photos', $photoName, 'public');
+                    $photoPath = 'storage/' . $request->file('shop_photo')->storeAs('shop_photos', $photoName, 'public');
                     $shop->shop_photo = $photoPath;
 
                     Log::info('Photo uploaded successfully', ['path' => $photoPath]);

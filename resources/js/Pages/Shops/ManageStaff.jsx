@@ -31,13 +31,15 @@ export default function ManageStaff({ staffs, shop, isOwner }) {
             <div>
                 <div className="flex justify-between items-center">
                     <h1 className="text-3xl font-semibold tracking-tight">Manage Staff</h1>
-                    <Link
-                        href="/shop/manage/staff/create"
-                        className={`flex items-center font-bold ${buttonVariants({ variant: "default" })}`}
-                    >
-                        <Plus />
-                        Add New Staff
-                    </Link>
+                    {isOwner && (
+                        <Link
+                            href="/shop/manage/staff/create"
+                            className={`flex items-center font-bold ${buttonVariants({ variant: "default" })}`}
+                        >
+                            <Plus />
+                            Add New Staff
+                        </Link>
+                    )}
                 </div>
                 <div>
                     <StaffTable staffs={staffs} isOwner={isOwner} shop={shop} />

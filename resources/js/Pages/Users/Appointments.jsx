@@ -98,22 +98,21 @@ export default function Appointments({
             <FlashMessage message={flashState.message} success={flashState.success} />
 
             <Head title="Appointments" />
-            <h1 className="text-2xl figtree-semibold mt-2 lg:mb-3 lg:mt-0 uppercase">
+            <h1 className="text-3xl font-semibold mt-2 lg:mb-3 lg:mt-0 uppercase">
                 My Appointments
             </h1>
             <Tabs
                 defaultValue={activeTab}
                 value={activeTab}
                 onValueChange={setActiveTab}
-                className="overflow-x-auto whitespace-nowrap  min-h-screen"
+                className="overflow-x-auto whitespace-nowrap min-h-screen"
             >
                 {/* Mobile View - Select Dropdown */}
                 <div className="sm:hidden w-full">
                     <Select
                         value={activeTab}
-                        qqq
                         onValueChange={setActiveTab}
-                        className="w-full "
+                        className="w-full"
                     >
                         <SelectTrigger className="mb-5 mt-2">
                             <SelectValue placeholder="Select status" />
@@ -121,8 +120,12 @@ export default function Appointments({
                         <SelectContent>
                             {appointmentTypes.map((type) => (
                                 <SelectItem key={type} value={type}>
-                                    {type.charAt(0).toUpperCase() +
-                                        type.slice(1)}
+                                    {type.charAt(0).toUpperCase() + type.slice(1)}{" "}
+                                    {appointmentData[type]?.length > 0 && (
+                                        <span>
+                                            ({appointmentData[type]?.length})
+                                        </span>
+                                    )}
                                 </SelectItem>
                             ))}
                         </SelectContent>
@@ -134,7 +137,14 @@ export default function Appointments({
                     <TabsList className="mb-5 block md:inline-flex w-min mx-auto lg:mx-0">
                         {appointmentTypes.map((type) => (
                             <TabsTrigger key={type} value={type}>
-                                {type.charAt(0).toUpperCase() + type.slice(1)}
+                                <div className="flex items-center gap-1">
+                                    <span>{type.charAt(0).toUpperCase() + type.slice(1)}{" "}</span>
+                                    {appointmentData[type]?.length > 0 && (
+                                        <div className="ml-1 bg-primary text-background font text-xs size-4 rounded-sm grid place-items-center">
+                                            {appointmentData[type]?.length}
+                                        </div>
+                                    )}
+                                </div >
                             </TabsTrigger>
                         ))}
                     </TabsList>
