@@ -178,7 +178,49 @@ export default function Shop({ shop, randomShops }) {
                                     <BusinessHoursContent shop={shop} />
                                 </DialogContent>
                             </Dialog>
-
+                            <Dialog >
+                                <DialogTrigger className="w-full">
+                                    <Button
+                                        className="w-full justify-start"
+                                        variant="outline"
+                                    >
+                                        <Globe size={20} />
+                                        View Shop's Social Media
+                                    </Button>
+                                </DialogTrigger>
+                                <DialogContent >
+                                    <DialogHeader>
+                                        <DialogTitle>Social Media Links</DialogTitle>
+                                        <DialogDescription>
+                                            Follow {shop.shop_name} on their social media platforms to stay updated.
+                                        </DialogDescription>
+                                    </DialogHeader>
+                                    {shop.social_media && shop.social_media.length > 0 ? (
+                                        shop.social_media.map((social) => (
+                                            <div key={social.id} className="flex items-center justify-between">
+                                                <div className="flex items-center gap-2">
+                                                    {socialMediaIcons[social.icon]}
+                                                    <div>
+                                                        <p className="text-sm font-medium">{social.name}</p>
+                                                        <a
+                                                            href={social.url}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="text-xs text-muted-foreground hover:underline"
+                                                        >
+                                                            {social.url}
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <div className="text-center py-6 text-muted-foreground">
+                                            <p className="mb-2">No social media added yet</p>
+                                        </div>
+                                    )}
+                                </DialogContent>
+                            </Dialog>
                             <Dialog>
                                 <DialogTrigger asChild>
                                     <Button
@@ -228,49 +270,7 @@ export default function Shop({ shop, randomShops }) {
                                 </DialogContent>
                             </Dialog>
 
-                            <Dialog >
-                                <DialogTrigger className="w-full">
-                                    <Button
-                                        className="w-full justify-start"
-                                        variant="outline"
-                                    >
-                                        <TriangleAlert size={20} />
-                                        View Shop's Social Media
-                                    </Button>
-                                </DialogTrigger>
-                                <DialogContent >
-                                    <DialogHeader>
-                                        <DialogTitle>Social Media Links</DialogTitle>
-                                        <DialogDescription>
-                                            Follow {shop.shop_name} on their social media platforms to stay updated.
-                                        </DialogDescription>
-                                    </DialogHeader>
-                                    {shop.social_media && shop.social_media.length > 0 ? (
-                                        shop.social_media.map((social) => (
-                                            <div key={social.id} className="flex items-center justify-between">
-                                                <div className="flex items-center gap-2">
-                                                    {socialMediaIcons[social.icon]}
-                                                    <div>
-                                                        <p className="text-sm font-medium">{social.name}</p>
-                                                        <a
-                                                            href={social.url}
-                                                            target="_blank"
-                                                            rel="noopener noreferrer"
-                                                            className="text-xs text-muted-foreground hover:underline"
-                                                        >
-                                                            {social.url}
-                                                        </a>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        ))
-                                    ) : (
-                                        <div className="text-center py-6 text-muted-foreground">
-                                            <p className="mb-2">No social media added yet</p>
-                                        </div>
-                                    )}
-                                </DialogContent>
-                            </Dialog>
+
                         </div>
                     </div>
                 </div>

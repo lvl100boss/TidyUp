@@ -49,10 +49,10 @@ const Dashboard = ({
             trend: (revenueChange ?? 0) >= 0 ? "positive" : "negative",
         },
         {
-            title: "Active Customers",
-            value: "2,350",
+            title: "Active Employees",
+            value: "5",
             icon: <Users className="h-4 w-4 text-muted-foreground" />,
-            change: "+180 this week",
+            change: "2 new employees",
             trend: "positive",
         },
         {
@@ -64,10 +64,10 @@ const Dashboard = ({
             trend: (completedBookingsChange ?? 0) >= 0 ? "positive" : "negative",
         },
         {
-            title: "Available Tokens",
-            value: "20",
+            title: "Subscription Status",
+            value: "Active",
             icon: <Coins className="h-4 w-4 text-muted-foreground" />,
-            change: "5 used this month",
+            change: "Renewal due in 2 weeks",
             trend: "neutral",
         },
     ];
@@ -159,6 +159,14 @@ const Dashboard = ({
                                         </div>
                                     </div>
                                     <div className="text-right space-y-1">
+                                        <div className="flex gap-1">
+                                            <p className="text-sm text-muted-foreground">Stylist:</p>
+                                            <p className="text-sm font-medium text-nowrap">
+                                                {apt.user_appointments?.[0]?.staff?.staff?.first_name || "Unassigned"}
+                                                {apt.user_appointments?.[0]?.staff?.staff?.last_name ?
+                                                    ` ${apt.user_appointments[0].staff.staff.last_name}` : ""}
+                                            </p>
+                                        </div>
                                         <Badge
                                             variant={
                                                 apt.status === "confirmed"
@@ -193,7 +201,6 @@ const Dashboard = ({
             </CardContent>
         </Card>
     );
-
     return (
         <ShopsLayout>
             <Head title="Dashboard" />

@@ -2,14 +2,182 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Appointments;
+use App\Models\ShopStaffs;
+use App\Services\ShopAppointmentService;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\App;
 use Inertia\Inertia;
 
 class ShopAppointmentsController extends Controller
 {
-    //
+    protected $appointmentService;
+
+    // All the logic for fetching appointments data will be handled by the ShopAppointmentService
+    public function __construct(ShopAppointmentService $appointmentService)
+    {
+        $this->appointmentService = $appointmentService;
+    }
     public function index()
     {
-        return Inertia::render('Shops/Appointments');
+        $myAppointments = $this->appointmentService->getAppointmentsData(auth()->id());
+
+        return Inertia::render('Shops/Appointments', [
+            'staffData' => $myAppointments['currentStaff'],
+            'myAppointments' => $myAppointments['appointments'],
+            'upcomingSchedules' => $myAppointments['upcomingSchedules'],
+            'shopBusinessSchedules' => $myAppointments['shopBusinessSchedules'],
+            'shopAppointments' => $myAppointments['shopAppointments']
+        ]);
+    }
+
+    public function approve(Request $request, $appointment)
+    {
+        $targetAppointment = Appointments::find($appointment);
+        $currentStaff = ShopStaffs::where('staff_id', auth()->id())
+            ->first();
+        DB::beginTransaction();
+        try {
+            $targetAppointment->status = 'upcoming';
+            $targetAppointment->approved_by = $currentStaff->id;
+            $targetAppointment->save();
+            DB::commit();
+            return redirect()->back()->with('message', 'Appointment approved successfully')->with('success', true);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()->with('message', 'Failed to approve appointment')->with('success', false);
+        }
+    }
+
+
+    public function reject(Request $request, $appointment)
+    {
+        $validated = $request->validate([
+            'reason' => 'required|string'
+        ]);
+
+        $targetAppointment = Appointments::find($appointment);
+        DB::beginTransaction();
+        try {
+            $targetAppointment->status = 'declined';
+            $targetAppointment->decline_reason = $validated['reason'];
+            $targetAppointment->save();
+            DB::commit();
+            return redirect()->back()->with('message', 'Appointment rejected successfully')->with('success', true);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()->with('message', 'Failed to reject appointment')->with('success', false);
+        }
+    }
+
+    public function cancel(Request $request, $appointment)
+    {
+        $validated = $request->validate([
+            'reason' => 'required|string'
+        ]);
+
+        $targetAppointment = Appointments::find($appointment);
+        DB::beginTransaction();
+        try {
+            $targetAppointment->status = 'cancelled';
+            $targetAppointment->cancel_reason = $validated['reason'];
+            $targetAppointment->save();
+            DB::commit();
+            return redirect()->back()->with('message', 'Appointment cancelled successfully')->with('success', true);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()->with('message', 'Failed to cancel appointment')->with('success', false);
+        }
+    }
+
+    public function reschedule(Request $request, $appointment)
+    {
+        dd($request->all());
+        $validated = $request->validate([
+            'date' => 'required|date',
+            'time' => 'required|string',
+            'reason' => 'required|string'
+        ]);
+
+        $targetAppointment = Appointments::find($appointment);
+        DB::beginTransaction();
+        try {
+            $targetAppointment->status = 'rescheduled';
+            $targetAppointment->resched_reason = $validated['reason'];
+            $targetAppointment->date = $validated['date'];
+            $targetAppointment->time = $validated['time'];
+            $targetAppointment->save();
+            DB::commit();
+            return redirect()->back()->with('message', 'Appointment rescheduled successfully')->with('success', true);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()->with('message', 'Failed to reschedule appointment: ' . $e->getMessage())->with('success', false);
+        }
+    }
+
+    public function update(Request $request, $appointment)
+    {
+        return redirect()->back()->with('message', 'Appointment updated successfully')->with('success', true);
+    }
+
+    public function started(Request $request, $appointment)
+    {
+        $targetAppointment = Appointments::find($appointment);
+        DB::beginTransaction();
+        try {
+            $targetAppointment->status = 'started';
+            $targetAppointment->save();
+            DB::commit();
+            return redirect()->back()->with('message', 'Appointment started successfully')->with('success', true);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()->with('message', 'Failed to start appointment')->with('success', false);
+        }
+    }
+
+    public function noShow(Request $request, $appointment)
+    {
+        $targetAppointment = Appointments::find($appointment);
+        DB::beginTransaction();
+        try {
+            $targetAppointment->status = 'no-show';
+            $targetAppointment->save();
+            DB::commit();
+            return redirect()->back()->with('message', 'Appointment marked as no-show successfully')->with('success', true);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()->with('message', 'Failed to mark appointment as no-show')->with('success', false);
+        }
+    }
+
+    public function complete(Request $request, $appointment)
+    {
+        $targetAppointment = Appointments::find($appointment);
+        DB::beginTransaction();
+        try {
+            $targetAppointment->status = 'completed';
+            $targetAppointment->save();
+            DB::commit();
+            return redirect()->back()->with('message', 'Appointment completed successfully')->with('success', true);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()->with('message', 'Failed to complete appointment')->with('success', false);
+        }
+    }
+
+    public function undo(Request $request, $appointment)
+    {
+        $targetAppointment = Appointments::find($appointment);
+        DB::beginTransaction();
+        try {
+            $targetAppointment->status = 'upcoming';
+            $targetAppointment->save();
+            DB::commit();
+            return redirect()->back()->with('message', 'Appointment completed successfully')->with('success', true);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()->with('message', 'Failed to complete appointment')->with('success', false);
+        }
     }
 }

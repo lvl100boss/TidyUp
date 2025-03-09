@@ -62,7 +62,24 @@ const AvailableDays = ({ businessDays, setSelectedDate, setData }) => {
         return available;
     };
 
+    // Check if a day is available
+    const isDayAvailable = (day) => {
+        const date = new Date(selectedYear, selectedMonth - 1, day);
+        const dayOfWeek = date.getDay();
+
+        // Check if it's a business day and not in the past
+        return businessDayNumbers.includes(dayOfWeek) &&
+            !(selectedYear === currentYear && selectedMonth === currentMonth && day < currentDate);
+    };
+
+    // Get all days in the month
+    const getAllDaysInMonth = (year, month) => {
+        const lastDay = new Date(year, month, 0).getDate();
+        return Array.from({ length: lastDay }, (_, i) => i + 1);
+    };
+
     const availableDates = getAvailableDates(selectedYear, selectedMonth, businessDayNumbers);
+    const allDaysInMonth = getAllDaysInMonth(selectedYear, selectedMonth);
 
     // Whenever availableDates changes, set selectedDay to the first available day if current selection is invalid.
     useEffect(() => {
@@ -132,19 +149,23 @@ const AvailableDays = ({ businessDays, setSelectedDate, setData }) => {
                     </Select>
                 </div>
                 <div className="mt-4 flex gap-4 flex-wrap">
-                    {availableDates.length > 0 ? (
-                        availableDates.map((day) => (
-                            <Button
-                                key={day}
-                                className="size-12 flex items-center justify-center rounded-full"
-                                variant={selectedDay === day ? "default" : "outline"}
-                                onClick={() => setSelectedDay(day)}
-                            >
-                                <p className="font-medium text-2xl">{day}</p>
-                            </Button>
-                        ))
+                    {allDaysInMonth.length > 0 ? (
+                        allDaysInMonth.map((day) => {
+                            const isAvailable = isDayAvailable(day);
+                            return (
+                                <Button
+                                    key={day}
+                                    className={`size-12 flex items-center justify-center rounded-full ${!isAvailable ? 'opacity-50' : ''}`}
+                                    variant={!isAvailable ? "secondary" : (selectedDay === day ? "default" : "outline")}
+                                    onClick={() => isAvailable && setSelectedDay(day)}
+                                    disabled={!isAvailable}
+                                >
+                                    <p className="font-medium text-2xl">{day}</p>
+                                </Button>
+                            );
+                        })
                     ) : (
-                        <p>No available days</p>
+                        <p>No days in this month</p>
                     )}
                 </div>
             </div>

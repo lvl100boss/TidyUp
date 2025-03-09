@@ -20,7 +20,7 @@
         -moz-osx-font-smoothing: grayscale;
     }
 
-    /* .figtree-semibold {
+    .figtree-semibold {
         font-family: "figtree-semibold", sans-serif;
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
@@ -42,7 +42,7 @@
         font-family: "figtree-light", sans-serif;
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
-    } */
+    }
 }
 
 @layer base {

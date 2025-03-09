@@ -26,7 +26,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::patch('/shop/social-media/{id}', [ShopSocialMediaController::class, 'update'])->name('shop.social-media.update');
     Route::delete('/shop/social-media/{id}', [ShopSocialMediaController::class, 'destroy'])->name('shop.social-media.destroy');
 
-    Route::get('/shop/appointments', [ShopAppointmentsController::class, 'index'])->name('shop.appointments');
 
     Route::get('/shop/catalog', [ShopCatalogController::class, 'index'])->name('shop.catalog');
     Route::post('/shop/catalog', [ShopCatalogController::class, 'store'])->name('shop.catalog.store');

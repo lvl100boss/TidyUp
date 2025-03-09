@@ -34,7 +34,7 @@ export default function Discover({ shops, barberShops, salons }) {
     }, [shops]);
     return (
         <UserLayout>
-            <Head title="Explore" />
+            <Head title="Discover" />
             <div className="space-y-4 min-h-screen">
                 {/* Header */}
                 <div className="flex flex-col">
@@ -66,6 +66,13 @@ export default function Discover({ shops, barberShops, salons }) {
                         {shops.map((shop) => (
                             <ShopCard key={shop.id} shop={shop} isLoading={isLoading} />
                         ))}
+                    </div>
+                </div>
+                <div>
+                    <div className="w-full py-20 mt-20 rounded-md bg-muted/50">
+                        <h1 className="text-center text-xl sm:text-3xl font-light tracking-widest underline underline-offset-8 animate-bounce">
+                            EXPLORE BY CATEGORIES
+                        </h1>
                     </div>
                 </div>
                 <div>

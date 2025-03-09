@@ -25,11 +25,11 @@ import ShopCard from "@/Components/User/ShopCard";
 import { useEffect, useState } from "react";
 import HeroSection from "@/Components/User/Home/HeroSection";
 
-export default function Home({ shops }) {
+export default function Home({ randomShops }) {
     const [isLoading, setIsLoading] = useState(true);
     useEffect(() => {
         const preloadImages = async () => {
-            const imagePromises = shops.map((shop) => {
+            const imagePromises = randomShops.map((shop) => {
                 return new Promise((resolve, reject) => {
                     const img = new Image();
                     img.src = shop.shop_gallery[0].url;
@@ -47,7 +47,7 @@ export default function Home({ shops }) {
         };
 
         preloadImages();
-    }, [shops]);
+    }, [randomShops]);
     const sm = useMediaQuery({ minWidth: 640 });
     const md = useMediaQuery({ minWidth: 768 });
     const lg = useMediaQuery({ minWidth: 1024 });
@@ -115,7 +115,7 @@ export default function Home({ shops }) {
                 </Link>
             </div>
             <div className="mb-5 grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-5">
-                {shops.map((shop) => (
+                {randomShops.map((shop) => (
                     <ShopCard key={shop.id} shop={shop} isLoading={isLoading} />
                 ))}
             </div>

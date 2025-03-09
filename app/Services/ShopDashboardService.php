@@ -14,14 +14,12 @@ class ShopDashboardService
         $user = User::find($userId);
         $shopStaff = ShopStaffs::where('staff_id', $user->id)->first();
         $shop = $shopStaff->shop;
-        $shop = $shop->load(['appointments' => function ($query) {
-            $query->where('status', 'pending')->where('is_successful', 1);
-        }, 'appointments.user.appointmentServices.shopService']);
+        $shop = $shop->load('appointments.user.appointmentServices.shopService');
 
         return [
             'shop' => $shop,
             'user' => $user,
-            'pendingAppointments' => $shop->appointments,
+            'pendingAppointments' => $this->getPendingAppointments($shop->id),
             'upcomingAppointments' => $this->getUpcomingAppointments($shop->id),
             'popularServices' => $this->getPopularServices($shop->id),
             'completedBookingsCount' => $this->getCompletedBookingsCount($shop->id),
@@ -31,13 +29,28 @@ class ShopDashboardService
         ];
     }
 
+    private function getPendingAppointments($shopId)
+    {
+        return Appointments::with('user.appointmentServices.shopService')
+            ->with('userAppointments.staff.staff')
+            ->where('shop_id', $shopId)
+            ->where('status', 'pending')
+            ->where('created_at', '<', now())
+            ->orderBy('date')
+            ->orderBy('time')
+            ->where('is_successful', 1)
+            ->get();
+    }
+
     private function getUpcomingAppointments($shopId)
     {
         return Appointments::with('user.appointmentServices.shopService')
+            ->with('userAppointments.staff.staff')
             ->where('shop_id', $shopId)
             ->where('date', '>', now())
             ->where('status', 'upcoming')
             ->orderBy('date')
+            ->orderBy('time')
             ->get();
     }
 

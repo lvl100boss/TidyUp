@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Shop;
 use App\Models\OperationHours;
+use App\Models\ShopStaffs;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Log;
@@ -13,14 +15,17 @@ class ShopProfileController extends Controller
 {
     public function index()
     {
-        $user_id = auth()->user()->id;
-        $shop = Shop::with([
+        $user = User::find(auth()->id());
+        $shopStaff = ShopStaffs::where('staff_id', $user->id)->first();
+        $shop = $shopStaff->shop;
+        $shop = $shop->load([
             'shopGallery',
             'shopOperationHours',
             'shopServiceCategories.serviceCategories',
             'staffs.staff',
             'socialMedia'
-        ])->where('user_id', $user_id)->first();
+        ]);
+
 
         return Inertia::render('Shops/ShopProfile', [
             'shop' => $shop,

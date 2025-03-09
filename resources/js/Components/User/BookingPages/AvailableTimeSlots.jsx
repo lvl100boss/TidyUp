@@ -64,25 +64,27 @@ export default function AvailableTimeSlots({
         duration_minutes: service.duration_minute
     })) || [];
 
+    // Filter time slots to only show those within business hours
+    const businessHourTimeSlots = isOpen ? timeSlots.filter(time => {
+        return time >= openingTime && time <= closingTime;
+    }) : [];
 
-    const availableTimeSlots = isOpen ? timeSlots.filter(time => {
-        const isWithinHours = time >= openingTime && time <= closingTime;
+    // Check if a specific time slot is available (not booked)
+    const isTimeSlotAvailable = (time) => {
         const staffAppointments = shopStaff[selectedStaff]?.appointments || [];
-
         const bookedRanges = staffAppointments
             .filter(appointment =>
                 new Date(appointment.appointment.date).toLocaleDateString() ===
-                new Date(selectedDate).toLocaleDateString()
+                new Date(selectedDate).toLocaleDateString() &&
+                appointment.appointment.status === "upcoming"
             )
             .map(appointment => {
-                // Calculate total duration for all services in this appointment
                 const totalDuration = appointment.appointment.appointment_services.reduce(
                     (sum, svc) => {
                         const serviceInfo = shopServiceCategories.find(
                             s => s.id === svc.service_id
                         );
                         if (!serviceInfo) return sum;
-                        // Convert hours & minutes to total minutes
                         const serviceMinutes = serviceInfo.duration_hour * 60 + serviceInfo.duration_minute;
                         return sum + serviceMinutes;
                     },
@@ -96,12 +98,10 @@ export default function AvailableTimeSlots({
         const currentMinutes = parseTimeToMinutes(time);
 
         // Check if this time falls within any booked range
-        const isBooked = bookedRanges.some(([startM, endM]) =>
+        return !bookedRanges.some(([startM, endM]) =>
             currentMinutes >= startM && currentMinutes < endM
         );
-
-        return isWithinHours && !isBooked;
-    }) : [];
+    };
 
     const staffAppointmentDates = shopStaff[selectedStaff]?.appointments.map(appointment => {
         return appointment.appointment.date;
@@ -166,28 +166,33 @@ export default function AvailableTimeSlots({
             <div className="my-10">
                 <div className="my-4">
                     <h1 className="font-bold text-2xl ">Select Time</h1>
-                    <p className="text-sm text-muted-foreground">Only Available Time Slot will be shown here</p>
+                    <p className="text-sm text-muted-foreground">Unavailable time slots are shown in gray</p>
                 </div>
                 <div className="">
                     <ToggleGroup
                         type="single"
                         variant="outline"
                         className="block space-y-3"
-
                     >
-                        {availableTimeSlots.map((time, index) => (
-                            <ToggleGroupItem
-                                key={index}
-                                value={time}
-                                aria-label={`Select ${time}`}
-                                className="data-[state=on]:bg-foreground data-[state=on]:text-background block w-full text-left pl-6 h-14 font-bold"
-                                onClick={() => { setSelectedTime(time); }}
-                                disabled={selectedStaff === null}
-                            >
-                                {/* Make the time into 10:00AM or 10:30PM */}
-                                {new Date(`2021-01-01T${time}`).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
-                            </ToggleGroupItem>
-                        ))}
+                        {businessHourTimeSlots.map((time, index) => {
+                            const isAvailable = isTimeSlotAvailable(time);
+                            return (
+                                <ToggleGroupItem
+                                    key={index}
+                                    value={time}
+                                    aria-label={`Select ${time}`}
+                                    className={`block w-full text-left pl-6 h-14 font-bold 
+                                               data-[state=on]:bg-foreground data-[state=on]:text-background
+                                               ${!isAvailable ? 'bg-secondary text-muted-foreground' : ''}`}
+                                    onClick={() => { if (isAvailable) setSelectedTime(time); }}
+                                    disabled={selectedStaff === null || !isAvailable}
+                                >
+                                    {/* Make the time into 10:00AM or 10:30PM */}
+                                    {new Date(`2021-01-01T${time}`).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+                                    {!isAvailable && <span className="ml-3 text-sm">(Unavailable)</span>}
+                                </ToggleGroupItem>
+                            );
+                        })}
                     </ToggleGroup>
                 </div>
             </div>
