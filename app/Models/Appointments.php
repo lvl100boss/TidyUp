@@ -7,7 +7,6 @@ use Illuminate\Database\Eloquent\Model;
 
 class Appointments extends Model
 {
-    //
     use HasFactory;
 
     protected $table = 'appointments';
@@ -20,11 +19,12 @@ class Appointments extends Model
         'total_price',
         'status',
         'note',
-        'reschedule_count',
-        'reschedule_from',
         'is_successful',
         'created_at',
         'updated_at',
+        'decline_reason',
+        'cancel_reason',
+        'resched_reason',
     ];
 
     public function user()
@@ -40,5 +40,18 @@ class Appointments extends Model
     public function appointmentServices()
     {
         return $this->hasMany(AppointmentServices::class, 'appointment_id');
+    }
+
+    public function userAppointments()
+    {
+        return $this->hasMany(UserAppointments::class, 'appointment_id');
+    }
+
+
+
+    // Helper scope for filtering by status
+    public function scopeWithStatus($query, $status)
+    {
+        return $query->where('status', $status);
     }
 }

@@ -29,36 +29,45 @@ import ShopsLayout from "@/Layouts/ShopsLayout";
 import { Head } from "@inertiajs/react";
 import { ScrollArea } from "@/components/ui/scroll-area"
 
-const Dashboard = ({ shop, user, pendingAppointments, upcomingAppointments, popularServices }) => {
-    console.log("popularServices", popularServices);
+const Dashboard = ({
+    shop,
+    user,
+    pendingAppointments,
+    upcomingAppointments,
+    popularServices,
+    completedBookingsCount,
+    completedBookingsChange,
+    totalRevenue,
+    revenueChange
+}) => {
     const stats = [
         {
             title: "Total Revenue",
-            value: "₱45,231.89",
+            value: "₱" + parseFloat(totalRevenue).toFixed(2),
             icon: <Wallet className="h-4 w-4 text-muted-foreground" />,
-            change: "+20.1% from last month",
-            trend: "positive",
+            change: `${(revenueChange ?? 0) >= 0 ? '+' : ''}${(revenueChange ?? 0).toFixed(1)}% from last month`,
+            trend: (revenueChange ?? 0) >= 0 ? "positive" : "negative",
         },
         {
-            title: "Active Customers",
-            value: "2,350",
+            title: "Active Employees",
+            value: "5",
             icon: <Users className="h-4 w-4 text-muted-foreground" />,
-            change: "+180 this week",
+            change: "2 new employees",
             trend: "positive",
         },
         {
-            title: "Commpleted Bookings",
-            value: "1,429",
+            title: "Completed Bookings",
+            value: completedBookingsCount,
             icon: <BookOpenCheck className="h-4 w-4 text-muted-foreground" />,
 
-            change: "+19% from last month",
-            trend: "positive",
+            change: `${(completedBookingsChange ?? 0) >= 0 ? '+' : ''}${(completedBookingsChange ?? 0).toFixed(1)}% from last month`,
+            trend: (completedBookingsChange ?? 0) >= 0 ? "positive" : "negative",
         },
         {
-            title: "Available Tokens",
-            value: "20",
+            title: "Subscription Status",
+            value: "Active",
             icon: <Coins className="h-4 w-4 text-muted-foreground" />,
-            change: "5 used this month",
+            change: "Renewal due in 2 weeks",
             trend: "neutral",
         },
     ];
@@ -150,6 +159,14 @@ const Dashboard = ({ shop, user, pendingAppointments, upcomingAppointments, popu
                                         </div>
                                     </div>
                                     <div className="text-right space-y-1">
+                                        <div className="flex gap-1">
+                                            <p className="text-sm text-muted-foreground">Stylist:</p>
+                                            <p className="text-sm font-medium text-nowrap">
+                                                {apt.user_appointments?.[0]?.staff?.staff?.first_name || "Unassigned"}
+                                                {apt.user_appointments?.[0]?.staff?.staff?.last_name ?
+                                                    ` ${apt.user_appointments[0].staff.staff.last_name}` : ""}
+                                            </p>
+                                        </div>
                                         <Badge
                                             variant={
                                                 apt.status === "confirmed"
@@ -184,7 +201,6 @@ const Dashboard = ({ shop, user, pendingAppointments, upcomingAppointments, popu
             </CardContent>
         </Card>
     );
-
     return (
         <ShopsLayout>
             <Head title="Dashboard" />

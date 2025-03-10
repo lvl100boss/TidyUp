@@ -79,6 +79,7 @@ const AvailableDays = ({ businessDays, setSelectedDate, setData }) => {
                 selected={date}
                 onSelect={setDate}
                 className="rounded-md border shadow"
+                disabled
             />
             <div>
                 <h1 className="text-2xl font-bold mb-3">Available Dates</h1>

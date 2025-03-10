@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import ApplicationLogo from "@/Components/ApplicationLogo";
-import { Notification } from "./Notification";
+import { Notification } from "@/Components/User/Notification";
 import { Link, usePage } from "@inertiajs/react";
 import { Button, buttonVariants } from "@/Components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/Components/ui/avatar";
@@ -18,8 +18,10 @@ import {
     DropdownMenuSubTrigger,
     DropdownMenuTrigger,
 } from "@/Components/ui/dropdown-menu";
-import { Bell, Menu } from "lucide-react";
+
+import { Bell, Menu, Search } from "lucide-react";
 import ThemeButton from "@/Components/ThemeButton";
+import SearchShop from "./Header/SearchShop";
 
 
 const Header = ({ onClick, isDarkTheme, setIsDarkTheme }) => {
@@ -36,10 +38,9 @@ const Header = ({ onClick, isDarkTheme, setIsDarkTheme }) => {
         return () => window.removeEventListener("scroll", handleScroll);
     }, []);
 
-
     return (
         <header
-            className={`flex justify-between items-center mb-3 fixed top-0 left-0 right-0 z-50 px-5 py-3 bg-background/90 backdrop-blur border-dashed ${isScrolled ? "border-b" : ""
+            className={`flex justify-between items-center mb-3 fixed top-0 left-0 right-0 z-50 px-5 py-3 bg-background/80 backdrop-blur-xl border-dashed ${isScrolled ? "border-b" : ""
                 }`}
         >
             <div className="">
@@ -58,6 +59,7 @@ const Header = ({ onClick, isDarkTheme, setIsDarkTheme }) => {
                         )}
 
                     </div>
+                    <SearchShop />
                     <DropdownMenu>
                         <DropdownMenuTrigger>
                             <Button
@@ -130,6 +132,12 @@ const Header = ({ onClick, isDarkTheme, setIsDarkTheme }) => {
                                     <Link href={route("shop.dashboard")}>
                                         <DropdownMenuItem>
                                             Manage Shop
+                                        </DropdownMenuItem>
+                                    </Link>
+                                ) : role.role_id === 4 ? (
+                                    <Link href={route("shop.appointments")}>
+                                        <DropdownMenuItem>
+                                            Manage Appointments
                                         </DropdownMenuItem>
                                     </Link>
                                 ) : (

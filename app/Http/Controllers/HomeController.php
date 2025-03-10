@@ -12,10 +12,10 @@ class HomeController extends Controller
     //
     public function index()
     {
-        $shops = Shop::with(['shopGallery', 'shopCategories.categories'])->inRandomOrder()->limit(10)->get();
+        $randomShops = Shop::with(['shopGallery', 'shopCategories.categories'])->inRandomOrder()->limit(10)->get();
 
         return Inertia::render('Users/Home', [
-            'shops' => $shops,
+            'randomShops' => $randomShops,
             'canLogin' => Route::has('login'),
             'canRegister' => Route::has('register'),
         ]);

@@ -7,7 +7,9 @@ import ShopContactInfoCard from "@/Components/Shop/ShopProfile/ShopContactInfoCa
 import StaffSectionCard from "@/Components/Shop/ShopProfile/StaffSectionCard";
 import ServiceSectionCard from "@/Components/Shop/ShopProfile/ServiceSectionCard";
 import ShopProfileHeader from "@/Components/Shop/ShopProfile/ShopProfileHeader";
-import { Head } from "@inertiajs/react";
+import { Head, usePage } from "@inertiajs/react";
+import { useEffect } from "react";
+import { toast } from "sonner";
 
 const ShopProfile = ({ shop }) => {
     // Sample shop data structure
@@ -18,6 +20,23 @@ const ShopProfile = ({ shop }) => {
             website: "www.glamoursalon.com",
         },
     };
+
+    const { flash } = usePage().props;
+    useEffect(() => {
+        if (flash.message) {
+            if (flash.success) {
+                toast("Heads up!", {
+                    description: flash.message,
+                    duration: 5000,
+                });
+            } else {
+                toast.error("Uh oh! Something went wrong.", {
+                    description: flash.message,
+                    duration: 5000,
+                });
+            }
+        }
+    }, [flash.message]);
     return (
         <ShopsLayout>
             <Head title="Shop Profile" />

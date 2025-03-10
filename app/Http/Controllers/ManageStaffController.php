@@ -17,10 +17,13 @@ class ManageStaffController extends Controller
 {
     public function index()
     {
-        $user_id = Auth::user()->id;
-        $shop = Shop::with('staffs.staff')->where('user_id', $user_id)->first();
+        // $user=Auth::user();
+        // $shop = Shop::with('staffs.staff')->where('user_id', $user->)->first();
+        $user = User::find(auth()->id());
+        $currentStaff = ShopStaffs::where('staff_id', $user->id)->first();
+        $shop = $currentStaff->shop->load('staffs.staff');
+
         $staffs = $shop->staffs;
-        $currentStaff = $staffs->where('staff_id', $user_id)->first();
         $isOwner = $currentStaff->position === 'owner';
 
         return Inertia::render('Shops/ManageStaff', [
@@ -88,6 +91,8 @@ class ManageStaffController extends Controller
                 'gender' => $validated['gender'],
                 'password' => Hash::make($validated['password']),
                 'contact_number' => $validated['contact_number'] ?? null,
+                'is_service_provider' => true,
+                'email_verified_at' => now(),
             ]);
 
             // Save the user to the database before handling the profile photo

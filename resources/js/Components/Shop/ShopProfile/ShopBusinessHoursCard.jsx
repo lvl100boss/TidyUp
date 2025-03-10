@@ -26,7 +26,6 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
-import { toast } from "sonner";
 import { router } from "@inertiajs/react";
 
 const ShopBusinessHoursCard = ({ shop }) => {
@@ -114,12 +113,10 @@ const ShopBusinessHoursCard = ({ shop }) => {
             onSuccess: () => {
                 // Only update the displayed hours after successful save
                 setHours([...editedHours]);
-                toast.success("Business hours updated successfully");
                 setOpen(false);
                 setIsSubmitting(false);
             },
             onError: (errors) => {
-                toast.error("Failed to update business hours");
                 console.error(errors);
                 setIsSubmitting(false);
             }

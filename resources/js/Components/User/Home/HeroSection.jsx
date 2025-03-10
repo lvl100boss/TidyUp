@@ -15,7 +15,7 @@ export default function HeroSection() {
 
     return (
         // Hero Section with animated radial gradient
-        <div className={`relative p-8 rounded-lg mb-8 shadow-sm overflow-hidden ${mounted ? 'animate-radial-gradient' : 'bg-gradient-to-r from-blue-50 to-indigo-50'}`}
+        <div className={` relative p-8 rounded-lg mb-8 shadow-md border overflow-hidden ${mounted ? 'animate-radial-gradient' : 'bg-gradient-to-r from-blue-50 to-indigo-50'}`}
             style={{
                 backgroundSize: '300% 300%',
                 backgroundImage: 'radial-gradient(circle at center,  #ede9fe 0%, #e0f2fe 20%,  #fafafa 60%, #ede9fe 75%, #e0f2fe 100%)', // blue-50, indigo-50, neutral-50, purple-50
@@ -51,7 +51,7 @@ export default function HeroSection() {
                         initial={{ opacity: 0, y: -20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.8 }}
-                        className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-800 mb-4"
+                        className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-800 mb-4 figtree-light"
                     >
                         Transformation in a <br />
                         <span>Click of a Button</span>
@@ -61,7 +61,7 @@ export default function HeroSection() {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.3, duration: 0.8 }}
-                        className="text-lg text-gray-600 mb-6"
+                        className=" text-gray-600 mb-6 font-light"
                     >
                         A comprehensive booking platform for beauty-related
                         services, offering users ease and comfort.
@@ -98,7 +98,7 @@ export default function HeroSection() {
                             { icon: Star, text: "Quality Services" }
                         ].map((item, i) => (
                             <div key={i} className="flex items-center space-x-2">
-                                <div className="bg-white p-2 rounded-full">
+                                <div className="bg-white p-2 rounded-full border dark:border-neutral-200">
                                     <item.icon className="h-4 w-4 stroke-black" />
                                 </div>
                                 <span className="text-sm text-black font-medium">{item.text}</span>

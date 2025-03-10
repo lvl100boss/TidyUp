@@ -27,30 +27,23 @@ class BookingController extends Controller
             ->where('shop_id', $shop->id)
             ->where('is_active', 1)
             ->get();
-        $business_days = $shop->shopOperationHours->where('is_open', 1)->pluck('day')->toArray();
-        $shopServiceCategories = ShopServiceCategories::with('serviceCategories')->where('shop_id', $shop->id)->get();
 
         $data = session()->get('form_data', []);
         return Inertia::render('Users/BookingPages/BookingStepOne', [
             'shop' => $shop,
-            'businessDays' => $business_days,
             'shopStaff' => $shopStaff,
-            'shopServiceCategories' => $shopServiceCategories,
             'data' => $data,
         ]);
     }
 
     public function stepOneStore(Request $request, Shop $shop)
     {
-        // dd($request->all());
         $validatedData = $request->validate([
-            'shop_id' => 'required|exists:shops,id',
-            'staff_id' => 'required|exists:shop_staffs,id',
-            'staff_index' => 'required',
-            'date' => 'required|date',
-            'time' => 'required',
+            'service_id' => 'required|array',
+            'service_id.*' => 'exists:shop_service_categories,id', // Ensure shop_services table exists
+            'total_price' => 'required',
         ]);
-        session()->put('form_data', $validatedData);
+        session()->put('form_data', array_merge(session()->get('form_data', []), $validatedData));
         return redirect()->route('booking.step.two', $shop);
     }
 
@@ -62,23 +55,27 @@ class BookingController extends Controller
             ->where('shop_id', $shop->id)
             ->where('is_active', 1)
             ->get();
-
+        $business_days = $shop->shopOperationHours->where('is_open', 1)->pluck('day')->toArray();
+        $shopServiceCategories = ShopServiceCategories::with('serviceCategories')->where('shop_id', $shop->id)->get();
         return Inertia::render('Users/BookingPages/BookingStepTwo', [
             'shop' => $shop,
+            'businessDays' => $business_days,
             'shopStaff' => $shopStaff,
+            'shopServiceCategories' => $shopServiceCategories,
             'data' => $data,
         ]);
     }
 
     public function stepTwoStore(Request $request, Shop $shop)
     {
-
         $validatedData = $request->validate([
-            'service_id' => 'required|array',
-            'service_id.*' => 'exists:shop_service_categories,id', // Ensure shop_services table exists
-            'total_price' => 'required',
+            'shop_id' => 'required|exists:shops,id',
+            'staff_id' => 'required|exists:shop_staffs,id',
+            'staff_index' => 'required',
+            'date' => 'required|date',
+            'time' => 'required',
         ]);
-        session()->put('form_data', array_merge(session()->get('form_data'), $validatedData));
+        session()->put('form_data', array_merge(session()->get('form_data', []), $validatedData));
         return redirect()->route('booking.step.three', $shop);
     }
 
@@ -90,7 +87,6 @@ class BookingController extends Controller
             ->where('shop_id', $shop->id)
             ->where('is_active', 1)
             ->get();
-        // dd($data);
         return Inertia::render('Users/BookingPages/BookingStepThree', [
             'shop' => $shop,
             'shopStaff' => $shopStaff,
@@ -100,13 +96,26 @@ class BookingController extends Controller
 
     public function stepThreeStore(Request $request, Shop $shop)
     {
-
         $validatedData = $request->validate([
             'note' => 'nullable|string',
         ]);
-        try {
-            $formData = session()->get('form_data');
 
+        try {
+            // Get form data and verify it exists
+            $formData = session()->get('form_data');
+            if (!$formData) {
+                throw new \Exception('Session data is missing. Please start the booking process again.');
+            }
+
+            // Check for required fields
+            $requiredFields = ['shop_id', 'staff_id', 'date', 'time', 'service_id', 'total_price'];
+            foreach ($requiredFields as $field) {
+                if (!isset($formData[$field])) {
+                    throw new \Exception("Required field '$field' is missing from session data.");
+                }
+            }
+
+            // Remove debug statement
             $appointment = Appointments::create([
                 'user_id' => auth()->check() ? auth()->user()->id : null,
                 'shop_id' => $formData['shop_id'],
@@ -117,7 +126,6 @@ class BookingController extends Controller
                 'status' => 'pending',
                 'is_successful' => true,
             ]);
-
             UserAppointments::create([
                 'user_id' => auth()->check() ? auth()->user()->id : null,
                 'appointment_id' => $appointment->id,
@@ -128,14 +136,18 @@ class BookingController extends Controller
                 AppointmentServices::create([
                     'appointment_id' => $appointment->id,
                     'service_id' => $serviceId,
-                    'user_id' => auth()->user()->id,
+                    'user_id' => auth()->check() ? auth()->user()->id : null, // Fixed potential issue with auth check
                 ]);
             }
 
             session()->forget('form_data');
-            return redirect()->route('appointments')->with('message', value: 'Appointment has been booked successfully')->with('success', true);
+            return redirect()->route('appointments')->with('message', 'Appointment has been booked successfully')->with('success', true);
         } catch (\Exception $e) {
-            return redirect()->back()->with('message', 'Something went wrong')->with('success', false);
+            // Log the detailed error
+            \Log::error('Booking error: ' . $e->getMessage());
+
+            // Return error with more details
+            return redirect()->back()->with('message', 'Error: ' . $e->getMessage())->with('success', false);
         }
     }
 }

@@ -25,7 +25,9 @@ Route::middleware(EnsureVerifiedIfAuthenticated::class)->group(function () {
     Route::get('/FAQs', function () {
         return Inertia::render('Users/Faqs');
     })->name('FAQs');
-
+    Route::get('/aboutus', function () {
+        return Inertia::render('AboutUs');
+    })->name('AboutUs');
     Route::get('{shop_id}/shop', [ShopController::class, 'show'])->name('shop.show');
 });
 
@@ -54,4 +56,5 @@ Route::middleware(['auth', 'verified'])->group(function () {
 require __DIR__ . '/auth.php';
 require __DIR__ . '/booking.php';
 require __DIR__ . '/shop.php';
+require __DIR__ . '/shopappointments.php';
 require __DIR__ . '/admin.php';

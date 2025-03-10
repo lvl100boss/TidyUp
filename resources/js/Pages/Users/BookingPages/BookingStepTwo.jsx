@@ -4,45 +4,34 @@ import { Button } from "@/Components/ui/button";
 import { ChevronLeft, LogOut } from "lucide-react";
 import AppointmentSummaryCard from "@/Components/User/BookingPages/AppointmentSummaryCard";
 import StepsIndicator from "@/Components/User/BookingPages/StepsIndicator";
+import AvailableDays from "@/Components/User/BookingPages/AvailableDays";
 import { useState } from "react";
+import AvailableTimeSlots from "@/Components/User/BookingPages/AvailableTimeSlots";
 import { useForm } from "@inertiajs/react";
-import BookingServiceTabs from "@/Components/Shop/ShopPage/BookingServiceTabs";
 
-export default function BookingStepTwo({ shop, shopStaff, data }) {
+export default function BookingStepTwo({ shop, businessDays, shopStaff, shopServiceCategories, data }) {
+    const [selectedDate, setSelectedDate] = useState(null);
+    const [selectedStaff, setSelectedStaff] = useState(null);
+    const [selectedTime, setSelectedTime] = useState(null);
+
     const { data: formData, setData, post, processing, errors } = useForm({
         shop_id: shop.id,
-        staff_id: data.staff_id,
-        staff_index: data.staff_index,
-        date: data.date,
-        time: data.time,
-        service_id: [],
-        total_price: 0,
+        staff_id: "",
+        staff_index: "",
+        date: "",
+        time: "",
     });
 
     const handleSubmit = (e) => {
         e.preventDefault();
         post(`/${shop.id}/booking/2`);
-    };
+    }
 
-    const categories = [
-        ...new Set(
-            shop?.shop_service_categories?.map(
-                (service) => service.service_categories?.name
-            ) || []
-        ),
-    ];
+    const selectedServices = data && data.service_id ? data.service_id : [];
 
-    const groupedServices = categories.map((category) => ({
-        category,
-        services:
-            shop?.shop_service_categories?.filter(
-                (service) => service.service_categories?.name === category
-            ) || [],
-    }));
-    console.log(formData);
     return (
         <>
-            <Head title="Appointment Processing" />
+            <Head title="Choose Date & Time" />
             <UserLayout>
                 <div className="min-h-screen">
                     <header className="flex justify-center relative ">
@@ -65,32 +54,45 @@ export default function BookingStepTwo({ shop, shopStaff, data }) {
                     </div>
                     <section className="mt-4 flex gap-5">
                         <div className="flex-1">
-                            <div className="space-y-3">
-                                <h1 className="text-2xl font-bold">Choose Service</h1>
-                                <BookingServiceTabs
-                                    categories={categories}
-                                    groupedServices={groupedServices}
-                                    setData={setData}
-                                />
-                            </div>
+                            <AvailableDays
+                                shop={shop}
+                                businessDays={businessDays}
+                                setSelectedDate={setSelectedDate}
+                                setData={setData}
+                            />
+                            <AvailableTimeSlots
+                                shop={shop}
+                                shopStaff={shopStaff}
+                                selectedDate={selectedDate}
+                                shopServiceCategories={shopServiceCategories}
+                                setSelectedStaff={setSelectedStaff}
+                                selectedStaff={selectedStaff}
+                                setSelectedTime={setSelectedTime}
+                                selectedTime={selectedTime}
+                                setData={setData}
+                            />
                         </div>
                         <div>
-                            <div className=" sticky top-20 space-y-5">
+                            <div className="sticky top-20 space-y-5">
                                 <AppointmentSummaryCard
                                     shop={shop}
                                     shopStaff={shopStaff}
-                                    selectedDate={data.date}
-                                    selectedStaff={data.staff_index}
-                                    selectedTime={data.time}
+                                    selectedDate={selectedDate}
+                                    selectedStaff={selectedStaff}
+                                    selectedTime={selectedTime}
+                                    selectedServices={selectedServices}
                                 />
                                 <form onSubmit={handleSubmit}>
-                                    <input type="hidden" name="shop_id" value={formData.service_id} />
-                                    <input type="hidden" name="staff_id" value={formData.total_price} />
+                                    <input type="hidden" name="shop_id" value={formData.shop_id} />
+                                    <input type="hidden" name="staff_id" value={formData.staff_id} />
+                                    <input type="hidden" name="staff_index" value={formData.staff_index} />
+                                    <input type="hidden" name="date" value={formData.date} />
+                                    <input type="hidden" name="time" value={formData.time} />
                                     <Button
                                         className="w-full"
                                         type="submit"
                                         loading={processing}
-                                        disabled={!formData.service_id}
+                                        disabled={!selectedTime}
                                     >
                                         Next
                                     </Button>

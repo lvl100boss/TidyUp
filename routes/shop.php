@@ -6,6 +6,7 @@ use App\Http\Controllers\ShopProfileController;
 use App\Http\Controllers\ShopController;
 use App\Http\Middleware\EnsureShopOwner;
 use App\Http\Controllers\ManageStaffController;
+use App\Http\Controllers\ShopAppointmentsController;
 use App\Http\Controllers\ShopGalleryController;
 use App\Http\Controllers\ShopCatalogController;
 use App\Http\Controllers\ShopSocialMediaController;
@@ -25,9 +26,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::patch('/shop/social-media/{id}', [ShopSocialMediaController::class, 'update'])->name('shop.social-media.update');
     Route::delete('/shop/social-media/{id}', [ShopSocialMediaController::class, 'destroy'])->name('shop.social-media.destroy');
 
-    Route::get('/shop/appointments', function () {
-        return Inertia::render('Shops/Appointments');
-    })->name('shop.appointments');
 
     Route::get('/shop/catalog', [ShopCatalogController::class, 'index'])->name('shop.catalog');
     Route::post('/shop/catalog', [ShopCatalogController::class, 'store'])->name('shop.catalog.store');
