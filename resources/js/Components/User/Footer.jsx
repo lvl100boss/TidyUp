@@ -1,6 +1,7 @@
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Link } from "@inertiajs/react";
 import ApplicationLogo from "@/components/ApplicationLogo";
 export default function Footer() {
     return (
@@ -43,44 +44,44 @@ export default function Footer() {
                             </h3>
                             <ul className={cn("space-y-2 mt-2")}>
                                 <li>
-                                    <a
+                                    <Link
                                         href="#"
                                         className={cn(
                                             "text-sm text-muted-foreground hover:text-foreground"
                                         )}
                                     >
                                         Find Shops
-                                    </a>
+                                    </Link>
                                 </li>
                                 <li>
-                                    <a
+                                    <Link
                                         href="#"
                                         className={cn(
                                             "text-sm text-muted-foreground hover:text-foreground"
                                         )}
                                     >
                                         Book Appointments
-                                    </a>
+                                    </Link>
                                 </li>
                                 <li>
-                                    <a
+                                    <Link
                                         href="#"
                                         className={cn(
                                             "text-sm text-muted-foreground hover:text-foreground"
                                         )}
                                     >
                                         Browse Services
-                                    </a>
+                                    </Link>
                                 </li>
                                 <li>
-                                    <a
+                                    <Link
                                         href="#"
                                         className={cn(
                                             "text-sm text-muted-foreground hover:text-foreground"
                                         )}
                                     >
                                         User Reviews
-                                    </a>
+                                    </Link>
                                 </li>
                             </ul>
                         </div>
@@ -92,44 +93,34 @@ export default function Footer() {
                             </h3>
                             <ul className={cn("space-y-2 mt-2")}>
                                 <li>
-                                    <a
-                                        href="#"
+                                    <Link
+                                        href={'/shop/setup'}
                                         className={cn(
                                             "text-sm text-muted-foreground hover:text-foreground"
                                         )}
                                     >
                                         List Your Shop
-                                    </a>
+                                    </Link>
                                 </li>
                                 <li>
-                                    <a
-                                        href="#"
+                                    <Link
+                                        href={'/shop/appointments'}
                                         className={cn(
                                             "text-sm text-muted-foreground hover:text-foreground"
                                         )}
                                     >
                                         Manage Bookings
-                                    </a>
+                                    </Link>
                                 </li>
                                 <li>
-                                    <a
-                                        href="#"
-                                        className={cn(
-                                            "text-sm text-muted-foreground hover:text-foreground"
-                                        )}
-                                    >
-                                        Advertise
-                                    </a>
-                                </li>
-                                <li>
-                                    <a
-                                        href="#"
+                                    <Link
+                                        href={'/shop/dashboard'}
                                         className={cn(
                                             "text-sm text-muted-foreground hover:text-foreground"
                                         )}
                                     >
                                         Shop Dashboard
-                                    </a>
+                                    </Link>
                                 </li>
                             </ul>
                         </div>
@@ -141,44 +132,34 @@ export default function Footer() {
                             </h3>
                             <ul className={cn("space-y-2 mt-2")}>
                                 <li>
-                                    <a
-                                        href="#"
+                                    <Link
+                                        href={'/about-us'}
                                         className={cn(
                                             "text-sm text-muted-foreground hover:text-foreground"
                                         )}
                                     >
                                         About Us
-                                    </a>
+                                    </Link>
                                 </li>
                                 <li>
-                                    <a
-                                        href="#"
-                                        className={cn(
-                                            "text-sm text-muted-foreground hover:text-foreground"
-                                        )}
-                                    >
-                                        Careers
-                                    </a>
-                                </li>
-                                <li>
-                                    <a
+                                    <Link
                                         href="#"
                                         className={cn(
                                             "text-sm text-muted-foreground hover:text-foreground"
                                         )}
                                     >
                                         Contact Us
-                                    </a>
+                                    </Link>
                                 </li>
                                 <li>
-                                    <a
+                                    <Link
                                         href="#"
                                         className={cn(
                                             "text-sm text-muted-foreground hover:text-foreground"
                                         )}
                                     >
                                         Privacy Policy
-                                    </a>
+                                    </Link>
                                 </li>
                             </ul>
                         </div>

@@ -1,5 +1,3 @@
-import { AspectRatio } from "@/Components/ui/aspect-ratio";
-
 const AppointmentCard = ({ appointment }) => {
     console.log(appointment);
     const shopImg = appointment.shop.shop_gallery[0].url;
@@ -22,7 +20,7 @@ const AppointmentCard = ({ appointment }) => {
     );
 
     return (
-        <div className="card border p-4 rounded-lg flex flex-col md:flex-row gap-4 md:gap-8 md:items-center md:justify-between">
+        <div className="card border p-4 rounded-lg flex flex-col md:flex-row gap-4 md:gap-8 md:items-center md:justify-between hover:border-muted-foreground cursor-pointer">
             <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
                 <div className="w-full md:w-[12rem]">
                     <img

@@ -2,23 +2,22 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Appointments;
+use App\Services\ShopDashboardService;
 use Illuminate\Http\Request;
-use App\Models\Shop;
-use App\Models\User;
 use Inertia\Inertia;
 
 class ShopDashboardController extends Controller
 {
-    //
+    protected $shopDashboardService;
+
+    public function __construct(ShopDashboardService $shopDashboardService)
+    {
+        $this->shopDashboardService = $shopDashboardService;
+    }
+
     public function index()
     {
-        $user = User::find(auth()->user()->id);
-
-        $shop = Shop::where('user_id', $user->id)->first();
-        return Inertia::render('Shops/Dashboard', [
-            'shop' => $shop,
-            'user' => $user
-        ]);
+        $data = $this->shopDashboardService->getShopData(auth()->id());
+        return Inertia::render('Shops/Dashboard', $data);
     }
 }

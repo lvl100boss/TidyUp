@@ -19,10 +19,6 @@ function BusinessHoursContent(props) {
 
     return (
         <div className="">
-            <div className="grid grid-cols-2">
-                <DialogDescription>AVAILABLE DAYS</DialogDescription>
-                <DialogDescription>AVAILABLE TIMES</DialogDescription>
-            </div>
             <div className="mt-3 space-y-3">
                 {props.shop?.shop_operation_hours.map((day) => (
                     <div
@@ -45,13 +41,13 @@ function BusinessHoursContent(props) {
                         <div
                             className={
                                 !day.is_open &&
-                                "text-muted-foreground uppercase"
+                                "text-red-500 uppercase font-semibold"
                             }
                         >
                             {day.is_open
                                 ? `${formatTime(day.open_time)} - ${formatTime(
-                                      day.close_time
-                                  )}`
+                                    day.close_time
+                                )}`
                                 : "Closed"}
                         </div>
                     </div>

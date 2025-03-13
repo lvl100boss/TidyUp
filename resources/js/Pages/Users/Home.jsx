@@ -8,6 +8,9 @@ import {
     Handshake,
     Store,
     CalendarFold,
+    Calendar,
+    Clock,
+    Star,
 } from "lucide-react";
 import { AspectRatio } from "@/Components/ui/aspect-ratio";
 import { useMediaQuery } from "react-responsive";
@@ -20,12 +23,13 @@ import {
 } from "@/Components/ui/card";
 import ShopCard from "@/Components/User/ShopCard";
 import { useEffect, useState } from "react";
+import HeroSection from "@/Components/User/Home/HeroSection";
 
-export default function Home({ shops }) {
+export default function Home({ randomShops }) {
     const [isLoading, setIsLoading] = useState(true);
     useEffect(() => {
         const preloadImages = async () => {
-            const imagePromises = shops.map((shop) => {
+            const imagePromises = randomShops.map((shop) => {
                 return new Promise((resolve, reject) => {
                     const img = new Image();
                     img.src = shop.shop_gallery[0].url;
@@ -43,8 +47,7 @@ export default function Home({ shops }) {
         };
 
         preloadImages();
-    }, [shops]);
-    console.log(shops);
+    }, [randomShops]);
     const sm = useMediaQuery({ minWidth: 640 });
     const md = useMediaQuery({ minWidth: 768 });
     const lg = useMediaQuery({ minWidth: 1024 });
@@ -54,22 +57,16 @@ export default function Home({ shops }) {
     let ratio;
     if (xxl) {
         ratio = 16 / 4.5;
-        console.log("xxl");
     } else if (xl) {
         ratio = 16 / 6.3;
-        console.log("xl");
     } else if (lg) {
         ratio = 16 / 7.3;
-        console.log("lg");
     } else if (md) {
         ratio = 16 / 9;
-        console.log("md");
     } else if (sm) {
         ratio = 16 / 8;
-        console.log("sm");
     } else {
         ratio = 16 / 11;
-        console.log("default");
     }
 
     // Define the card data
@@ -102,60 +99,11 @@ export default function Home({ shops }) {
     return (
         <UserLayout>
             <Head title="Home" />
-            <div className="relative flex items-center justify-center text-white dark:text-black overflow-hidden sm:rounded-lg mb-5 -mx-5 sm:mx-0 ">
-                <AspectRatio ratio={ratio}>
-                    <video
-                        className="invert w-full h-full object-cover "
-                        src="/assets/videos/bg-gradient.mp4"
-                        autoPlay
-                        muted
-                        loop
-                    ></video>
-                </AspectRatio>
-                <div className="flex items-center justify-center min-h-[90%]  px-6 absolute">
-                    <div className="text-center max-w-2xl">
-                        <motion.h1
-                            initial={{ opacity: 0, y: -20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.8 }}
-                            className="text-2xl md:text-6xl font-extrabold text-foreground dark:text-background"
-                        >
-                            Transformation in a <br />
-                            <span className="text-green-200 dark:text-green-300">
-                                Click of a Button
-                            </span>
-                        </motion.h1>
 
-                        <motion.p
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.3, duration: 0.8 }}
-                            className="text-sm md:text-xl mt-4 text-foreground dark:text-background"
-                        >
-                            A comprehensive booking platform for beauty-related
-                            services, offering users ease and comfort.
-                        </motion.p>
+            <HeroSection />
 
-                        <motion.div
-                            initial={{ opacity: 0, scale: 0.8 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            transition={{ delay: 0.6, duration: 0.5 }}
-                            className="mt-6"
-                        >
-                            <Link
-                                href="/explore"
-                                className={`${buttonVariants({
-                                    variant: "outline",
-                                })} text-foreground px-6 py-3 text-lg`}
-                            >
-                                Get Started
-                            </Link>
-                        </motion.div>
-                    </div>
-                </div>
-            </div>
             <div className="flex items-end justify-between mb-5">
-                <h4 className="text-lg figtree-medium p-2 border-b border-foreground">
+                <h4 className="text-lg font-medium p-2 border-b border-foreground">
                     Customer's Choice
                 </h4>
                 <Link
@@ -167,19 +115,19 @@ export default function Home({ shops }) {
                 </Link>
             </div>
             <div className="mb-5 grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-5">
-                {shops.map((shop) => (
+                {randomShops.map((shop) => (
                     <ShopCard key={shop.id} shop={shop} isLoading={isLoading} />
                 ))}
             </div>
             <div className="flex items-center justify-between mb-5">
-                <h4 className="text-lg figtree-medium p-2 border-b border-foreground">
+                <h4 className="text-lg font-medium p-2 border-b border-foreground">
                     How It Works
                 </h4>
             </div>
             <div className="mb-10">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                     {cardData.map((card, index) => (
-                        <Card key={index}>
+                        <Card key={index} className="hover:shadow-md transition-all ease-in-out">
                             <CardHeader>
                                 <CardTitle className="text-xl font-semibold inline-flex gap-2 items-center">
                                     <card.icon size={20} />

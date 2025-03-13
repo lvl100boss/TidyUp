@@ -1,225 +1,95 @@
 import UserLayout from "@/Layouts/UserLayout";
 import React, { useState, useEffect } from "react";
 import { Head, Link } from "@inertiajs/react";
-import {
-    Card,
-    CardContent,
-    CardFooter,
-    CardHeader,
-    CardTitle,
-} from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select";
-import { Button, buttonVariants } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { StarIcon, MapPinIcon, PhoneIcon } from "lucide-react";
+import { LoopingShopCards } from "@/Components/User/DiscoverPage/LoopingShopCards";
+import ShopCarousel from "@/Components/User/ShopCarousel";
+import ShopCarousel2 from "@/Components/User/ShopCarousel2";
 
-//to make this work execute npm install react-masonry-css
-import Masonry from "react-masonry-css";
+import { ArrowUpRight } from "lucide-react";
+import ShopCard from "@/Components/User/ShopCard";
 
-// Add this CSS in your stylesheet or add it inline in the component
-const masonryStyles = {
-    display: "flex",
-    marginLeft: "-30px" /* gutter size offset */,
-    width: "auto",
-};
 
-const masonryColumnStyles = {
-    paddingLeft: "30px" /* gutter size */,
-    backgroundClip: "padding-box",
-};
-
-export default function Discover({ shopss, categoriess }) {
-    console.log(shopss);
-    const [searchQuery, setSearchQuery] = useState("");
-    const [selectedCategory, setSelectedCategory] = useState("all"); // Changed from empty string
-    const [sortBy, setSortBy] = useState("rating");
-    const [filteredShops, setFilteredShops] = useState([]);
-
-    const shops = React.useMemo(
-        () =>
-            shopss.map((shop) => ({
-                id: shop.id,
-                image: shop.shop_gallery[0].url,
-                name: shop.shop_name,
-                rating: 4.8, // You might want to replace this with actual rating from data
-                reviews: 256, // You might want to replace this with actual reviews count
-                category: "Salon", // You might want to get this from shop data
-                location: shop.detailed_address,
-                phone: shop.contact_number,
-                description: shop.bio,
-                priceRange: "₱₱", // You might want to get this from shop data
-            })),
-        [shopss]
-    );
-
+export default function Discover({ shops, barberShops, salons }) {
+    const [isLoading, setIsLoading] = useState(true);
     useEffect(() => {
-        let result = [...shops];
+        const preloadImages = async () => {
+            const imagePromises = shops.map((shop) => {
+                return new Promise((resolve, reject) => {
+                    const img = new Image();
+                    img.src = shop.shop_gallery[0].url;
+                    img.onload = resolve;
+                    img.onerror = resolve; // Resolve even on error to prevent blocking
+                });
+            });
 
-        // Apply search filter
-        if (searchQuery) {
-            result = result.filter(
-                (shop) =>
-                    shop.name
-                        .toLowerCase()
-                        .includes(searchQuery.toLowerCase()) ||
-                    shop.description
-                        .toLowerCase()
-                        .includes(searchQuery.toLowerCase())
-            );
-        }
+            await Promise.all(imagePromises);
 
-        // Apply category filter
-        if (selectedCategory && selectedCategory !== "all") {
-            result = result.filter(
-                (shop) =>
-                    shop.category.toLowerCase() ===
-                    selectedCategory.toLowerCase()
-            );
-        }
+            // Add a minimum loading time of 1 second
+            setTimeout(() => {
+                setIsLoading(false);
+            }, 1000);
+        };
 
-        // Apply sorting
-        result.sort((a, b) => {
-            switch (sortBy) {
-                case "rating":
-                    return b.rating - a.rating;
-                case "reviews":
-                    return b.reviews - a.reviews;
-                case "name":
-                    return a.name.localeCompare(b.name);
-                default:
-                    return 0;
-            }
-        });
-
-        setFilteredShops(result);
-    }, [searchQuery, selectedCategory, sortBy, shops]);
-
+        preloadImages();
+    }, [shops]);
     return (
         <UserLayout>
-            <Head title="Explore" />
-            <div className=" space-y-6">
+            <Head title="Discover" />
+            <div className="space-y-4 min-h-screen">
                 {/* Header */}
-                <div className="flex flex-col gap-4">
-                    <h1 className="text-3xl font-bold">Discover Services</h1>
-                    <p className="text-muted-foreground">
+                <div className="flex flex-col">
+                    <h1 className="text-2xl font-bold">Discover Services</h1>
+                    <p className="text-muted-foreground text-xs">
                         Find and book the best services in your area
                     </p>
                 </div>
-
-                {/* Filters */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <Input
-                        placeholder="Search shops..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                    />
-                    <Select
-                        value={selectedCategory}
-                        onValueChange={setSelectedCategory}
-                    >
-                        <SelectTrigger>
-                            <SelectValue placeholder="Category" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="all">All Categories</SelectItem>
-                            {categoriess.map((category) => (
-                                <SelectItem
-                                    key={category.id}
-                                    value={category.id}
-                                >
-                                    {category.name}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                    <Select value={sortBy} onValueChange={setSortBy}>
-                        <SelectTrigger>
-                            <SelectValue placeholder="Sort by" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="rating">Rating</SelectItem>
-                            <SelectItem value="reviews">
-                                Most Reviews
-                            </SelectItem>
-                            <SelectItem value="name">Name</SelectItem>
-                        </SelectContent>
-                    </Select>
+                <div>
+                    <LoopingShopCards shops={shops} />
                 </div>
-
-                {/* Shop Grid */}
-                <Masonry
-                    breakpointCols={{
-                        default: 3,
-                        1024: 2,
-                        640: 1,
-                    }}
-                    className="flex -ml-8 w-auto"
-                    columnClassName="pl-8"
-                    style={masonryStyles}
-                >
-                    {filteredShops.map((shop) => (
-                        <div key={shop.id} className="mb-8">
-                            <Card className="overflow-hidden">
-                                <div className="aspect-video relative overflow-hidden">
-                                    <img
-                                        src={`/${shop.image}`}
-                                        alt={shop.name}
-                                        className="object-cover w-full h-full transition-transform hover:scale-105"
-                                    />
-                                    <Badge className="absolute top-4 right-4">
-                                        {shop.category}
-                                    </Badge>
-                                </div>
-                                <CardHeader>
-                                    <CardTitle className="flex justify-between items-start">
-                                        <span>{shop.name}</span>
-                                        <Badge variant="secondary">
-                                            {shop.priceRange}
-                                        </Badge>
-                                    </CardTitle>
-                                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                        <StarIcon className="h-4 w-4 text-yellow-400" />
-                                        <span>
-                                            {shop.rating} ({shop.reviews}{" "}
-                                            reviews)
-                                        </span>
-                                    </div>
-                                </CardHeader>
-                                <CardContent className="space-y-2">
-                                    <p className="text-sm text-muted-foreground">
-                                        {shop.description}
-                                    </p>
-                                    <div className="flex items-center gap-2 text-sm">
-                                        <MapPinIcon className="h-4 w-4" />
-                                        {shop.location}
-                                    </div>
-                                    <div className="flex items-center gap-2 text-sm">
-                                        <PhoneIcon className="h-4 w-4" />
-                                        {shop.phone}
-                                    </div>
-                                </CardContent>
-                                <CardFooter>
-                                    <Link
-                                        href={`/${shop.id}/shop`}
-                                        className={`w-full  ${buttonVariants({
-                                            variant: "default",
-                                        })} figtree-semibold`}
-                                    >
-                                        View Shop
-                                    </Link>
-                                </CardFooter>
-                            </Card>
-                        </div>
-                    ))}
-                </Masonry>
-            </div>
-        </UserLayout>
+                <div>
+                    <ShopCarousel shops={shops} />
+                </div>
+                <div>
+                    <div className="flex items-end justify-between mb-5">
+                        <h4 className="text-lg font-medium p-2 border-b border-foreground">
+                            Most Popular
+                        </h4>
+                        <Link
+                            href="/popular"
+                            className="p-2 border-b border-foreground inline-flex items-center gap-1"
+                        >
+                            <ArrowUpRight className="stroke-1 size-5" />
+                            <span>See More</span>
+                        </Link>
+                    </div>
+                    <div className="mb-5 grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-5">
+                        {shops.map((shop) => (
+                            <ShopCard key={shop.id} shop={shop} isLoading={isLoading} />
+                        ))}
+                    </div>
+                </div>
+                <div>
+                    <div className="w-full py-20 mt-20 rounded-md bg-muted/50">
+                        <h1 className="text-center text-xl sm:text-3xl font-light tracking-widest underline underline-offset-8 animate-bounce">
+                            EXPLORE BY CATEGORIES
+                        </h1>
+                    </div>
+                </div>
+                <div>
+                    <ShopCarousel2
+                        title="Barbershops"
+                        link="/barbershops"
+                        shops={barberShops}
+                    />
+                </div>
+                <div>
+                    <ShopCarousel2
+                        title="Hair Salons"
+                        link="/hair-salons"
+                        shops={salons}
+                    />
+                </div>
+            </div >
+        </UserLayout >
     );
 }

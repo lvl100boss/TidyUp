@@ -30,6 +30,11 @@ import {
     MapPin,
     Phone,
     Mail,
+    Facebook,
+    Instagram,
+    Twitter,
+    Youtube,
+    Globe
 } from "lucide-react";
 import CopyButton from "@/Components/CopyButton";
 import { Separator } from "@/Components/ui/separator";
@@ -41,15 +46,17 @@ import {
     TooltipTrigger,
 } from "@/Components/ui/tooltip";
 
+
+
 import { Label } from "@/Components/ui/label";
 import { useState, useEffect } from "react";
 import ShopDetailsCard from "@/Components/Shop/ShopPage/ShopDetailsCard";
 import BookNowButton from "@/Components/Shop/ShopPage/BookNowButton";
 import ServiceTabs from "@/Components/Shop/ShopPage/ServiceTabs";
 import BusinessHoursContent from "@/Components/Shop/ShopPage/BusinessHoursContent";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
 export default function Shop({ shop, randomShops }) {
-    console.log(shop);
     const categories = [
         ...new Set(
             shop?.shop_service_categories?.map(
@@ -66,6 +73,14 @@ export default function Shop({ shop, randomShops }) {
             ) || [],
     }));
 
+    const currentUrl = window.location.href;
+    const socialMediaIcons = {
+        Instagram: <Instagram className="h-5 w-5" />,
+        Facebook: <Facebook className="h-5 w-5" />,
+        Twitter: <Twitter className="h-5 w-5" />,
+        Youtube: <Youtube className="h-5 w-5" />,
+        Globe: <Globe className="h-5 w-5" />
+    };
     return (
         <UserLayout>
             <Head title={shop?.shop_name} />
@@ -76,11 +91,10 @@ export default function Shop({ shop, randomShops }) {
                             {shop?.shop_name}
                         </h1>
                         <Badge
-                            className={`${
-                                shop?.availability === 1
-                                    ? "bg-green-300"
-                                    : "bg-secondary text-foreground"
-                            } pointer-events-none`}
+                            className={`${shop?.availability === 1
+                                ? "bg-green-300"
+                                : "bg-secondary text-foreground"
+                                } pointer-events-none`}
                         >
                             {shop?.availability === 1
                                 ? "Available"
@@ -101,24 +115,31 @@ export default function Shop({ shop, randomShops }) {
                 </div>
                 <div className="lg:w-[15rem] 2xl:w-[22rem] hidden lg:block">
                     <div className="border p-5 rounded-md sticky top-20">
-                        <div className="mb-3">
-                            <h1 className="figtree-semibold text-2xl">
-                                {shop?.shop_name}
-                            </h1>
-                            <Badge
-                                className={`${
-                                    shop?.availability === 1
+                        <div className="flex gap-3 items-center">
+                            <div>
+                                <Avatar className="size-14">
+                                    <AvatarImage src={'/' + shop.shop_photo} className="" />
+                                    <AvatarFallback className="uppercase">{shop.shop_name.slice(0, 2)}</AvatarFallback>
+                                </Avatar>
+                            </div>
+                            <div className="mb-3">
+                                <h1 className="figtree-semibold text-2xl">
+                                    {shop?.shop_name}
+                                </h1>
+                                <Badge
+                                    className={`${shop?.availability === 1
                                         ? "bg-green-300"
                                         : "bg-secondary text-foreground"
-                                } pointer-events-none`}
-                            >
-                                {shop?.availability === 1
-                                    ? "Available"
-                                    : "Unavailable"}
-                            </Badge>
+                                        } pointer-events-none`}
+                                >
+                                    {shop?.availability === 1
+                                        ? "Available"
+                                        : "Unavailable"}
+                                </Badge>
+                            </div>
                         </div>
                         <div>
-                            <p className="text-center text-xs text-muted-foreground italic pointer-events-none">
+                            <p className="text-xs text-muted-foreground italic pointer-events-none">
                                 {shop?.bio}
                             </p>
                         </div>
@@ -151,13 +172,55 @@ export default function Shop({ shop, randomShops }) {
                                 <DialogContent className="max-w-sm">
                                     <DialogHeader>
                                         <DialogTitle>
-                                            Business Hours
+                                            Shop's Business Hours
                                         </DialogTitle>
-                                        <BusinessHoursContent shop={shop} />
                                     </DialogHeader>
+                                    <BusinessHoursContent shop={shop} />
                                 </DialogContent>
                             </Dialog>
-
+                            <Dialog >
+                                <DialogTrigger className="w-full">
+                                    <Button
+                                        className="w-full justify-start"
+                                        variant="outline"
+                                    >
+                                        <Globe size={20} />
+                                        View Shop's Social Media
+                                    </Button>
+                                </DialogTrigger>
+                                <DialogContent >
+                                    <DialogHeader>
+                                        <DialogTitle>Social Media Links</DialogTitle>
+                                        <DialogDescription>
+                                            Follow {shop.shop_name} on their social media platforms to stay updated.
+                                        </DialogDescription>
+                                    </DialogHeader>
+                                    {shop.social_media && shop.social_media.length > 0 ? (
+                                        shop.social_media.map((social) => (
+                                            <div key={social.id} className="flex items-center justify-between">
+                                                <div className="flex items-center gap-2">
+                                                    {socialMediaIcons[social.icon]}
+                                                    <div>
+                                                        <p className="text-sm font-medium">{social.name}</p>
+                                                        <a
+                                                            href={social.url}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="text-xs text-muted-foreground hover:underline"
+                                                        >
+                                                            {social.url}
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <div className="text-center py-6 text-muted-foreground">
+                                            <p className="mb-2">No social media added yet</p>
+                                        </div>
+                                    )}
+                                </DialogContent>
+                            </Dialog>
                             <Dialog>
                                 <DialogTrigger asChild>
                                     <Button
@@ -186,12 +249,12 @@ export default function Shop({ shop, randomShops }) {
                                             </Label>
                                             <Input
                                                 id="link"
-                                                defaultValue={`https://127.0.0.1:8000/${shop?.id}/shop`}
+                                                defaultValue={currentUrl}
                                                 readOnly
                                             />
                                         </div>
                                         <CopyButton
-                                            textToCopy={`127.0.0.1:8000/${shop?.id}/shop`}
+                                            textToCopy={currentUrl}
                                         />
                                     </div>
                                     <DialogFooter className="sm:justify-start">
@@ -206,13 +269,8 @@ export default function Shop({ shop, randomShops }) {
                                     </DialogFooter>
                                 </DialogContent>
                             </Dialog>
-                            <Button
-                                className="w-full justify-start"
-                                variant="outline"
-                            >
-                                <TriangleAlert size={20} />
-                                Report Account
-                            </Button>
+
+
                         </div>
                     </div>
                 </div>

@@ -22,7 +22,7 @@ class Shop extends Model
         'availability',
         'is_verified',
         'bio',
-        'tokens',
+        // 'tokens',
     ];
 
     public function shopGallery()
@@ -58,5 +58,10 @@ class Shop extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function socialMedia()
+    {
+        return $this->hasMany(ShopSocialMedia::class, 'shop_id');
     }
 }

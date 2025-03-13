@@ -53,7 +53,7 @@ export default function Register() {
                 break;
             case 75:
                 setPasswordStrengthString("Good password");
-                setPasswordStrengthColor("-yellow-500");
+                setPasswordStrengthColor("-blue-500");
 
                 break;
             case 100:
@@ -208,17 +208,16 @@ export default function Register() {
                             Confirm Password
                         </Label>
                         <p
-                            className={`text-sm ${
-                                passwordsMatch
-                                    ? "text-green-500"
-                                    : "text-red-500"
-                            }`}
+                            className={`text-sm ${passwordsMatch
+                                ? "text-green-500"
+                                : "text-red-500"
+                                }`}
                         >
                             {data.password_confirmation === ""
                                 ? ""
                                 : passwordsMatch
-                                ? "Password Matches"
-                                : "Password does not match"}
+                                    ? "Password Matches"
+                                    : "Password does not match"}
                         </p>
                     </div>
                     <PInput
