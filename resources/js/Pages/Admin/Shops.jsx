@@ -1,22 +1,46 @@
 import AdminLayout from "@/Layouts/AdminLayout";
-import { Head } from "@inertiajs/react";
+import { Head, Link } from "@inertiajs/react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { ArrowUpDown, Search } from "lucide-react";
-import React, { useState } from 'react';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/Components/ui/table"; // Adjust the import based on your component structure
+import { ArrowUpDown, Search, Eye } from "lucide-react";
+import React, { useState, useEffect } from 'react';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/Components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { toast, Toaster } from "sonner";
 
-export default function Shops() {
-  const initialData = [
-    { id: "01", shopName: "Paul's Style", shopOwner: "Paul Phoenix", categories: "Hairdresser", dateRegistered: "10/5/24", status: "Processing" },
-    { id: "02", shopName: "Gupit ni John", shopOwner: "John Doe", categories: "Barber", dateRegistered: "10/5/24", status: "Verified" },
-    { id: "03", shopName: "Linda Beauty", shopOwner: "Linda Batumbakal", categories: "Makeup Artist, Nail Artist", dateRegistered: "10/5/24", status: "Rejected" },
-    // ... add more data as needed
-  ];    
-
-  const [data, setData] = useState(initialData);
+export default function Shops({ shops, categories, rawCategoriesData }) {
+  const [data, setData] = useState(shops || []);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
+
+  // Add more detailed console logging
+  useEffect(() => {
+    if (shops) {
+      console.log('Shops data:', shops);
+      console.log('Raw categories data:', rawCategoriesData);
+      
+      // Check each shop's categories
+      shops.forEach((shop) => {
+        const shopCategoriesData = rawCategoriesData ? 
+          rawCategoriesData.filter(cat => cat.shop_id === shop.id) : [];
+          
+        console.log(`Shop ${shop.id} (${shop.shop_name}):`);
+        console.log('- Categories from relationship:', shop.shopCategories || []);
+        console.log('- Categories from raw data:', shopCategoriesData);
+        console.log('- Raw categories added to shop:', shop.shopCategoriesRaw || []);
+      });
+    }
+  }, [shops, rawCategoriesData]);
 
   // Search functionality
   const handleSearch = (event) => {
@@ -24,11 +48,18 @@ export default function Shops() {
     setSearchTerm(term);
     
     if (term === "") {
-      setData(initialData);
+      setData(shops);
     } else {
-      const filteredData = initialData.filter(item =>
-        Object.values(item).some(value => 
-          value.toLowerCase().includes(term)
+      const filteredData = shops.filter(item =>
+        Object.values({
+          id: item.id,
+          shop_name: item.shop_name,
+          user_name: item.user ? `${item.user.first_name} ${item.user.last_name}` : '',
+          // Use shopCategories instead of shop_categories
+          categories: item.shopCategories && item.shopCategories.map(c => c.categories?.name).join(', '),
+          created_at: new Date(item.created_at).toLocaleDateString()
+        }).some(value => 
+          String(value).toLowerCase().includes(term)
         )
       );
       setData(filteredData);
@@ -41,8 +72,34 @@ export default function Shops() {
     setSortConfig({ key, direction });
 
     const sortedData = [...data].sort((a, b) => {
-      if (a[key] < b[key]) return direction === 'asc' ? -1 : 1;
-      if (a[key] > b[key]) return direction === 'asc' ? 1 : -1;
+      let aValue, bValue;
+      
+      // Handle nested properties and special cases
+      switch(key) {
+        case 'user_name':
+          aValue = a.user ? `${a.user.first_name} ${a.user.last_name}` : '';
+          bValue = b.user ? `${b.user.first_name} ${b.user.last_name}` : '';
+          break;
+        case 'categories':
+          // Use shopCategories instead of shop_categories
+          aValue = a.shopCategories && a.shopCategories.length > 0 
+            ? a.shopCategories.map(c => c.categories?.name || '').join(', ') 
+            : '';
+          bValue = b.shopCategories && b.shopCategories.length > 0 
+            ? b.shopCategories.map(c => c.categories?.name || '').join(', ') 
+            : '';
+          break;
+        case 'date_registered':
+          aValue = new Date(a.created_at);
+          bValue = new Date(b.created_at);
+          break;
+        default:
+          aValue = a[key];
+          bValue = b[key];
+      }
+
+      if (aValue < bValue) return direction === 'asc' ? -1 : 1;
+      if (aValue > bValue) return direction === 'asc' ? 1 : -1;
       return 0;
     });
 
@@ -50,22 +107,52 @@ export default function Shops() {
   };
 
   // Status color mapping
-  const getStatusColor = (status) => {
-    switch (status.toLowerCase()) {
+  const getStatusBadge = (status) => {
+    switch (status) {
       case 'verified':
-        return 'text-green-500';
+        return <Badge className="bg-green-500">Verified</Badge>;
       case 'rejected':
-        return 'text-red-500';
+        return <Badge variant="destructive">Rejected</Badge>;
       case 'processing':
-        return 'text-orange-500';
       default:
-        return 'text-gray-500';
+        return <Badge variant="secondary" className="bg-orange-500 hover:bg-orange-600 text-white">Processing</Badge>;
     }
+  };
+  
+  // Function to get categories for a shop
+  const getShopCategories = (shop) => {
+    // Try to get categories from the relationship
+    if (shop.shopCategories && Array.isArray(shop.shopCategories) && shop.shopCategories.length > 0) {
+      return shop.shopCategories
+        .filter(cat => cat && cat.categories)
+        .map(cat => cat.categories);
+    }
+    
+    // Try to get from the raw categories we added
+    if (shop.shopCategoriesRaw && shop.shopCategoriesRaw.length > 0) {
+      return shop.shopCategoriesRaw.map(cat => ({
+        name: cat.category_name
+      }));
+    }
+    
+    // Try to match from the raw data passed to component
+    if (rawCategoriesData) {
+      const matchingCategories = rawCategoriesData
+        .filter(cat => cat.shop_id === shop.id)
+        .map(cat => ({ name: cat.category_name }));
+      
+      if (matchingCategories.length > 0) {
+        return matchingCategories;
+      }
+    }
+    
+    return [];
   };
 
   return (
     <AdminLayout>
       <Head title="Shops" />
+      <Toaster />
       <div className="space-y-4">
         <h1 className="text-2xl font-bold">Shop Registration</h1>
         
@@ -80,7 +167,7 @@ export default function Shops() {
             />
           </div>
           <Button variant="outline" size="sm">
-            Sort by
+            Filter
           </Button>
         </div>
 
@@ -88,29 +175,78 @@ export default function Shops() {
           <Table>
             <TableHeader>
               <TableRow>
-                {['ID', 'Shop Name', 'Shop Owner', 'Categories', 'Date Registered', 'Status'].map((header) => (
-                  <TableHead key={header}>
+                {[
+                  {key: 'id', label: 'ID'}, 
+                  {key: 'shop_name', label: 'Shop Name'}, 
+                  {key: 'user_name', label: 'Shop Owner'}, 
+                  {key: 'categories', label: 'Categories'}, 
+                  {key: 'date_registered', label: 'Date Registered'}, 
+                  {key: 'status', label: 'Status'},
+                  {key: 'actions', label: 'Actions'}
+                ].map((header) => (
+                  <TableHead key={header.key}>
                     <button
-                      onClick={() => handleSort(header.toLowerCase().replace(' ', ''))}
+                      onClick={() => header.key !== 'actions' && handleSort(header.key)}
                       className="flex items-center space-x-1 hover:text-gray-700"
                     >
-                      <span>{header}</span>
-                      <ArrowUpDown className="h-4 w-4" />
+                      <span>{header.label}</span>
+                      {header.key !== 'actions' && <ArrowUpDown className="h-4 w-4" />}
                     </button>
                   </TableHead>
                 ))}
               </TableRow>
             </TableHeader>
             <TableBody>
-              {data.map((row, index) => (
-                <TableRow key={index} className="hover:bg-background hover:text-foreground transition-colors">
-                  <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-foreground">{row.id}</TableCell>
-                  <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-foreground">{row.shopName}</TableCell>
-                  <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-foreground">{row.shopOwner}</TableCell>
-                  <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-foreground">{row.categories}</TableCell>
-                  <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-foreground">{row.dateRegistered}</TableCell>
-                  <TableCell className={`px-6 py-4 whitespace-nowrap text-sm ${getStatusColor(row.status)}`}>
-                    {row.status}
+              {data.map((shop) => (
+                <TableRow key={shop.id} className="hover:bg-background hover:text-foreground transition-colors">
+                  <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-foreground">{shop.id}</TableCell>
+                  <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-foreground">{shop.shop_name}</TableCell>
+                  <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
+                    {shop.user ? `${shop.user.first_name} ${shop.user.last_name}` : 'Unknown'}
+                  </TableCell>
+                  <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
+                    {(() => {
+                      const shopCategories = getShopCategories(shop);
+                      
+                      if (shopCategories.length > 0) {
+                        return (
+                          <div className="flex flex-wrap gap-1">
+                            {shopCategories.map((cat, idx) => (
+                              <Badge key={idx} variant="outline" className="mr-1">
+                                {cat.name || 'Unknown'}
+                              </Badge>
+                            ))}
+                          </div>
+                        );
+                      } else if (shop.shopCategoriesRaw) {
+                        return (
+                          <div className="flex flex-wrap gap-1">
+                            {shop.shopCategoriesRaw.map((cat, idx) => (
+                              <Badge key={idx} variant="outline" className="mr-1">
+                                {cat.category_name || 'Unknown'}
+                              </Badge>
+                            ))}
+                          </div>
+                        );
+                      } else {
+                        return <span className="text-amber-600">No categories available</span>;
+                      }
+                    })()}
+                  </TableCell>
+                  <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
+                    {new Date(shop.created_at).toLocaleDateString()}
+                  </TableCell>
+                  <TableCell className="px-6 py-4 whitespace-nowrap text-sm">
+                    {getStatusBadge(shop.status)}
+                  </TableCell>
+                  <TableCell className="px-6 py-4 whitespace-nowrap text-sm">
+                    <div className="flex space-x-2">
+                      <Link href={`/admin/shops/${shop.id}`}>
+                        <Button size="sm" variant="outline" className="flex items-center">
+                          <Eye className="h-4 w-4 mr-1" /> View Details
+                        </Button>
+                      </Link>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}
