@@ -13,7 +13,7 @@ class HomeController extends Controller
     public function index()
     {
         $randomShops = Shop::with(['shopGallery', 'shopCategories.categories'])->inRandomOrder()->limit(10)->get();
-
+        // $randomShops = Shop::with(['shopGallery', 'shopCategories.categories'])->where('is_verified', 1)->inRandomOrder()->limit(10)->get();
         return Inertia::render('Users/Home', [
             'randomShops' => $randomShops,
             'canLogin' => Route::has('login'),

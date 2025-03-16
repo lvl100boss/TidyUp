@@ -79,7 +79,7 @@ const RestrictModal = ({ isOpen, onClose, user }) => {
     const [startDate, setStartDate] = useState(new Date());
     const [endDate, setEndDate] = useState(addDays(new Date(), 7));
     const [isDurationModalOpen, setIsDurationModalOpen] = useState(false);
-    
+
 
     // Calculate duration whenever dates change
     const duration = differenceInDays(endDate, startDate);
@@ -105,30 +105,30 @@ const RestrictModal = ({ isOpen, onClose, user }) => {
             start_date: startDate.toISOString(),
             end_date: endDate.toISOString()
         })
-        .then((response) => {
-            console.log('Success:', response);
-            onClose();
-            window.location.reload();
-        })
-        .catch((error) => {
-            console.error('Full error details:', error);
-            
-            if (error.response) {
-                if (error.response.data.errors) {
-                    const errorMessages = Object.values(error.response.data.errors).flat();
-                    alert('Validation errors:\n' + errorMessages.join('\n'));
-                } else if (error.response.data.message) {
-                    alert('Server error: ' + error.response.data.message);
+            .then((response) => {
+                console.log('Success:', response);
+                onClose();
+                window.location.reload();
+            })
+            .catch((error) => {
+                console.error('Full error details:', error);
+
+                if (error.response) {
+                    if (error.response.data.errors) {
+                        const errorMessages = Object.values(error.response.data.errors).flat();
+                        alert('Validation errors:\n' + errorMessages.join('\n'));
+                    } else if (error.response.data.message) {
+                        alert('Server error: ' + error.response.data.message);
+                    }
+                } else if (error.request) {
+                    alert('Network error: Could not connect to server');
+                } else {
+                    alert('Error: ' + error.message);
                 }
-            } else if (error.request) {
-                alert('Network error: Could not connect to server');
-            } else {
-                alert('Error: ' + error.message);
-            }
-        })
-        .finally(() => {
-            setIsSubmitting(false);
-        });
+            })
+            .finally(() => {
+                setIsSubmitting(false);
+            });
     };
 
     return (
@@ -166,9 +166,9 @@ const RestrictModal = ({ isOpen, onClose, user }) => {
                         <div>
                             <p className="text-sm font-medium">Duration:</p>
                             <div className="relative">
-                                <Input 
+                                <Input
                                     value={`${duration} days`}
-                                    disabled 
+                                    disabled
                                     className="pr-10"
                                 />
                                 <Button
@@ -214,16 +214,16 @@ const RestrictModal = ({ isOpen, onClose, user }) => {
                     </div>
 
                     <div className="flex justify-end space-x-2">
-                        <Button 
-                            variant="outline" 
+                        <Button
+                            variant="outline"
                             onClick={onClose}
                             disabled={isSubmitting}
                         >
                             Cancel
                         </Button>
 
-                        <Button 
-                            className="bg-red-500 text-foreground" 
+                        <Button
+                            className="bg-red-500 text-foreground"
                             onClick={handleRestrict}
                             disabled={!reason || isSubmitting}
                         >
@@ -392,9 +392,9 @@ export default function Users({ users }) {  // Accept users prop from backend
                                                     Edit
                                                 </DropdownMenuItem>
                                                 <DropdownMenuItem
-                                                    onClick={() =>
-                                                        handleRestrictUser(row)
-                                                    }
+                                                    onClick={(e) => {
+                                                        handleRestrictUser(row);
+                                                    }}
                                                 >
                                                     Restrict
                                                 </DropdownMenuItem>
@@ -411,13 +411,15 @@ export default function Users({ users }) {  // Accept users prop from backend
                 </div>
             </div>
 
-            {selectedUser && (
-                <RestrictModal
-                    isOpen={isRestrictModalOpen}
-                    onClose={handleCloseRestrictModal}
-                    user={selectedUser}
-                />
-            )}
-        </AdminLayout>
+            {
+                selectedUser && (
+                    <RestrictModal
+                        isOpen={isRestrictModalOpen}
+                        onClose={handleCloseRestrictModal}
+                        user={selectedUser}
+                    />
+                )
+            }
+        </AdminLayout >
     );
 }

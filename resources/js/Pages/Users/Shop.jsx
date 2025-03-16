@@ -126,23 +126,24 @@ export default function Shop({ shop, randomShops }) {
                                 <h1 className="figtree-semibold text-2xl">
                                     {shop?.shop_name}
                                 </h1>
-                                <Badge
-                                    className={`${shop?.availability === 1
-                                        ? "bg-green-300"
-                                        : "bg-secondary text-foreground"
-                                        } pointer-events-none`}
-                                >
-                                    {shop?.availability === 1
-                                        ? "Available"
-                                        : "Unavailable"}
-                                </Badge>
+
+                                <p className="text-xs text-muted-foreground italic pointer-events-none">
+                                    {shop?.bio}
+                                </p>
                             </div>
                         </div>
-                        <div>
-                            <p className="text-xs text-muted-foreground italic pointer-events-none">
-                                {shop?.bio}
-                            </p>
-                        </div>
+                        {/* <div>
+                            <Badge
+                                className={`${shop?.availability === 1
+                                    ? "bg-green-300"
+                                    : "bg-secondary text-foreground"
+                                    } pointer-events-none`}
+                            >
+                                {shop?.availability === 1
+                                    ? "Available"
+                                    : "Unavailable"}
+                            </Badge>
+                        </div> */}
 
                         <BookNowButton shop_id={shop?.id} />
                         <Separator className="my-5" />

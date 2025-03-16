@@ -101,7 +101,7 @@ export default function Home({ randomShops }) {
             <Head title="Home" />
 
             <HeroSection />
-
+            {/* {sampleShops[0].shop_gallery[0].url} */}
             <div className="flex items-end justify-between mb-5">
                 <h4 className="text-lg font-medium p-2 border-b border-foreground">
                     Customer's Choice

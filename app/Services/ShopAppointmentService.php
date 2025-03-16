@@ -178,10 +178,25 @@ class ShopAppointmentService
     {
         $shopAppointments = ShopStaffs::find($staffId)->shop->appointments;
         $shopAppointments = $shopAppointments->map(function ($appointment) {
+            $totalHours = $appointment->appointmentServices->sum('shopService.duration_hour');
+            $totalMinutes = $appointment->appointmentServices->sum('shopService.duration_minute');
+
+            // Convert excess minutes to hours
+            if ($totalMinutes >= 60) {
+                $totalHours += floor($totalMinutes / 60);
+                $totalMinutes = $totalMinutes % 60;
+            }
+
+            // Calculate end time
+            $startDateTime = \Carbon\Carbon::parse($appointment->date . ' ' . $appointment->time);
+            $endDateTime = $startDateTime->copy()->addHours($totalHours)->addMinutes($totalMinutes);
+            $endTime = $endDateTime->format('H:i:s');
+
             return [
                 'id' => $appointment->id,
                 'date' => $appointment->date,
                 'time' => $appointment->time,
+                'end_time' => $endTime,
                 'status' => $appointment->status,
                 'customer' => [
                     'id' => $appointment->user->id,
@@ -209,8 +224,8 @@ class ShopAppointmentService
                 }),
                 'total_cost' => $appointment->appointmentServices->sum('shopService.cost'),
                 'total_duration' => [
-                    'hours' => $appointment->appointmentServices->sum('shopService.duration_hour'),
-                    'minutes' => $appointment->appointmentServices->sum('shopService.duration_minute')
+                    'hours' => $totalHours,
+                    'minutes' => $totalMinutes
                 ],
                 'notes' => $appointment->note,
                 'decline_reason' => $appointment->decline_reason,
