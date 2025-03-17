@@ -8,6 +8,9 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
+use App\Models\User;
 
 class LoginRequest extends FormRequest
 {
@@ -41,6 +44,27 @@ class LoginRequest extends FormRequest
     {
         $this->ensureIsNotRateLimited();
 
+        // Check for restrictions before attempting authentication
+        $user = User::where('email', $this->input('email'))->first();
+        
+        if ($user) {
+            $restriction = DB::table('user_restrictions')
+                ->where('user_id', $user->id)
+                ->whereNull('actual_lift_date')
+                ->where('scheduled_lift_date', '>', Carbon::now())
+                ->first();
+
+            if ($restriction) {
+                RateLimiter::clear($this->throttleKey());
+                throw ValidationException::withMessages([
+                    'email' => "Your account is restricted until " . 
+                        Carbon::parse($restriction->scheduled_lift_date)->format('M d, Y') . 
+                        ". Reason: " . $restriction->reason,
+                ]);
+            }
+        }
+
+        // Proceed with normal authentication
         if (! Auth::attempt($this->only('email', 'password'), $this->boolean('remember'))) {
             RateLimiter::hit($this->throttleKey());
 

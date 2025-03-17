@@ -4,9 +4,13 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Http\Controllers\BookingController;
 
-Route::get('/booking/{shop_id}/{branch_id}', [BookingController::class, 'show'])
-    ->name('booking.show')
-    ->where(['shop_id' => '[0-9]+', 'branch_id' => '[0-9]+']);
+Route::middleware(['auth'])->group(function () {
+    Route::get('/{shop}/booking/1', [BookingController::class, 'stepOne'])->name('booking.step.one');
+    Route::post('/{shop}/booking/1', [BookingController::class, 'stepOneStore'])->name('booking.step.one.store');
 
-Route::post('/booking/submit', [BookingController::class, 'store'])
-    ->name('booking.store');
+    Route::get('/{shop}/booking/2', [BookingController::class, 'stepTwo'])->name('booking.step.two');
+    Route::post('/{shop}/booking/2', [BookingController::class, 'stepTwoStore'])->name('booking.step.two.store');
+
+    Route::get('/{shop}/booking/3', [BookingController::class, 'stepThree'])->name('booking.step.three');
+    Route::post('/{shop}/booking/3', [BookingController::class, 'stepThreeStore'])->name('booking.step.three.store');
+});

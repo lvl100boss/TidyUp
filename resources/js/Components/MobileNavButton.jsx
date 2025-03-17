@@ -31,7 +31,7 @@ const MobileNavButton = () => {
     const mainLinks = [
         { href: "/", label: "Home", icon: House },
         { href: "/appointments", label: "Appointments", icon: Calendar },
-        { href: "/explore", label: "Explore", icon: Compass },
+        { href: "/discover", label: "Discover", icon: Compass },
         { href: "/popular", label: "Popular", icon: TrendingUp },
     ];
 
@@ -57,9 +57,9 @@ const MobileNavButton = () => {
         <div className="lg:hidden">
             <Drawer>
                 <DrawerTrigger>
-                    <Button className="fixed bottom-5 right-5 shop border border-muted-foreground">
+                    <Button size="sm" className="fixed bottom-5 right-5 shop">
                         <SquareChevronUp />
-                        <span className="figtree-medium">Menu</span>
+                        <span className="font-medium text-sm">Menu</span>
                     </Button>
                 </DrawerTrigger>
                 <DrawerContent onCloseAutoFocus={(e) => e.preventDefault()}>
@@ -89,7 +89,7 @@ const MobileNavButton = () => {
 
                             <hr className="my-5 h-0.5 border-t-0 bg-neutral-100 dark:bg-white/10" />
                             <div>
-                                <h3 className="figtree-medium mb-2">
+                                <h3 className="font-medium mb-2">
                                     CATEGORIES
                                 </h3>
                             </div>
@@ -111,7 +111,7 @@ const MobileNavButton = () => {
 
                             <hr className="my-5 h-0.5 border-t-0 bg-neutral-100 dark:bg-white/10" />
                             <div>
-                                <h3 className="figtree-medium mb-2">
+                                <h3 className="font-medium mb-2">
                                     HELP CENTER
                                 </h3>
                             </div>

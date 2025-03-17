@@ -1,78 +1,50 @@
 import ShopsLayout from "@/Layouts/ShopsLayout";
-import { Button } from "@/Components/ui/button";
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from "@/Components/ui/table";
-import { useState } from "react";
+import { Button, buttonVariants } from "@/Components/ui/button";
+import { Head, Link, usePage } from "@inertiajs/react";
+import { Plus } from "lucide-react"
+import { useEffect, useState } from "react";
+import { toast, Toaster } from 'sonner';
+import StaffTable from "@/Components/Shop/ManageStaff.jsx/StaffTable";
 
-export default function ManageStaff() {
-    const [staff, setStaff] = useState([
-        {
-            id: 1,
-            name: "John Doe",
-            role: "Manager",
-            email: "john@example.com",
-            status: "Active",
-        },
-        {
-            id: 2,
-            name: "Jane Smith",
-            role: "Staff",
-            email: "jane@example.com",
-            status: "Active",
-        },
-    ]);
+export default function ManageStaff({ staffs, shop, isOwner }) {
+    const { flash } = usePage().props;
+    useEffect(() => {
+        if (flash.message) {
+            if (flash.success) {
+                toast("Heads up!", {
+                    description: flash.message,
+                    duration: 5000,
+                });
+            } else {
+                toast.error("Uh oh! Something went wrong.", {
+                    description: flash.message,
+                    duration: 5000,
+                });
+            }
+        }
+    }, [flash.message]);
 
     return (
         <ShopsLayout>
-            <div className="p-6">
-                <div className="flex justify-between items-center mb-6">
-                    <h1 className="text-2xl font-bold">Manage Staff</h1>
-                    <Button variant="default">Add New Staff</Button>
+            <Head title="Manage Staff" />
+            <Toaster />
+            <div>
+                <div className="flex justify-between items-center">
+                    <h1 className="text-3xl font-semibold tracking-tight">Manage Staff</h1>
+                    {isOwner && (
+                        <Link
+                            href="/shop/manage/staff/create"
+                            className={`flex items-center font-bold ${buttonVariants({ variant: "default" })}`}
+                        >
+                            <Plus />
+                            Add New Staff
+                        </Link>
+                    )}
                 </div>
-
-                <div className="rounded-md border">
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Name</TableHead>
-                                <TableHead>Role</TableHead>
-                                <TableHead>Email</TableHead>
-                                <TableHead>Status</TableHead>
-                                <TableHead>Actions</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {staff.map((member) => (
-                                <TableRow key={member.id}>
-                                    <TableCell>{member.name}</TableCell>
-                                    <TableCell>{member.role}</TableCell>
-                                    <TableCell>{member.email}</TableCell>
-                                    <TableCell>{member.status}</TableCell>
-                                    <TableCell>
-                                        <div className="flex gap-2">
-                                            <Button variant="outline" size="sm">
-                                                Edit
-                                            </Button>
-                                            <Button
-                                                variant="destructive"
-                                                size="sm"
-                                            >
-                                                Delete
-                                            </Button>
-                                        </div>
-                                    </TableCell>
-                                </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
+                <div>
+                    <StaffTable staffs={staffs} isOwner={isOwner} shop={shop} />
                 </div>
             </div>
-        </ShopsLayout>
+        </ShopsLayout >
     );
 }

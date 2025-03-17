@@ -12,63 +12,51 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card } from "@/components/ui/card";
+import axios from 'axios';
 
-export default function Restriction() {
-    const initialData = [
-        { id: '01', username: '@SubaruNatsuki', dateRestricted: '09/10/2024', duration: '7 days', committedBy: 'Emilia' },
-        { id: '02', username: '@SubaruNatsuki', dateRestricted: '09/15/2024', duration: '7 days', committedBy: 'Rem' },
-        { id: '03', username: '@SubaruNatsuki', dateRestricted: '09/22/2024', duration: '7 days', committedBy: 'Ram' },
-        { id: '04', username: '@SubaruNatsuki', dateRestricted: '09/05/2024', duration: '7 days', committedBy: 'Beatrice' },
-        { id: '05', username: '@SubaruNatsuki', dateRestricted: '09/12/2024', duration: '7 days', committedBy: 'Roswaal' },
-        { id: '06', username: '@SubaruNatsuki', dateRestricted: '09/30/2024', duration: '7 days', committedBy: 'Echidna' },
-        { id: '07', username: '@SubaruNatsuki', dateRestricted: '09/18/2024', duration: '7 days', committedBy: 'Garfiel' },
-        { id: '08', username: '@SubaruNatsuki', dateRestricted: '09/25/2024', duration: '7 days', committedBy: 'Otto' },
-    ];
-
-    const [data, setData] = useState(initialData);
-    const [selectedRestriction, setSelectedRestriction] = useState(null);
+export default function Restriction({ restrictedUsers }) {
+    const [data, setData] = useState(restrictedUsers);
     const [searchTerm, setSearchTerm] = useState("");
     const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [selectedId, setSelectedId] = useState(null);
 
-    const openDialog = (restriction) => {
-        setSelectedRestriction(restriction);
+    const handleLiftRestriction = async (row) => {
+        if (isSubmitting) return;
+        setSelectedId(row.id);
+        setIsSubmitting(true);
+        
+        try {
+            await axios.post(route('admin.restrictions.lift'), {
+                restriction_id: row.id
+            });
+
+            setData(data.filter(item => item.id !== row.id));
+        } catch (error) {
+            console.error('Error lifting restriction:', error);
+        } finally {
+            setIsSubmitting(false);
+            setSelectedId(null);
+        }
     };
 
-    const handleLiftRestriction = () => {
-        // Implement lift restriction logic here
-        console.log(`Restriction lifted for row ${selectedRestriction.id}`);
-        setData(data.filter(row => row.id !== selectedRestriction.id));
-        setSelectedRestriction(null);
-    };
-
-    // Search functionality
     const handleSearch = (event) => {
         const term = event.target.value.toLowerCase();
         setSearchTerm(term);
 
         if (term === "") {
-            setData(initialData);
+            setData(restrictedUsers);
         } else {
-            const filteredData = initialData.filter(item =>
+            const filteredData = restrictedUsers.filter(item =>
                 Object.values(item).some(value =>
-                    value.toLowerCase().includes(term)
+                    String(value).toLowerCase().includes(term)
                 )
             );
             setData(filteredData);
         }
     };
 
-    // Sorting functionality
     const handleSort = (key) => {
         const direction = sortConfig.key === key && sortConfig.direction === 'asc' ? 'desc' : 'asc';
         setSortConfig({ key, direction });
@@ -98,97 +86,106 @@ export default function Restriction() {
                             className="pl-8"
                         />
                     </div>
-                    <Button variant="outline" size="sm">
-                        Sort by
-                    </Button>
                 </div>
 
                 <div className="border rounded-md overflow-x-auto">
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                {['ID', 'Username', 'Committed By', 'Duration', 'Date Restricted', 'Action'].map((header) => (
-                                    <TableHead key={header} className="px-6 py-3 text-left text-xs font-medium text-foreground uppercase tracking-wider">
-                                        <button
-                                            onClick={() => handleSort(header.toLowerCase().replace(' ', ''))}
-                                            className="flex items-center space-x-1 hover:text-gray-700"
-                                        >
-                                            <span>{header}</span>
-                                            <ArrowUpDown className="h-4 w-4" />
-                                        </button>
-                                    </TableHead>
+                    <table className="min-w-full divide-y divide-border">
+                        <thead className="bg-background">
+                            <tr>
+                                {[
+                                    { key: 'id', label: 'ID' },
+                                    { key: 'username', label: 'Username' },
+                                    { key: 'committedBy', label: 'Committed By' },
+                                    { key: 'duration', label: 'Duration' },
+                                    { key: 'dateRestricted', label: 'Date Restricted' },
+                                    { key: 'action', label: 'Action' }
+                                ].map((column) => (
+                                    <th
+                                        key={column.key}
+                                        className="px-6 py-3 text-left text-xs font-medium text-foreground uppercase tracking-wider"
+                                    >
+                                        {column.key !== 'action' ? (
+                                            <button
+                                                onClick={() => handleSort(column.key)}
+                                                className="flex items-center space-x-1 hover:text-gray-700"
+                                            >
+                                                <span>{column.label}</span>
+                                                <ArrowUpDown className="h-4 w-4" />
+                                            </button>
+                                        ) : (
+                                            column.label
+                                        )}
+                                    </th>
                                 ))}
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {data.map((row, index) => (
-                                <TableRow key={index} className="hover:bg-background hover:text-foreground transition-colors">
-                                    <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-foreground">{row.id}</TableCell>
-                                    <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-foreground">{row.username}</TableCell>
-                                    <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-foreground">{row.committedBy}</TableCell>
-                                    <TableCell className="px-6 py-4 whitespace-nowrap text-red-500 text-sm">{row.duration}</TableCell>
-                                    <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-foreground">{row.dateRestricted}</TableCell>
-                                    <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
+                            </tr>
+                        </thead>
+                        <tbody className="bg-background divide-y divide-border">
+                            {data.map((row) => (
+                                <tr key={row.id} className="hover:bg-secondary/50 hover:text-foreground">
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">{row.id}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">{row.username}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">{row.committedBy}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground text-red-500">{row.duration}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
+                                        {new Date(row.dateRestricted).toLocaleDateString()}
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
                                         <Dialog>
                                             <DialogTrigger asChild>
-                                                <Button onClick={() => openDialog(row)} variant="secondary" className="inline-flex items-center gap-1 py-2 px-4 rounded-full shadow hover:shadow-md hover:scale-105 transition ease-in-out group">
-                                                    <span className="text-sm">Lift Restriction</span>
+                                                <Button variant="secondary">
+                                                    Lift Restriction
                                                 </Button>
                                             </DialogTrigger>
                                             <DialogContent className="max-w-2xl">
                                                 <DialogHeader>
                                                     <DialogTitle>User Information</DialogTitle>
                                                     <DialogDescription>
-                                                        This action cannot be undone. This will permanently delete your account
-                                                        and remove your data from our servers.
+                                                        Review the user's restriction details before lifting the restriction.
                                                     </DialogDescription>
                                                 </DialogHeader>
 
                                                 <Card className="p-4 space-y-4">
-                                                    <div className="flex items-center space-x-4">
-                                                        {/* User Profile Image */}
-                                                        <Avatar className="w-16 h-16">
-                                                            <AvatarImage src="https://via.placeholder.com/150" alt="User Profile" />
-                                                            <AvatarFallback>SN</AvatarFallback>
-                                                        </Avatar>
-
-                                                        {/* User Details */}
-                                                        <div className="grid grid-cols-2 gap-2 text-sm w-full">
-                                                            <div>
-                                                                <p><strong>Username:</strong> {selectedRestriction?.username}</p>
-                                                                <p><strong>Full Name:</strong> Subaru Natsuki</p>
-                                                                <p><strong>Email:</strong> subaru@example.com</p>
-                                                                <p><strong>Role:</strong> User</p>
-                                                            </div>
-                                                            <div>
-                                                                <p><strong>Date Restricted:</strong> {selectedRestriction?.dateRestricted}</p>
-                                                                <p><strong>Duration:</strong> <span className="text-red-500">{selectedRestriction?.duration}</span></p>
-                                                                <p><strong>Restricted by:</strong> {selectedRestriction?.committedBy}</p>
-                                                            </div>
+                                                    <div className="grid grid-cols-2 gap-2 text-sm w-full">
+                                                        <div>
+                                                            <p><strong>Username:</strong> {row.username}</p>
+                                                            <p><strong>Full Name:</strong> {`${row.first_name} ${row.last_name}`}</p>
+                                                            <p><strong>Email:</strong> {row.email}</p>
+                                                        </div>
+                                                        <div>
+                                                            <p><strong>Date Restricted:</strong> {new Date(row.dateRestricted).toLocaleDateString()}</p>
+                                                            <p><strong>Duration:</strong> <span className="text-red-500">{row.duration}</span></p>
+                                                            <p><strong>Restricted by:</strong> {row.committedBy}</p>
                                                         </div>
                                                     </div>
                                                 </Card>
 
-                                                {/* Restriction Reason */}
                                                 <div className="space-y-2">
                                                     <h3 className="font-semibold">Reason for Restriction</h3>
-                                                    <div className="p-3 border rounded-lg bg-gray-100 text-sm">
-                                                        The user violated the rules and regulations of the app. We have determined that this user frequently cancels appointments and detected suspicious activities on his/her account.
+                                                    <div className="p-3 border rounded-lg bg-background text-sm">
+                                                        {row.reason}
                                                     </div>
                                                 </div>
 
-                                                {/* Lift Restriction Button */}
                                                 <div className="flex justify-end gap-2 mt-4">
-                                                    <Button onClick={() => setSelectedRestriction(null)} variant="secondary">Cancel</Button>
-                                                    <Button onClick={handleLiftRestriction} variant="primary">Confirm</Button>
+                                                    <DialogTrigger asChild>
+                                                        <Button variant="secondary">
+                                                            Cancel
+                                                        </Button>
+                                                    </DialogTrigger>
+                                                    <Button 
+                                                        onClick={() => handleLiftRestriction(row)}
+                                                        disabled={isSubmitting && selectedId === row.id}
+                                                    >
+                                                        {isSubmitting && selectedId === row.id ? 'Processing...' : 'Lift Restriction'}
+                                                    </Button>
                                                 </div>
                                             </DialogContent>
                                         </Dialog>
-                                    </TableCell>
-                                </TableRow>
+                                    </td>
+                                </tr>
                             ))}
-                        </TableBody>
-                    </Table>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </AdminLayout>
