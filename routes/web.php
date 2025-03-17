@@ -10,6 +10,7 @@ use App\Http\Controllers\ShopController;
 use App\Http\Controllers\PopularShopsController;
 use Illuminate\Foundation\Application;
 
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -28,16 +29,9 @@ Route::middleware(EnsureVerifiedIfAuthenticated::class)->group(function () {
     Route::get('/aboutus', function () {
         return Inertia::render('AboutUs');
     })->name('AboutUs');
-    Route::get('{shop_id}/shop', [ShopController::class, 'show'])->name('shop.show');
 });
 
-
-
 Route::middleware(['auth', 'verified'])->group(function () {
-
-    Route::get('/shop/setup', [ShopController::class, 'create'])->name('shop.setup');
-    Route::post('/shop/setup', [ShopController::class, 'store'])->name('shop.setup.store');
-
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
@@ -49,9 +43,30 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/report-issue', function () {
         return Inertia::render('Users/ReportAnIssue');
     })->name('ReportAnIssue');
-
-    //
 });
+
+// Fix the shop detail route pattern to match the links being generated
+Route::get('/shop/{id}', [ShopController::class, 'show'])->name('shop.show');
+// Add a compatibility route for links that might be using the /{id}/shop pattern
+Route::get('/{id}/shop', [ShopController::class, 'show']);
+
+// Debug route - kept for future potential issues
+Route::get('/debug/check-documents/{shopId}', function ($shopId) {
+    if (!Auth::check() || !Auth::user()->isAdmin()) {
+        return redirect('/');
+    }
+
+    \App\Models\ShopLegalDocument::checkDocumentsExist($shopId);
+
+    return response()->json([
+        'message' => 'Document check completed - see logs',
+        'shop_id' => $shopId
+    ]);
+});
+
+Route::get('/not-found', function () {
+    return Inertia::render('NotFound');
+})->name('not-found');
 
 require __DIR__ . '/auth.php';
 require __DIR__ . '/booking.php';

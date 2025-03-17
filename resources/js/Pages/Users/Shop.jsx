@@ -57,9 +57,21 @@ import BusinessHoursContent from "@/Components/Shop/ShopPage/BusinessHoursConten
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
 export default function Shop({ shop, randomShops }) {
+    // Remove the verification check from useEffect
+    // and use conditional rendering instead
+    if (!shop) {
+        return null;
+    }
+
+    // If shop is not verified, redirect to not-found
+    if (shop.status !== 'verified') {
+        router.visit('/not-found');
+        return null;
+    }
+
     const categories = [
         ...new Set(
-            shop?.shop_service_categories?.map(
+            shop?.shopServiceCategories?.map(
                 (service) => service.service_categories?.name
             ) || []
         ),
@@ -68,7 +80,7 @@ export default function Shop({ shop, randomShops }) {
     const groupedServices = categories.map((category) => ({
         category,
         services:
-            shop?.shop_service_categories?.filter(
+            shop?.shopServiceCategories?.filter(
                 (service) => service.service_categories?.name === category
             ) || [],
     }));
