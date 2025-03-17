@@ -6,44 +6,51 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\UserRestrictionController;
 use App\Http\Controllers\Admin\RestrictionController;
 
-Route::get('/admin/dashboard', function () {
-    return Inertia::render('Admin/Dashboard');
-})->middleware(['auth', 'verified'])->name('admin.dashboard');
-Route::redirect('/admin', '/badmin/dashboard')->middleware(['auth', 'verified']);
+Route::middleware(['auth', 'verified'])->group(function () {
+    // Dashboard
+    Route::get('/admin/dashboard', function () {
+        return Inertia::render('Admin/Dashboard');
+    })->name('admin.dashboard');
+    Route::redirect('/admin', '/admin/dashboard');
 
-Route::get('/admin/shops', function () {
-    return Inertia::render('Admin/Shops');
-})->middleware(['auth', 'verified'])->name('admin.shops');
-Route::get('/admin/users', function () {
-    return Inertia::render('Admin/Users');
-})->middleware(['auth', 'verified'])->name('admin.users');
+    // Static pages
+    Route::get('/admin/shops', function () {
+        return Inertia::render('Admin/Shops');
+    })->name('admin.shops');
 
-Route::get('/admin/analytics', function () {
-    return Inertia::render('Admin/Analytics');
-})->middleware(['auth', 'verified'])->name('admin.analytics');
+    Route::get('/admin/analytics', function () {
+        return Inertia::render('Admin/Analytics');
+    })->name('admin.analytics');
 
-Route::get('/admin/feedback', function () {
-    return Inertia::render('Admin/UserFeedback');
-})->middleware(['auth', 'verified'])->name('admin.feedback');
+    Route::get('/admin/feedback', function () {
+        return Inertia::render('Admin/UserFeedback');
+    })->name('admin.feedback');
 
-Route::get('/admin/customer-service', function () {
-    return Inertia::render('Admin/CustomerService');
-})->middleware(['auth', 'verified'])->name('admin.customer-service');
+    Route::get('/admin/customer-service', function () {
+        return Inertia::render('Admin/CustomerService');
+    })->name('admin.customer-service');
 
-Route::get('/admin/restriction', function () {
-    return Inertia::render('Admin/Restriction');
-})->middleware(['auth', 'verified'])->name('admin.restriction');
+    Route::get('/admin/platform/staff', function () {
+        return Inertia::render('Admin/PlatformStaff');
+    })->name('admin.platform.staff');
 
-Route::get('/admin/platform/staff', function () {
-    return Inertia::render('Admin/PlatformStaff');
-})->middleware(['auth', 'verified'])->name('admin.platform.staff');
+    // User management
+    Route::get('/admin/users', [UserController::class, 'index'])
+        ->name('admin.users');
 
-Route::get('/admin/users', [UserController::class, 'index'])
-    ->middleware(['auth', 'verified'])
-    ->name('admin.users');
+    // User restrictions
+    Route::get('/admin/restriction', [UserRestrictionController::class, 'index'])
+        ->name('admin.restriction');
 
-Route::post('/admin/users/restrict', [UserRestrictionController::class, 'store'])
-    ->name('admin.users.restrict');
+    Route::post('/admin/users/restrict', [UserRestrictionController::class, 'store'])
+        ->name('admin.users.restrict');
 
-Route::post('/admin/users/restrictions/lift', [UserRestrictionController::class, 'lift'])
-    ->name('admin.users.restrictions.lift');
+    Route::post('/admin/restrictions/lift', [UserRestrictionController::class, 'lift'])
+        ->name('admin.restrictions.lift');
+    //  Platform Staff Routes
+    // Route::get('/admin/staff', [PlatformStaffController::class, 'index'])->name('staff.index');
+    // Route::post('/admin/staff', [PlatformStaffController::class, 'store'])->name('staff.store');
+    // Route::put('/admin/staff/{staff}', [PlatformStaffController::class, 'update'])->name('staff.update');
+    // Route::post('/admin/staff/{staff}/avatar', [PlatformStaffController::class, 'updateAvatar'])->name('staff.avatar');
+    // Route::delete('/admin/staff/{staff}', [PlatformStaffController::class, 'destroy'])->name('staff.destroy');
+});

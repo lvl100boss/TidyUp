@@ -23,11 +23,11 @@ export default function Sidebar() {
         // { label: "Sales Report", href: "/admin/content", icon: Tag },
         // { label: "Invoice", href: "/admin/settings", icon: Receipt },
         { label: "Analytics", href: "/admin/analytics", icon: Users },
-        {
-            label: "Customer Service",
-            href: "/admin/customer-service",
-            icon: MessageCircleMore,
-        },
+        // {
+        //     label: "Customer Service",
+        //     href: "/admin/customer-service",
+        //     icon: MessageCircleMore,
+        // },
         { label: "User Feedback", href: "/admin/feedback", icon: MailOpen },
         {
             label: "Restriction",
@@ -52,11 +52,10 @@ export default function Sidebar() {
                             <Link
                                 key={item.label}
                                 href={item.href}
-                                className={`flex items-center px-4 py-2 rounded-md group transition-colors ${
-                                    isActive
+                                className={`flex items-center px-4 py-2 rounded-md group transition-colors ${isActive
                                         ? "bg-secondary"
                                         : "hover:bg-secondary"
-                                }`}
+                                    }`}
                             >
                                 <Icon className="w-5 h-5 mr-3" />
                                 <span>{item.label}</span>

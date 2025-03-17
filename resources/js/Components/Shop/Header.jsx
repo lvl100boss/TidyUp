@@ -34,9 +34,8 @@ const Header = ({ onClick, isDarkTheme }) => {
     }, []);
     return (
         <header
-            className={`flex justify-between items-center mb-3 fixed top-0 left-0 right-0 z-50 px-5 py-3 bg-background/90 backdrop-blur border-dashed ${
-                isScrolled ? "border-b" : ""
-            }`}
+            className={`flex justify-between items-center mb-3 fixed top-0 left-0 right-0 z-50 px-5 py-3 bg-background/90 backdrop-blur border-dashed ${isScrolled ? "border-b" : ""
+                }`}
         >
             <div>
                 <Link href="/" className="flex items-center gap-2">
@@ -116,19 +115,7 @@ const Header = ({ onClick, isDarkTheme }) => {
                                 <Link href="/profile">
                                     <DropdownMenuItem>Profile</DropdownMenuItem>
                                 </Link>
-                                {role.role_id === 3 ? (
-                                    <Link href={route("shop.dashboard")}>
-                                        <DropdownMenuItem>
-                                            Manage Shop
-                                        </DropdownMenuItem>
-                                    </Link>
-                                ) : (
-                                    <DropdownMenuItem>
-                                        Setup Your Shop
-                                    </DropdownMenuItem>
-                                )}
                             </DropdownMenuGroup>
-                            <DropdownMenuSeparator />
                             <DropdownMenuItem onClick={onClick}>
                                 Set Theme to{" "}
                                 {isDarkTheme ? "Light Mode" : "Dark Mode"}
@@ -155,6 +142,7 @@ const Header = ({ onClick, isDarkTheme }) => {
                 </div>
             ) : (
                 <div className="flex items-center gap-2">
+
                     <Link
                         href="/register"
                         className={`${buttonVariants({

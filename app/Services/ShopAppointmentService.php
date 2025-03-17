@@ -1,0 +1,225 @@
+<?php
+
+namespace App\Services;
+
+use App\Models\Appointments;
+use App\Models\ShopStaffs;
+use App\Models\User;
+use App\Models\UserAppointments;
+use Illuminate\Support\Facades\Auth;
+
+class ShopAppointmentService
+{
+    /**
+     * Get all appointment data for a staff member
+     * 
+     * @param int $userId
+     * @return array
+     */
+    public function getAppointmentsData($userId)
+    {
+        $user = User::find($userId);
+        $currentStaff = ShopStaffs::with(['shop', 'staff'])->where('staff_id', $user->id)->first();
+
+        if (!$currentStaff) {
+            return [
+                'currentStaff' => null,
+                'appointments' => []
+            ];
+        }
+        return [
+            'currentStaff' => $currentStaff,
+            'appointments' => $this->getCategorizedAppointments($currentStaff->id),
+            'upcomingSchedules' => $this->getCurrentStaffUpcomingAppointmentSchedules($currentStaff->id),
+            'shopBusinessSchedules' => $this->getShopBusinessHours($currentStaff->id),
+            'shopAppointments' => $this->getShopAppointments($currentStaff->id)
+        ];
+    }
+
+    private function getAllAppointments($staffId) {}
+
+    /**
+     * Get appointments for a staff member categorized by status
+     * 
+     * @param int $staffId
+     * @return array
+     */
+    private function getCategorizedAppointments($staffId)
+    {
+        $userAppointments = UserAppointments::where('staff_id', $staffId)
+            ->with([
+                'user',
+                'appointment',
+                'appointment.appointmentServices.shopService'
+            ])
+            ->get();
+
+        // Group appointments by status
+        $categorized = [
+            'pending' => [],
+            'upcoming' => [],
+            'completed' => [],
+            'cancelled' => [],
+            'no-show' => [],
+            'declined' => []
+        ];
+
+        foreach ($userAppointments as $appointment) {
+            $status = $appointment->appointment->status ?? 'pending';
+            $categorized[$status][] = $this->formatAppointmentData($appointment);
+        }
+
+        return $categorized;
+    }
+
+    /**
+     * Format appointment data for cleaner frontend usage
+     * 
+     * @param UserAppointments $userAppointment
+     * @return array
+     */
+    private function formatAppointmentData($userAppointment)
+    {
+        // Get all services for this appointment
+        $services = [];
+        foreach ($userAppointment->appointment->appointmentServices as $service) {
+            $services[] = [
+                'id' => $service->shopService->id,
+                'name' => $service->shopService->service_name,
+                'cost' => $service->shopService->cost,
+                'duration' => [
+                    'hours' => $service->shopService->duration_hour,
+                    'minutes' => $service->shopService->duration_minute
+                ]
+            ];
+        }
+
+        // Calculate total cost and duration
+        $totalCost = array_sum(array_column($services, 'cost'));
+        $totalHours = array_sum(array_column(array_column($services, 'duration'), 'hours'));
+        $totalMinutes = array_sum(array_column(array_column($services, 'duration'), 'minutes'));
+
+        // Convert excess minutes to hours
+        $totalHours += floor($totalMinutes / 60);
+        $totalMinutes %= 60;
+
+        return [
+            'id' => $userAppointment->appointment->id,
+            'date' => $userAppointment->appointment->date,
+            'time' => $userAppointment->appointment->time,
+            'status' => $userAppointment->appointment->status,
+            'customer' => [
+                'id' => $userAppointment->user->id,
+                'name' => $userAppointment->user->first_name . " " . $userAppointment->user->last_name,
+                'email' => $userAppointment->user->email,
+                'profile_photo' => '/storage/' . $userAppointment->user->profile_photo_path
+            ],
+            'services' => $services,
+            'total_cost' => $totalCost,
+            'total_duration' => [
+                'hours' => $totalHours,
+                'minutes' => $totalMinutes
+            ],
+            'notes' => $userAppointment->appointment->note,
+            'decline_reason' => $userAppointment->appointment->decline_reason,
+            'cancel_reason' => $userAppointment->appointment->cancel_reason,
+            'resched_reason' => $userAppointment->appointment->resched_reason
+        ];
+    }
+
+    private function getCurrentStaffUpcomingAppointmentSchedules($staffId)
+    {
+        $upcomingSchedule = UserAppointments::where('staff_id', $staffId)
+            ->with([
+                'appointment',
+                'appointment.appointmentServices.shopService'
+            ])
+            ->whereHas('appointment', function ($query) {
+                $query->where('status', 'upcoming');
+            })
+            ->get();
+
+        // Calculate duration for each appointment individually
+        $formattedSchedules = [];
+        foreach ($upcomingSchedule as $schedule) {
+            $totalMinutes = $schedule->appointment->appointmentServices->sum(function ($service) {
+                return $service->shopService->duration_hour * 60 + $service->shopService->duration_minute;
+            });
+
+            // Convert to hours and minutes
+            $hours = floor($totalMinutes / 60);
+            $minutes = $totalMinutes % 60;
+
+            $formattedSchedules[] = [
+                'id' => $schedule->appointment->id,
+                'date' => $schedule->appointment->date,
+                'time' => $schedule->appointment->time,
+                'total_duration' => [
+                    'hours' => $hours,
+                    'minutes' => $minutes,
+                    'total_minutes' => $totalMinutes
+                ],
+                'appointment_data' => $schedule
+                // Add any other data you need from the appointment
+            ];
+        }
+        // dd($formattedSchedules);
+        return $formattedSchedules;
+    }
+
+    private function getShopBusinessHours($staffId)
+    {
+        $staff = ShopStaffs::find($staffId);
+        $shopBusinessSchedules = $staff->shop->load('shopOperationHours')->shopOperationHours;
+        return $shopBusinessSchedules;
+    }
+
+    private function getShopAppointments($staffId)
+    {
+        $shopAppointments = ShopStaffs::find($staffId)->shop->appointments;
+        $shopAppointments = $shopAppointments->map(function ($appointment) {
+            return [
+                'id' => $appointment->id,
+                'date' => $appointment->date,
+                'time' => $appointment->time,
+                'status' => $appointment->status,
+                'customer' => [
+                    'id' => $appointment->user->id,
+                    'name' => $appointment->user->first_name . " " . $appointment->user->last_name,
+                    'email' => $appointment->user->email,
+                    'profile_photo' => '/storage/' . $appointment->user->profile_photo_path
+                ],
+                'stylist' => [
+                    'id' => $appointment->userAppointments->isNotEmpty() ? $appointment->userAppointments[0]->staff->id : null,
+                    'name' => $appointment->userAppointments->isNotEmpty() ? $appointment->userAppointments[0]->staff->staff->first_name . " " . $appointment->userAppointments[0]->staff->staff->last_name : null,
+                    'email' => $appointment->userAppointments->isNotEmpty() ? $appointment->userAppointments[0]->staff->staff->email : null,
+                    'profile_photo' => $appointment->userAppointments->isNotEmpty() ? '/storage/' . $appointment->userAppointments[0]->staff->staff->profile_photo_path : null
+                ],
+
+                'services' => $appointment->appointmentServices->map(function ($service) {
+                    return [
+                        'id' => $service->shopService->id,
+                        'name' => $service->shopService->service_name,
+                        'cost' => $service->shopService->cost,
+                        'duration' => [
+                            'hours' => $service->shopService->duration_hour,
+                            'minutes' => $service->shopService->duration_minute
+                        ]
+                    ];
+                }),
+                'total_cost' => $appointment->appointmentServices->sum('shopService.cost'),
+                'total_duration' => [
+                    'hours' => $appointment->appointmentServices->sum('shopService.duration_hour'),
+                    'minutes' => $appointment->appointmentServices->sum('shopService.duration_minute')
+                ],
+                'notes' => $appointment->note,
+                'decline_reason' => $appointment->decline_reason,
+                'cancel_reason' => $appointment->cancel_reason,
+                'resched_reason' => $appointment->resched_reason
+            ];
+        })->sortByDesc(function ($appointment) {
+            return $appointment['date'] . ' ' . $appointment['time'];
+        })->values();
+        return $shopAppointments;
+    }
+}

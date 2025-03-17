@@ -27,96 +27,52 @@ import {
 } from "lucide-react";
 import ShopsLayout from "@/Layouts/ShopsLayout";
 import { Head } from "@inertiajs/react";
+import { ScrollArea } from "@/components/ui/scroll-area"
 
-const Dashboard = ({ shop, user }) => {
+const Dashboard = ({
+    shop,
+    user,
+    pendingAppointments,
+    upcomingAppointments,
+    popularServices,
+    completedBookingsCount,
+    completedBookingsChange,
+    totalRevenue,
+    revenueChange
+}) => {
     const stats = [
         {
             title: "Total Revenue",
-            value: "₱45,231.89",
+            value: "₱" + parseFloat(totalRevenue).toFixed(2),
             icon: <Wallet className="h-4 w-4 text-muted-foreground" />,
-            change: "+20.1% from last month",
-            trend: "positive",
+            change: `${(revenueChange ?? 0) >= 0 ? '+' : ''}${(revenueChange ?? 0).toFixed(1)}% from last month`,
+            trend: (revenueChange ?? 0) >= 0 ? "positive" : "negative",
         },
         {
-            title: "Active Customers",
-            value: "2,350",
+            title: "Active Employees",
+            value: "5",
             icon: <Users className="h-4 w-4 text-muted-foreground" />,
-            change: "+180 this week",
+            change: "2 new employees",
             trend: "positive",
         },
         {
-            title: "Commpleted Bookings",
-            value: "1,429",
+            title: "Completed Bookings",
+            value: completedBookingsCount,
             icon: <BookOpenCheck className="h-4 w-4 text-muted-foreground" />,
 
-            change: "+19% from last month",
-            trend: "positive",
+            change: `${(completedBookingsChange ?? 0) >= 0 ? '+' : ''}${(completedBookingsChange ?? 0).toFixed(1)}% from last month`,
+            trend: (completedBookingsChange ?? 0) >= 0 ? "positive" : "negative",
         },
         {
-            title: "Available Tokens",
-            value: "20",
+            title: "Subscription Status",
+            value: "Active",
             icon: <Coins className="h-4 w-4 text-muted-foreground" />,
-            change: "5 used this month",
+            change: "Renewal due in 2 weeks",
             trend: "neutral",
         },
     ];
 
-    const pendingAppointments = [
-        {
-            id: 1,
-            customer: "John Doe",
-            service: "Haircut",
-            time: "2:30 PM",
-            price: "₱500",
-            status: "pending",
-        },
-        {
-            id: 2,
-            customer: "Sarah Wilson",
-            service: "Facial",
-            time: "3:00 PM",
-            price: "₱1,200",
-            status: "pending",
-        },
-        {
-            id: 3,
-            customer: "Mike Johnson",
-            service: "Massage",
-            time: "4:15 PM",
-            price: "₱800",
-            status: "pending",
-        },
-    ];
 
-    const upcomingAppointments = [
-        {
-            id: 4,
-            customer: "Jane Smith",
-            service: "Manicure",
-            time: "3:45 PM",
-            date: "Today",
-            price: "₱350",
-            status: "confirmed",
-        },
-        {
-            id: 5,
-            customer: "Robert Brown",
-            service: "Pedicure",
-            time: "11:00 AM",
-            date: "Tomorrow",
-            price: "₱400",
-            status: "confirmed",
-        },
-        {
-            id: 6,
-            customer: "Emily Davis",
-            service: "Hair Color",
-            time: "2:00 PM",
-            date: "Tomorrow",
-            price: "₱2,500",
-            status: "confirmed",
-        },
-    ];
 
     const recentActivity = [
         {
@@ -153,19 +109,13 @@ const Dashboard = ({ shop, user }) => {
         },
     ];
 
-    const popularServices = [
-        { name: "Haircut", bookings: 45, revenue: "₱22,500" },
-        { name: "Hair Color", bookings: 32, revenue: "₱80,000" },
-        { name: "Manicure", bookings: 28, revenue: "₱9,800" },
-        { name: "Facial", bookings: 25, revenue: "₱30,000" },
-    ];
 
     const AppointmentCard = ({ title, appointments, icon, emptyMessage }) => (
         <Card>
             <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                     {icon}
-                    {title}
+                    {title} ({appointments.length})
                 </CardTitle>
             </CardHeader>
             <CardContent>
@@ -174,57 +124,90 @@ const Dashboard = ({ shop, user }) => {
                         {emptyMessage}
                     </p>
                 ) : (
-                    <div className="space-y-4">
-                        {appointments.map((apt) => (
-                            <div
-                                key={apt.id}
-                                className="flex items-center justify-between border-b pb-4 last:border-0"
-                            >
-                                <div className="space-y-1">
-                                    <p className="text-sm font-medium leading-none">
-                                        {apt.customer}
-                                    </p>
-                                    <p className="text-sm text-muted-foreground">
-                                        {apt.service}
-                                    </p>
-                                    <p className="text-sm font-medium text-green-600">
-                                        {apt.price}
-                                    </p>
-                                </div>
-                                <div className="text-right space-y-1">
-                                    <Badge
-                                        variant={
-                                            apt.status === "confirmed"
-                                                ? "success"
-                                                : "secondary"
-                                        }
-                                    >
-                                        {apt.status}
-                                    </Badge>
-                                    <p className="text-sm font-medium">
-                                        {apt.time}
-                                    </p>
-                                    {apt.date && (
-                                        <p className="text-sm text-muted-foreground">
-                                            {apt.date}
+                    <ScrollArea className="h-72 -m-2 p-2">
+                        <div className="space-y-4">
+                            {appointments.map((apt) => (
+                                <div
+                                    key={apt.id}
+                                    className="flex items-center justify-between border-b pb-4 last:border-0"
+                                >
+                                    <div className="flex items-center gap-4">
+                                        <Avatar className="border size-14">
+                                            <AvatarImage
+                                                src={`/storage/${apt.user.profile_photo_path}`}
+                                                alt={apt.user.first_name}
+                                            />
+                                            <AvatarFallback>
+                                                <CircleUser className="h-6 w-6" />
+                                            </AvatarFallback>
+                                        </Avatar>
+                                        <div className="space-y-1">
+                                            <p className="text-sm font-medium leading-none">
+                                                {apt.user.first_name} {apt.user.last_name}
+                                            </p>
+                                            <p className="text-sm text-muted-foreground">
+                                                {apt.user.appointment_services
+                                                    .filter(
+                                                        (service) => service.appointment_id === apt.id
+                                                    ).map(
+                                                        (service) => service.shop_service.service_name
+                                                    ).join(", ")}
+                                            </p>
+                                            <p className="text-sm text-green-600 font-bold">
+                                                ₱{apt.total_price}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div className="text-right space-y-1">
+                                        <div className="flex gap-1">
+                                            <p className="text-sm text-muted-foreground">Stylist:</p>
+                                            <p className="text-sm font-medium text-nowrap">
+                                                {apt.user_appointments?.[0]?.staff?.staff?.first_name || "Unassigned"}
+                                                {apt.user_appointments?.[0]?.staff?.staff?.last_name ?
+                                                    ` ${apt.user_appointments[0].staff.staff.last_name}` : ""}
+                                            </p>
+                                        </div>
+                                        <Badge
+                                            variant={
+                                                apt.status === "confirmed"
+                                                    ? "success"
+                                                    : "secondary"
+                                            }
+                                        >
+                                            {apt.status[0].toUpperCase() + apt.status.slice(1)}
+                                        </Badge>
+                                        <p className="text-sm font-medium">
+                                            {new Date(`2000-01-01T${apt.time}`).toLocaleTimeString('en-US', {
+                                                hour: '2-digit',
+                                                minute: '2-digit',
+                                            })}
                                         </p>
-                                    )}
+                                        {apt.date && (
+                                            <p className="text-sm text-muted-foreground">
+                                                {new Date(apt.date).toLocaleDateString('en-US', {
+                                                    weekday: 'short',
+                                                    month: 'short',
+                                                    day: 'numeric',
+                                                    year: 'numeric',
+                                                })}
+                                            </p>
+                                        )}
+                                    </div>
                                 </div>
-                            </div>
-                        ))}
-                    </div>
+                            ))}
+                        </div>
+                    </ScrollArea>
                 )}
             </CardContent>
         </Card>
     );
-
     return (
         <ShopsLayout>
             <Head title="Dashboard" />
             <div className="flex-1 space-y-4">
                 <div className="flex items-center justify-between space-y-2">
                     <div>
-                        <h2 className="text-3xl font-bold tracking-tight">
+                        <h2 className="text-3xl font-semibold tracking-tight">
                             {shop.shop_name}
                         </h2>
                         <p className="text-muted-foreground">
@@ -247,13 +230,12 @@ const Dashboard = ({ shop, user }) => {
                                     {stat.value}
                                 </div>
                                 <p
-                                    className={`text-xs ${
-                                        stat.trend === "positive"
-                                            ? "text-green-600"
-                                            : stat.trend === "negative"
+                                    className={`text-xs ${stat.trend === "positive"
+                                        ? "text-green-600"
+                                        : stat.trend === "negative"
                                             ? "text-red-600"
                                             : "text-muted-foreground"
-                                    }`}
+                                        }`}
                                 >
                                     {stat.change}
                                 </p>
@@ -312,42 +294,62 @@ const Dashboard = ({ shop, user }) => {
                     </Card>
                 </div>
 
+                {/* Popular Services Section */}
                 <div className="grid gap-4">
                     <Card>
                         <CardHeader>
                             <CardTitle>Popular Services</CardTitle>
                             <CardDescription>
-                                Top performing services this month
+                                Top booked services
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
-                            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                                {popularServices.map((service, index) => (
-                                    <div key={index} className="space-y-2">
-                                        <h3 className="font-medium">
-                                            {service.name}
-                                        </h3>
-                                        <div className="space-y-1">
+                            {popularServices.length === 0 ? (
+                                <p className="text-center text-muted-foreground py-6">
+                                    No service booking data available yet
+                                </p>
+                            ) : (
+                                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                                    {popularServices.slice(0, 4).map((item, index) => (
+                                        <div key={index} className="border rounded-lg p-4 space-y-3">
                                             <div className="flex items-center justify-between">
-                                                <span className="text-sm text-muted-foreground">
-                                                    Bookings
-                                                </span>
-                                                <span className="font-medium">
-                                                    {service.bookings}
-                                                </span>
+                                                <h3 className="font-medium line-clamp-1 text-sm">
+                                                    {item.service.service_name}
+                                                </h3>
+                                                <Badge variant="secondary">
+                                                    #{index + 1}
+                                                </Badge>
                                             </div>
-                                            <div className="flex items-center justify-between">
-                                                <span className="text-sm text-muted-foreground">
-                                                    Revenue
-                                                </span>
-                                                <span className="font-medium text-green-600">
-                                                    {service.revenue}
-                                                </span>
+                                            <div className="space-y-2">
+                                                <div className="flex items-center justify-between">
+                                                    <span className="text-sm text-muted-foreground">
+                                                        Bookings
+                                                    </span>
+                                                    <span className="font-medium">
+                                                        {item.count}
+                                                    </span>
+                                                </div>
+                                                <div className="flex items-center justify-between">
+                                                    <span className="text-sm text-muted-foreground">
+                                                        Price
+                                                    </span>
+                                                    <span className="font-medium text-green-600">
+                                                        ₱{parseFloat(item.service.cost).toFixed(2)}
+                                                    </span>
+                                                </div>
+                                                <div className="flex items-center justify-between">
+                                                    <span className="text-sm text-muted-foreground">
+                                                        Total Revenue
+                                                    </span>
+                                                    <span className="font-semibold text-green-600">
+                                                        ₱{parseFloat(item.service.cost * item.count).toFixed(2)}
+                                                    </span>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                ))}
-                            </div>
+                                    ))}
+                                </div>
+                            )}
                         </CardContent>
                     </Card>
                 </div>
