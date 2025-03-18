@@ -79,7 +79,6 @@ class DocumentVerificationController extends Controller
     private function validateBusinessPermit($text)
     {
         $text = strtolower($text);
-        $currentYear = Carbon::now()->year;
         
         // Common phrases to identify business permits
         $permitIdentifiers = [
@@ -97,7 +96,6 @@ class DocumentVerificationController extends Controller
             }
         }
         
-        // If it's not a permit at all
         if (!$isPermit) {
             return [
                 'isValid' => false,
@@ -107,45 +105,8 @@ class DocumentVerificationController extends Controller
             ];
         }
         
-        // Check for expiration dates
-        $expiredPermit = false;
-        $hasExpirationDate = false;
-        
-        // Search for expiration date patterns
-        if (preg_match('/valid until[: ]*(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{4})/', $text, $matches)) {
-            $hasExpirationDate = true;
-            $expiryDateStr = $matches[1];
-            
-            // Try to parse the date
-            try {
-                $expiryDate = Carbon::createFromFormat('m/d/Y', $expiryDateStr);
-                if ($expiryDate->isPast()) {
-                    $expiredPermit = true;
-                }
-            } catch (\Exception $e) {
-                // If date format doesn't match, try another format
-                try {
-                    $expiryDate = Carbon::createFromFormat('d-m-Y', $expiryDateStr);
-                    if ($expiryDate->isPast()) {
-                        $expiredPermit = true;
-                    }
-                } catch (\Exception $e) {
-                    // Unable to parse date
-                }
-            }
-        }
-        
-        // Look for year indicators
-        if (preg_match('/(?:valid|expir\w+)(?:\s+\w+){0,3}\s+(\d{4})/', $text, $matches)) {
-            $yearFound = (int)$matches[1];
-            if ($yearFound < $currentYear) {
-                $expiredPermit = true;
-                $hasExpirationDate = true;
-            }
-        }
-        
-        // Check image quality based on extracted text length
-        $lowQuality = strlen($text) < 100; // Arbitrary threshold
+        // Check image quality
+        $lowQuality = strlen($text) < 100;
         
         if ($lowQuality) {
             return [
@@ -153,15 +114,6 @@ class DocumentVerificationController extends Controller
                 'message' => 'The image quality is too low. Please upload a clearer image of your business permit.',
                 'issue' => 'low_quality',
                 'status' => 'warning'
-            ];
-        }
-        
-        if ($hasExpirationDate && $expiredPermit) {
-            return [
-                'isValid' => false,
-                'message' => 'This business permit appears to be expired. Please upload a current valid permit.',
-                'issue' => 'expired',
-                'status' => 'error'
             ];
         }
         
@@ -173,7 +125,6 @@ class DocumentVerificationController extends Controller
         $hasAddress = preg_match('/address[: ]*([\w\s\.,]+)/', $text) || 
                       preg_match('/business address[: ]*([\w\s\.,]+)/', $text);
         
-        // Check if permit has all required fields
         if (!$hasBusinessName || !$hasAddress) {
             return [
                 'isValid' => false,
@@ -232,7 +183,6 @@ class DocumentVerificationController extends Controller
     private function validateDtiRegistration($text)
     {
         $text = strtolower($text);
-        $currentYear = Carbon::now()->year;
         
         // Check if it's a DTI document
         $isDtiDoc = false;
@@ -267,49 +217,6 @@ class DocumentVerificationController extends Controller
                 'message' => 'The image quality is too low. Please upload a clearer image of your DTI registration.',
                 'issue' => 'low_quality',
                 'status' => 'warning'
-            ];
-        }
-        
-        // Check for expiration
-        $expiredCertificate = false;
-        $hasExpirationDate = false;
-        
-        // Search for expiration dates
-        if (preg_match('/valid until[: ]*(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{4})/', $text, $matches)) {
-            $hasExpirationDate = true;
-            $expiryDateStr = $matches[1];
-            
-            try {
-                $expiryDate = Carbon::createFromFormat('m/d/Y', $expiryDateStr);
-                if ($expiryDate->isPast()) {
-                    $expiredCertificate = true;
-                }
-            } catch (\Exception $e) {
-                try {
-                    $expiryDate = Carbon::createFromFormat('d-m-Y', $expiryDateStr);
-                    if ($expiryDate->isPast()) {
-                        $expiredCertificate = true;
-                    }
-                } catch (\Exception $e) {
-                    // Unable to parse date
-                }
-            }
-        }
-        
-        if (preg_match('/(?:valid|expir\w+)(?:\s+\w+){0,3}\s+(\d{4})/', $text, $matches)) {
-            $yearFound = (int)$matches[1];
-            if ($yearFound < $currentYear) {
-                $expiredCertificate = true;
-                $hasExpirationDate = true;
-            }
-        }
-        
-        if ($hasExpirationDate && $expiredCertificate) {
-            return [
-                'isValid' => false,
-                'message' => 'This DTI registration appears to be expired. Please upload a current valid certificate.',
-                'issue' => 'expired',
-                'status' => 'error'
             ];
         }
         
@@ -376,10 +283,7 @@ class DocumentVerificationController extends Controller
     private function validateValidId($text)
     {
         $text = strtolower($text);
-        $currentYear = Carbon::now()->year;
         
-        // Identify if it's a government ID
-        $isGovtId = false;
         $idTypes = [
             'driver\'s license',
             'passport',
@@ -398,6 +302,7 @@ class DocumentVerificationController extends Controller
         ];
         
         $detectedIdType = '';
+        $isGovtId = false;
         foreach ($idTypes as $idType) {
             if (stripos($text, $idType) !== false) {
                 $isGovtId = true;
@@ -424,48 +329,6 @@ class DocumentVerificationController extends Controller
                 'message' => 'The image quality is too low. Please upload a clearer image of your ID.',
                 'issue' => 'low_quality',
                 'status' => 'warning'
-            ];
-        }
-        
-        // Check for expiration
-        $expiredId = false;
-        $hasExpirationDate = false;
-        
-        if (preg_match('/(?:valid|expir\w+)[^\d]*(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{4})/', $text, $matches)) {
-            $hasExpirationDate = true;
-            $expiryDateStr = $matches[1];
-            
-            try {
-                $expiryDate = Carbon::createFromFormat('m/d/Y', $expiryDateStr);
-                if ($expiryDate->isPast()) {
-                    $expiredId = true;
-                }
-            } catch (\Exception $e) {
-                try {
-                    $expiryDate = Carbon::createFromFormat('d-m-Y', $expiryDateStr);
-                    if ($expiryDate->isPast()) {
-                        $expiredId = true;
-                    }
-                } catch (\Exception $e) {
-                    // Unable to parse date
-                }
-            }
-        }
-        
-        if (preg_match('/(?:valid|expiry|expiration)(?:\s+\w+){0,3}\s+(\d{4})/', $text, $matches)) {
-            $yearFound = (int)$matches[1];
-            if ($yearFound < $currentYear) {
-                $expiredId = true;
-                $hasExpirationDate = true;
-            }
-        }
-        
-        if ($hasExpirationDate && $expiredId) {
-            return [
-                'isValid' => false,
-                'message' => 'This ID appears to be expired. Please upload a current valid ID.',
-                'issue' => 'expired',
-                'status' => 'error'
             ];
         }
         
