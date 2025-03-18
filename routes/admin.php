@@ -5,6 +5,7 @@ use Inertia\Inertia;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\UserRestrictionController;
 use App\Http\Controllers\Admin\RestrictionController;
+use App\Http\Controllers\Admin\ShopController;
 
 Route::middleware(['auth', 'verified'])->group(function () {
     // Dashboard
@@ -13,11 +14,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
     })->name('admin.dashboard');
     Route::redirect('/admin', '/admin/dashboard');
 
-    // Static pages
-    Route::get('/admin/shops', function () {
-        return Inertia::render('Admin/Shops');
-    })->name('admin.shops');
+    // Shop management routes - replace the static route with the controller method
+    Route::get('/admin/shops', [ShopController::class, 'index'])->name('admin.shops');
+    Route::get('/admin/shops/{shop}', [ShopController::class, 'show'])->name('admin.shops.show');
+    Route::post('/admin/shops/{shop}/verify', [ShopController::class, 'verify'])->name('admin.shops.verify');
+    Route::post('/admin/shops/{shop}/reject', [ShopController::class, 'reject'])->name('admin.shops.reject');
+    Route::post('/admin/shops/{shop}/update-status', [ShopController::class, 'updateStatus'])->name('admin.shops.update-status');
 
+    // Static pages
     Route::get('/admin/analytics', function () {
         return Inertia::render('Admin/Analytics');
     })->name('admin.analytics');
@@ -47,6 +51,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::post('/admin/restrictions/lift', [UserRestrictionController::class, 'lift'])
         ->name('admin.restrictions.lift');
+
     //  Platform Staff Routes
     // Route::get('/admin/staff', [PlatformStaffController::class, 'index'])->name('staff.index');
     // Route::post('/admin/staff', [PlatformStaffController::class, 'store'])->name('staff.store');
