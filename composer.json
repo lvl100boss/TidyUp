@@ -9,6 +9,7 @@
         "php": "^8.2",
         "firebase/php-jwt": "v6.11.0",
         "google/cloud-vision": "1.2.0",
+
         "inertiajs/inertia-laravel": "^2.0",
         "laravel/framework": "^11.31",
         "laravel/sanctum": "^4.0",

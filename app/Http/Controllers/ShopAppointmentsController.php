@@ -22,7 +22,6 @@ class ShopAppointmentsController extends Controller
     public function index()
     {
         $myAppointments = $this->appointmentService->getAppointmentsData(auth()->id());
-
         return Inertia::render('Shops/Appointments', [
             'staffData' => $myAppointments['currentStaff'],
             'myAppointments' => $myAppointments['appointments'],

@@ -20,9 +20,6 @@ import NoShowButtonModal from "@/Components/Appointments/NoShowButtonModal";
 
 
 export default function AppointmentCard({ appointment, upcomingSchedules, shopBusinessSchedules }) {
-    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-    const { confirm } = useConfirm();
-
     const statusVariants = {
         upcoming: "border-blue-300/30 bg-blue-50/50 text-blue-800 dark:bg-blue-950/50 dark:text-blue-300",
         pending: "border-yellow-300/30 bg-yellow-50/50 text-yellow-800 dark:bg-yellow-950/50 dark:text-yellow-300",
@@ -208,33 +205,23 @@ export default function AppointmentCard({ appointment, upcomingSchedules, shopBu
                     {appointment.status === "pending" && (
                         <>
                             <ApproveButtonModal appointment={appointment} />
-                            <ReschedReqButton appointment={appointment} />
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => setIsEditModalOpen(true)}
-                                className="gap-1.5 rounded-lg px-4 font-medium hover:bg-primary/10 hover:text-primary"
-                            >
-                                <Edit className="h-4 w-4" />
-                                Edit
-                            </Button>
-                            <RejectButtonModal appointment={appointment} upcomingSchedules={upcomingSchedules} shopBusinessSchedules={shopBusinessSchedules} />
+                            <ReschedReqButton
+                                appointment={appointment}
+                                upcomingSchedules={upcomingSchedules}
+                                shopBusinessSchedules={shopBusinessSchedules}
+                            />
+                            <RejectButtonModal appointment={appointment} />
                         </>
                     )}
 
                     {appointment.status === "upcoming" && (
                         <>
                             <StartedButtonModal appointment={appointment} />
-                            <ReschedReqButton appointment={appointment} upcomingSchedules={upcomingSchedules} shopBusinessSchedules={shopBusinessSchedules} />
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => setIsEditModalOpen(true)}
-                                className="gap-1.5 rounded-lg px-4 font-medium hover:bg-primary/10 hover:text-primary"
-                            >
-                                <Edit className="h-4 w-4" />
-                                Edit
-                            </Button>
+                            <ReschedReqButton
+                                appointment={appointment}
+                                upcomingSchedules={upcomingSchedules}
+                                shopBusinessSchedules={shopBusinessSchedules}
+                            />
                             <NoShowButtonModal appointment={appointment} />
                             <CancelButtonModal appointment={appointment} />
                         </>
@@ -247,12 +234,6 @@ export default function AppointmentCard({ appointment, upcomingSchedules, shopBu
                     )}
                 </CardFooter>
             </Card>
-
-            <EditAppointmentModal
-                isOpen={isEditModalOpen}
-                setIsOpen={setIsEditModalOpen}
-                appointment={appointment}
-            />
         </>
     );
 }

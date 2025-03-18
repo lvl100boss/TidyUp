@@ -31,6 +31,7 @@ const RestrictModal = ({ isOpen, onClose, user }) => {
     const [showCalendar, setShowCalendar] = useState(false);
     const calendarRef = useRef(null);
 
+
     useEffect(() => {
         const handleClickOutside = (event) => {
             if (calendarRef.current && !calendarRef.current.contains(event.target)) {
@@ -69,6 +70,7 @@ const RestrictModal = ({ isOpen, onClose, user }) => {
         } finally {
             setIsSubmitting(false);
         }
+
     };
 
     const durationSection = (
@@ -177,6 +179,7 @@ const RestrictModal = ({ isOpen, onClose, user }) => {
 
                     {durationSection}
 
+
                     <div className="grid grid-cols-2 gap-4">
                         <div>
                             <p className="text-sm font-medium">Email:</p>
@@ -207,16 +210,16 @@ const RestrictModal = ({ isOpen, onClose, user }) => {
                     </div>
 
                     <div className="flex justify-end space-x-2">
-                        <Button 
-                            variant="outline" 
+                        <Button
+                            variant="outline"
                             onClick={onClose}
                             disabled={isSubmitting}
                         >
                             Cancel
                         </Button>
 
-                        <Button 
-                            className="bg-red-500 text-foreground" 
+                        <Button
+                            className="bg-red-500 text-foreground"
                             onClick={handleRestrict}
                             disabled={!reason || isSubmitting}
                         >
@@ -482,9 +485,9 @@ export default function Users({ users, links }) {  // Add links prop
                                                     Edit
                                                 </DropdownMenuItem>
                                                 <DropdownMenuItem
-                                                    onClick={() =>
-                                                        handleRestrictUser(row)
-                                                    }
+                                                    onClick={(e) => {
+                                                        handleRestrictUser(row);
+                                                    }}
                                                 >
                                                     Restrict
                                                 </DropdownMenuItem>
@@ -514,13 +517,15 @@ export default function Users({ users, links }) {  // Add links prop
                 </div>
             </div>
 
-            {selectedUser && (
-                <RestrictModal
-                    isOpen={isRestrictModalOpen}
-                    onClose={handleCloseRestrictModal}
-                    user={selectedUser}
-                />
-            )}
-        </AdminLayout>
+            {
+                selectedUser && (
+                    <RestrictModal
+                        isOpen={isRestrictModalOpen}
+                        onClose={handleCloseRestrictModal}
+                        user={selectedUser}
+                    />
+                )
+            }
+        </AdminLayout >
     );
 }
