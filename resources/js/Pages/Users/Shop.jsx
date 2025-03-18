@@ -63,9 +63,15 @@ export default function Shop({ shop, randomShops }) {
         return null;
     }
 
-    // If shop is not verified, redirect to not-found
-    if (shop.status !== 'verified') {
-        router.visit('/not-found');
+    // Handle redirection for unverified shops after component mounts
+    useEffect(() => {
+        if (shop && shop.status !== 'verified') {
+            router.visit('/not-found');
+        }
+    }, [shop]);
+
+    // Early return if shop is not verified
+    if (shop && shop.status !== 'verified') {
         return null;
     }
 

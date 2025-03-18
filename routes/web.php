@@ -46,9 +46,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
 });
 
 // Fix the shop detail route pattern to match the links being generated
-Route::get('/shop/{id}', [ShopController::class, 'show'])->name('shop.show');
+Route::get('/shop/{id}', [ShopController::class, 'show'])->where('id', '[0-9]+')->name('shop.show');
 // Add a compatibility route for links that might be using the /{id}/shop pattern
-Route::get('/{id}/shop', [ShopController::class, 'show']);
+Route::get('/{id}/shop', [ShopController::class, 'show'])->where('id', '[0-9]+');
 
 // Debug route - kept for future potential issues
 Route::get('/debug/check-documents/{shopId}', function ($shopId) {

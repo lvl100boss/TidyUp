@@ -30,11 +30,11 @@ class Shop extends Model
     // Add appends to ensure status is always included
     protected $appends = ['shop_status'];
 
-    // Add a custom accessor for status to diagnose issues
+    // Clean up the shop status logging to prevent excessive log entries
     public function getShopStatusAttribute()
     {
         $status = $this->attributes['status'] ?? 'unknown';
-        Log::debug("Shop {$this->id} status: {$status}");
+        // Only log on dashboard access, not every status check
         return $status;
     }
 
@@ -87,24 +87,30 @@ class Shop extends Model
         return $this->hasOne(ShopLegalDocument::class, 'shop_id');
     }
 
-    // Remove or comment out the problematic methods that use non-existent tables
-    // public function shop_categories()
-    // {
-    //     return $this->hasMany(ShopCategory::class);
-    // }
+    // Fix the relationship between Shop and ShopStaffs to ensure it works correctly
+    public function shopStaffs()
+    {
+        return $this->hasMany(ShopStaffs::class, 'shop_id');
+    }
 
-    // public function shop_gallery()
-    // {
-    //     return $this->hasMany(ShopGallery::class);
-    // }
+    /**
+     * Get the shop owner from shop staffs
+     */
+    public function owner()
+    {
+        return $this->shopStaffs()
+            ->where(function ($query) {
+                $query->where('role', 'Shop Owner')
+                    ->orWhere('position', 'owner');
+            })
+            ->with('staff')
+            ->first();
+    }
 
-    // public function shop_service_categories()
-    // {
-    //     return $this->hasMany(ShopServiceCategories::class);
-    // }
-
-    // public function shop_operation_hours()
-    // {
-    //     return $this->hasMany(OperationHours::class, 'shop_id');
-    // }
+    // Make sure this relationship works correctly
+    public function shopOwner()
+    {
+        $ownerStaff = $this->shopStaffs()->where('role', 'Shop Owner')->orWhere('position', 'owner')->first();
+        return $ownerStaff ? $ownerStaff->staff() : null;
+    }
 }

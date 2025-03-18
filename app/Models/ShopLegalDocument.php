@@ -20,16 +20,9 @@ class ShopLegalDocument extends Model
         'valid_id_url'
     ];
 
-    /**
-     * The accessors to append to the model's array form.
-     *
-     * @var array
-     */
-    protected $appends = [
-        'business_permit_public_url',
-        'dti_registration_public_url',
-        'valid_id_public_url'
-    ];
+    protected $hidden = ['created_at', 'updated_at'];
+
+    protected $appends = ['formatted_urls'];
 
     /**
      * Get the shop that owns these legal documents.
@@ -45,9 +38,7 @@ class ShopLegalDocument extends Model
     public function getBusinessPermitPublicUrlAttribute()
     {
         if ($this->business_permit_url) {
-            $url = url($this->business_permit_url);
-            Log::info("Business permit public URL: {$url}");
-            return $url;
+            return Storage::disk('public')->url($this->business_permit_url);
         }
         return null;
     }
@@ -58,7 +49,7 @@ class ShopLegalDocument extends Model
     public function getDtiRegistrationPublicUrlAttribute()
     {
         if ($this->dti_registration_url) {
-            return url($this->dti_registration_url);
+            return Storage::disk('public')->url($this->dti_registration_url);
         }
         return null;
     }
@@ -69,7 +60,7 @@ class ShopLegalDocument extends Model
     public function getValidIdPublicUrlAttribute()
     {
         if ($this->valid_id_url) {
-            return url($this->valid_id_url);
+            return Storage::disk('public')->url($this->valid_id_url);
         }
         return null;
     }
@@ -107,5 +98,29 @@ class ShopLegalDocument extends Model
         }
 
         return true;
+    }
+
+    public function getFormattedUrlsAttribute()
+    {
+        return [
+            'business_permit' => $this->business_permit_url,
+            'dti_registration' => $this->dti_registration_url,
+            'valid_id' => $this->valid_id_url
+        ];
+    }
+
+    public function getBusinessPermitUrlAttribute($value)
+    {
+        return $value ? ltrim($value, 'storage/') : null;
+    }
+
+    public function getDtiRegistrationUrlAttribute($value)
+    {
+        return $value ? ltrim($value, 'storage/') : null;
+    }
+
+    public function getValidIdUrlAttribute($value)
+    {
+        return $value ? ltrim($value, 'storage/') : null;
     }
 }

@@ -157,23 +157,29 @@ class ShopController extends Controller
 
     public function show($id)
     {
+        // Make sure $id is numeric before processing
+        if (!is_numeric($id)) {
+            Log::warning('Invalid shop ID format', ['shop_id' => $id]);
+            return redirect()->route('not-found');
+        }
+
         // Add debug logging
         Log::info('Shop detail page requested', ['shop_id' => $id]);
-        
+
         // Find the shop with all necessary relationships
         $shop = Shop::with(['shopGallery', 'shopServiceCategories.serviceCategories', 'shopOperationHours', 'socialMedia'])
             ->where('status', 'verified') // Only get verified shops
             ->find($id);
-        
+
         // If shop doesn't exist or is not verified, return 404
         if (!$shop) {
             Log::warning('Shop not found or not verified', ['shop_id' => $id]);
             return redirect()->route('not-found');
         }
-        
+
         // Log success
         Log::info('Shop found and being displayed', ['shop' => $shop->shop_name, 'id' => $shop->id]);
-        
+
         // Get random verified shops for customer's choices section
         $randomShops = Shop::with(['shopGallery', 'shopCategories.categories'])
             ->where('status', 'verified')
@@ -181,7 +187,7 @@ class ShopController extends Controller
             ->inRandomOrder()
             ->limit(10)
             ->get();
-        
+
         return Inertia::render('Users/Shop', [
             'shop' => $shop,
             'randomShops' => $randomShops
