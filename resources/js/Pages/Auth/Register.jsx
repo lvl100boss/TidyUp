@@ -10,11 +10,13 @@ import React, { use, useEffect, useState } from "react";
 export default function Register() {
     const { data, setData, post, processing, errors, reset } = useForm({
         first_name: "",
+        middle_name: "",
         last_name: "",
         username: "",
         email: "",
         password: "",
         password_confirmation: "",
+        has_middle_name: false,
     });
 
     const submit = (e) => {
@@ -44,6 +46,10 @@ export default function Register() {
 
     useEffect(() => {
         switch (passwordStrength) {
+            case 0:
+                setPasswordStrengthString("");
+                setPasswordStrengthColor("");
+                break;
             case 25:
                 setPasswordStrengthString("Weak password");
                 setPasswordStrengthColor("-red-500");
@@ -55,7 +61,6 @@ export default function Register() {
             case 75:
                 setPasswordStrengthString("Good password");
                 setPasswordStrengthColor("-blue-500");
-
                 break;
             case 100:
                 setPasswordStrengthString("Strong password");
@@ -68,16 +73,20 @@ export default function Register() {
 
     useEffect(() => {
         let strength = 0;
+        // Length check (at least 8 characters)
         if (data.password.length >= 8) {
             strength += 25;
         }
-        if (data.password.match(/[a-z]/) && data.password.match(/[A-Z]/)) {
+        // Uppercase and lowercase check
+        if (/[A-Z]/.test(data.password) && /[a-z]/.test(data.password)) {
             strength += 25;
         }
-        if (data.password.match(/[!@#$%^&*(),.?":{}|<>]/)) {
+        // Special characters check (more comprehensive list)
+        if (/[!@#$%^&*(),.?":{}|<>_\-+=[\]/\\]/.test(data.password)) {
             strength += 25;
         }
-        if (data.password.match(/[0-9]/)) {
+        // Numbers check
+        if (/\d/.test(data.password)) {
             strength += 25;
         }
         setPasswordStrength(strength);
@@ -135,6 +144,36 @@ export default function Register() {
                         onChange={(e) => setData("first_name", e.target.value)}
                     />
                     <InputError message={errors.first_name} className="mt-2" />
+                </div>
+                <div>
+                    <Label htmlFor="middle_name">Middle Name</Label>
+                    <Input
+                        id="middle_name"
+                        type="text"
+                        name="middle_name"
+                        placeholder="Enter your middle name"
+                        value={data.middle_name}
+                        autoComplete="given-name"
+                        disabled={data.has_middle_name}
+                        className={data.has_middle_name ? "bg-gray-100 text-gray-500" : ""}
+                        onChange={(e) => setData("middle_name", e.target.value)}
+                    />
+                    <InputError message={errors.middle_name} className="mt-2" />
+                    <div className="flex items-center space-x-2 mb-2 mt-2">
+                        <input
+                            type="checkbox"
+                            id="has_middle_name"
+                            checked={data.has_middle_name}
+                            onChange={(e) => {
+                                setData("has_middle_name", e.target.checked);
+                                if (e.target.checked) {
+                                    setData("middle_name", "");
+                                }
+                            }}
+                            className="rounded border-gray-300"
+                        />
+                        <Label htmlFor="has_middle_name">I don't have a middle name</Label>
+                    </div>
                 </div>
                 <div className="mt-4">
                     <Label htmlFor="last_name">Last Name</Label>
@@ -199,7 +238,23 @@ export default function Register() {
                         onChange={(e) => setData("password", e.target.value)}
                     />
                     <Progress value={passwordStrength} />
-
+                    <div className="text-sm text-muted-foreground mt-2">
+                        Password must contain:
+                        <ul className="list-disc list-inside space-y-1 mt-1">
+                            <li className={data.password.length >= 8 ? "text-green-500" : ""}>
+                                At least 8 characters
+                            </li>
+                            <li className={/[A-Z]/.test(data.password) && /[a-z]/.test(data.password) ? "text-green-500" : ""}>
+                                Both uppercase and lowercase letters
+                            </li>
+                            <li className={/[!@#$%^&*(),.?":{}|<>_\-+=[\]/\\]/.test(data.password) ? "text-green-500" : ""}>
+                                At least one special character
+                            </li>
+                            <li className={/\d/.test(data.password) ? "text-green-500" : ""}>
+                                At least one number
+                            </li>
+                        </ul>
+                    </div>
                     <InputError message={errors.password} className="mt-2" />
                 </div>
 
