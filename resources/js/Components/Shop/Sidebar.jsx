@@ -6,6 +6,7 @@ import {
     BookOpen,
     Building2,
     LayoutDashboard,
+    CreditCard 
     // TrendingUp,
     // Compass,
     // Scissors,
@@ -25,6 +26,7 @@ const Sidebar = () => {
         { href: "/shop/profile", label: "Shop Profile", icon: Building2 },
         { href: "/shop/catalog", label: "Shop Catalog", icon: BookOpen },
         { href: "/shop/manage/staff", label: "Manage Staffs", icon: Store },
+        { href: "/shop/subscriptions", label: "Subscriptions", icon: CreditCard },
     ];
 
     // const categoryLinks = [
