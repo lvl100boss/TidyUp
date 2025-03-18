@@ -233,7 +233,7 @@ const RestrictModal = ({ isOpen, onClose, user }) => {
 };
 
 export default function Users({ users, links }) {  // Add links prop
-    const [data, setData] = useState([]);  // Initialize as empty array
+    const [data, setData] = useState(users);  // Initialize with backend data
     const [searchTerm, setSearchTerm] = useState("");
     const [isRestrictModalOpen, setIsRestrictModalOpen] = useState(false);
     const [selectedUser, setSelectedUser] = useState(null);
@@ -243,18 +243,6 @@ export default function Users({ users, links }) {  // Add links prop
     });
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 10;
-
-    // Add useEffect to handle initial data filtering
-    useEffect(() => {
-        if (Array.isArray(users)) {
-            const currentDate = new Date();
-            const filteredUsers = users.filter(user => {
-                const userDate = new Date(user.dateRegistered);
-                return userDate <= currentDate;
-            });
-            setData(filteredUsers);
-        }
-    }, [users]);
 
     const paginatedData = data.slice(
         (currentPage - 1) * itemsPerPage,
@@ -268,21 +256,18 @@ export default function Users({ users, links }) {  // Add links prop
     };
 
     const handleDateFilter = (range) => {
-        const currentDate = new Date();
-        
         // Validate the date range
         if (range.from && range.to && range.to < range.from) {
+            // If end date is before start date, adjust it
             range.to = range.from;
         }
         
         setDateRange(range);
         
         const filteredData = users.filter(user => {
+            if (!range.from && !range.to) return true;
+            
             const userDate = new Date(user.dateRegistered);
-            
-            // Skip future dates
-            if (userDate > currentDate) return false;
-            
             if (range.from && range.to) {
                 return userDate >= range.from && userDate <= range.to;
             } else if (range.from) {
@@ -308,21 +293,12 @@ export default function Users({ users, links }) {  // Add links prop
     // Modified search functionality with date filtering
     const handleSearch = (event) => {
         const term = event.target.value.toLowerCase();
-        const currentDate = new Date();
         setSearchTerm(term);
 
         if (term === "") {
-            const filteredUsers = users.filter(user => {
-                const userDate = new Date(user.dateRegistered);
-                return userDate <= currentDate;
-            });
-            setData(filteredUsers);
+            setData(users);
         } else {
             const filteredData = users.filter(item => {
-                const userDate = new Date(item.dateRegistered);
-                // Skip future dates
-                if (userDate > currentDate) return false;
-                
                 // Special handling for date
                 const dateMatch = item.dateRegistered?.toLowerCase().includes(term);
                 
@@ -352,15 +328,9 @@ export default function Users({ users, links }) {  // Add links prop
     };
 
     const handleReset = () => {
-        const currentDate = new Date();
         setSearchTerm("");
         setDateRange({ from: null, to: null });
-        // Filter out future dates when resetting
-        const filteredUsers = users.filter(user => {
-            const userDate = new Date(user.dateRegistered);
-            return userDate <= currentDate;
-        });
-        setData(filteredUsers);
+        setData(users);
     };
 
     return (
