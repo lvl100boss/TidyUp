@@ -230,7 +230,7 @@ const RestrictModal = ({ isOpen, onClose, user }) => {
 };
 
 export default function Users({ users, links }) {  // Add links prop
-    const [data, setData] = useState([]);  // Initialize as empty array
+    const [data, setData] = useState(users);  // Initialize with backend data
     const [searchTerm, setSearchTerm] = useState("");
     const [isRestrictModalOpen, setIsRestrictModalOpen] = useState(false);
     const [selectedUser, setSelectedUser] = useState(null);
@@ -240,13 +240,6 @@ export default function Users({ users, links }) {  // Add links prop
     });
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 10;
-
-    // Add useEffect to handle initial data filtering
-    useEffect(() => {
-        if (Array.isArray(users)) {
-            setData(users);
-        }
-    }, [users]);
 
     const paginatedData = data.slice(
         (currentPage - 1) * itemsPerPage,
@@ -260,11 +253,18 @@ export default function Users({ users, links }) {  // Add links prop
     };
 
     const handleDateFilter = (range) => {
+        // Validate the date range
+        if (range.from && range.to && range.to < range.from) {
+            // If end date is before start date, adjust it
+            range.to = range.from;
+        }
+        
         setDateRange(range);
         
         const filteredData = users.filter(user => {
-            const userDate = new Date(user.dateRegistered);
+            if (!range.from && !range.to) return true;
             
+            const userDate = new Date(user.dateRegistered);
             if (range.from && range.to) {
                 return userDate >= range.from && userDate <= range.to;
             } else if (range.from) {
@@ -296,8 +296,10 @@ export default function Users({ users, links }) {  // Add links prop
             setData(users);
         } else {
             const filteredData = users.filter(item => {
+                // Special handling for date
                 const dateMatch = item.dateRegistered?.toLowerCase().includes(term);
                 
+                // Check other fields
                 const otherFieldsMatch = ["username", "first_name", "last_name", "email"]
                     .some(field => item[field]?.toLowerCase().includes(term));
 
