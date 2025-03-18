@@ -12,50 +12,48 @@ use Inertia\Inertia;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use App\Notifications\ShopVerificationNotification;
+use App\Notifications\ShopRejectionNotification;
 
 class ShopController extends Controller
 {
     /**
      * Display a listing of shops.
      */
-    public function index()
+    public function index(Request $request)
     {
-        // Get all categories
-        $categories = Categories::all();
-
-        // Add direct query to check what's in the database - using correct table name
-        $rawShopCategories = DB::table('shop_category') // Changed from 'shop_categories' to 'shop_category'
-            ->join('categories', 'shop_category.category_id', '=', 'categories.id')
-            ->select('shop_category.shop_id', 'categories.name as category_name')
-            ->get();
-
-        // Get shops with eager loaded relationships
-        $shops = Shop::with([
-            'user:id,first_name,last_name,email',
-            'shopCategories.categories'
-        ])->latest()->get();
-
-        // Transform data for frontend to ensure categories are properly formatted
-        $formattedShops = $shops->map(function ($shop) use ($rawShopCategories) {
-            // If shop has no categories in the relationship, add them from raw query
-            if ($shop->shopCategories->isEmpty()) {
-                $shopCategoriesFromRaw = $rawShopCategories->where('shop_id', $shop->id);
-                // Convert raw data to match expected format
-                if ($shopCategoriesFromRaw->isNotEmpty()) {
-                    $shop->shopCategoriesRaw = $shopCategoriesFromRaw->map(function ($item) {
-                        return [
-                            'category_name' => $item->category_name
-                        ];
-                    })->values()->toArray();
+        $query = Shop::query()
+            ->with([
+                'user',
+                'shopServiceCategories',
+                'shopCategories.categories' => function ($query) {
+                    $query->select('id', 'name');
                 }
-            }
-            return $shop;
-        });
+            ]);
+
+        // Apply search filter
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('shop_name', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhereHas('user', function ($q) use ($search) {
+                        $q->where('first_name', 'like', "%{$search}%")
+                            ->orWhere('last_name', 'like', "%{$search}%");
+                    });
+            });
+        }
+
+        // Apply status filter
+        if ($request->filled('status') && $request->status !== 'all') {
+            $query->where('status', $request->status);
+        }
+
+        $shops = $query->get();
 
         return Inertia::render('Admin/Shops', [
-            'shops' => $formattedShops,
-            'categories' => $categories,
-            'rawCategoriesData' => $rawShopCategories
+            'shops' => $shops,
+            'filters' => $request->only(['search', 'status']),
         ]);
     }
 
@@ -64,74 +62,85 @@ class ShopController extends Controller
      */
     public function show(Shop $shop)
     {
-        // Remove status check since admin should see all shops
-
-        // Get direct category data for this shop
-        $shopCategories = DB::table('shop_category')
-            ->join('categories', 'shop_category.category_id', '=', 'categories.id')
-            ->select('categories.id', 'categories.name')
-            ->where('shop_category.shop_id', $shop->id)
-            ->get();
-
-        // Load shop with relationships including legal documents
+        // Load shop with relationships
         $shop->load([
             'user',
             'shopCategories.categories',
             'shopGallery',
             'shopServiceCategories.serviceCategories',
+            'legalDocuments',
+            'shopOperationHours'
         ]);
 
-        // Get document information directly from DB using the correct table name
-        $shopDocuments = DB::table('shop_legal_document')
-            ->where('shop_id', $shop->id)
-            ->first();
+        // Log the raw legal documents data
+        Log::info('Raw Legal Documents:', [
+            'shop_id' => $shop->id,
+            'documents' => $shop->legalDocuments
+        ]);
 
-        if ($shopDocuments) {
-            // Update URLs if needed and make sure they're formatted correctly for browser access
-            $shop->business_permit = $this->ensurePublicUrl($shopDocuments->business_permit_url);
-            $shop->dti_registration = $this->ensurePublicUrl($shopDocuments->dti_registration_url);
-            $shop->valid_id = $this->ensurePublicUrl($shopDocuments->valid_id_url);
-
-            Log::info('Document URLs for shop view:', [
-                'business_permit' => $shop->business_permit,
-                'dti_registration' => $shop->dti_registration,
-                'valid_id' => $shop->valid_id
-            ]);
+        // Transform legal documents
+        if ($shop->legalDocuments) {
+            $shop->legalDocuments = [
+                'business_permit_url' => $shop->legalDocuments->business_permit_url,
+                'dti_registration_url' => $shop->legalDocuments->dti_registration_url,
+                'valid_id_url' => $shop->legalDocuments->valid_id_url,
+            ];
         }
 
-        // Fix gallery image URLs if needed
-        if ($shop->shopGallery) {
-            foreach ($shop->shopGallery as $image) {
-                $image->url = $this->ensurePublicUrl($image->url);
+        // Fetch setup data (replace with your actual logic)
+        $setupData = [
+            'basicInfo' => [
+                'shop_name' => $shop->shop_name,
+                'email' => $shop->email,
+                'contact_number' => $shop->contact_number,
+                'bio' => $shop->bio,
+            ],
+            'location' => [
+                'region' => $shop->region,
+                'province' => $shop->province,
+                'city' => $shop->city,
+                'barangay' => $shop->barangay,
+                'detailed_address' => $shop->detailed_address,
+            ],
+            'categories' => $shop->shopCategories->map(function ($category) {
+                return [
+                    'id' => $category->categories->id,
+                    'name' => $category->categories->name,
+                ];
+            }),
+            'operationHoursFormatted' => $this->formatOperationHours($shop), // Add formatted operation hours
+        ];
 
-                // Log each gallery image URL for debugging
-                Log::info('Gallery image URL:', [
-                    'original' => $image->getOriginal('url'),
-                    'formatted' => $image->url
-                ]);
-            }
-        }
-
-        // Also ensure shop profile photo is properly formatted
-        if ($shop->shop_photo) {
-            $originalPath = $shop->shop_photo;
-            $shop->shop_photo = $this->ensurePublicUrl($shop->shop_photo);
-
-            // Log shop photo URL for debugging
-            Log::info('Shop photo URL:', [
-                'original' => $originalPath,
-                'formatted' => $shop->shop_photo
-            ]);
-        }
-
-        // Add raw categories data to ensure we have it
-        $shop->rawCategories = $shopCategories;
-
-        return Inertia::render('Admin/ShopDetail', [
+        return Inertia::render('Admin/ShopDetails', [
             'shop' => $shop,
             'categories' => Categories::all(),
-            'rawCategoriesData' => $shopCategories
+            'setupData' => $setupData,
         ]);
+    }
+
+    /**
+     * Format operation hours for display.
+     *
+     * @param  \App\Models\Shop  $shop
+     * @return array
+     */
+    protected function formatOperationHours(Shop $shop)
+    {
+        $formattedHours = [];
+        $days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+
+        foreach ($days as $day) {
+            // Use where method to find the operation hours for the current day
+            $hours = $shop->shopOperationHours()->where('day', $day)->first();
+
+            $formattedHours[$day] = [
+                'isOpen' => $hours ? $hours->is_open : false,
+                'openTime' => $hours ? date('h:i A', strtotime($hours->opening_time)) : null,
+                'closeTime' => $hours ? date('h:i A', strtotime($hours->closing_time)) : null,
+            ];
+        }
+
+        return $formattedHours;
     }
 
     /**
@@ -195,12 +204,12 @@ class ShopController extends Controller
             'shop_id' => $shop->id,
             'current_status' => $shop->status
         ]);
-        
+
         $shop->update(['status' => 'verified']);
-        
+
         // Force a refresh from the database to ensure status is updated
         $shop->refresh();
-        
+
         Log::info("Shop verified", [
             'shop_id' => $shop->id,
             'new_status' => $shop->status
@@ -208,7 +217,7 @@ class ShopController extends Controller
 
         if (request()->wantsJson()) {
             return response()->json([
-                'success' => true, 
+                'success' => true,
                 'message' => 'Shop has been verified successfully.',
                 'new_status' => $shop->status
             ]);
@@ -248,45 +257,27 @@ class ShopController extends Controller
         ]);
 
         try {
-            $oldStatus = $shop->status;
-            $newStatus = $request->status;
-            
-            Log::info("Updating shop status via updateStatus method", [
-                'shop_id' => $shop->id,
-                'old_status' => $oldStatus,
-                'new_status' => $newStatus,
-                'request_data' => $request->all()
-            ]);
-            
-            $updateData = [
-                'status' => $newStatus
-            ];
+            DB::transaction(function () use ($shop, $request) {
+                $updateData = [
+                    'status' => $request->status,
+                    'rejection_reason' => $request->status === 'rejected' ? $request->reason : null,
+                    'verified_at' => $request->status === 'verified' ? now() : null
+                ];
 
-            if ($newStatus === 'rejected') {
-                if ($request->has('reason')) {
-                    $updateData['rejection_reason'] = $request->reason;
+                $shop->update($updateData);
+
+                // Send notification based on status
+                if ($request->status === 'verified') {
+                    $shop->user->notify(new ShopVerificationNotification($shop));
+                } elseif ($request->status === 'rejected') {
+                    $shop->user->notify(new ShopRejectionNotification($shop, $request->reason));
                 }
-            } else {
-                $updateData['rejection_reason'] = null;
-            }
-            
-            // Ensure shop model has status in fillable array
-            DB::table('shops')
-                ->where('id', $shop->id)
-                ->update($updateData);
-            
-            // Get fresh data from DB
-            $shop = Shop::find($shop->id);
-            
-            Log::info("Shop status updated via direct DB update", [
-                'shop_id' => $shop->id,
-                'new_status' => $shop->status
-            ]);
-            
+            });
+
             return response()->json([
-                'success' => true, 
-                'message' => 'Shop status has been updated to ' . $newStatus,
-                'new_status' => $newStatus,
+                'success' => true,
+                'message' => 'Shop status has been updated to ' . $request->status,
+                'new_status' => $request->status,
                 'debug_shop_data' => $shop->toArray()
             ]);
         } catch (\Exception $e) {
@@ -295,7 +286,7 @@ class ShopController extends Controller
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
-            
+
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to update shop status: ' . $e->getMessage()
