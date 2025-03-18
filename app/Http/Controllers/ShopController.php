@@ -18,6 +18,7 @@ use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use App\Notifications\NewShopRegistrationNotification;
 
 class ShopController extends Controller
 {
@@ -135,6 +136,12 @@ class ShopController extends Controller
                 'is_active' => true,
             ]);
 
+            // Notify all admin users
+            $admins = User::where('role', 'admin')->get();
+            foreach ($admins as $admin) {
+                $admin->notify(new NewShopRegistrationNotification($shop));
+            }
+
             DB::commit();
 
             Log::info('Shop created with categories', [
@@ -142,7 +149,10 @@ class ShopController extends Controller
                 'categories' => $validatedData['categories']
             ]);
 
-            return redirect()->route('shop.success')->with('success', 'Shop created successfully!');
+            return response()->json([
+                'success' => true,
+                'message' => 'Shop registration submitted successfully and is awaiting verification'
+            ]);
         } catch (\Exception $e) {
             DB::rollBack();
 

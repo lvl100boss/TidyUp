@@ -12,6 +12,8 @@ use Inertia\Inertia;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use App\Notifications\ShopVerificationNotification;
+use App\Notifications\ShopRejectionNotification;
 
 class ShopController extends Controller
 {
@@ -255,45 +257,27 @@ class ShopController extends Controller
         ]);
 
         try {
-            $oldStatus = $shop->status;
-            $newStatus = $request->status;
+            DB::transaction(function () use ($shop, $request) {
+                $updateData = [
+                    'status' => $request->status,
+                    'rejection_reason' => $request->status === 'rejected' ? $request->reason : null,
+                    'verified_at' => $request->status === 'verified' ? now() : null
+                ];
 
-            Log::info("Updating shop status via updateStatus method", [
-                'shop_id' => $shop->id,
-                'old_status' => $oldStatus,
-                'new_status' => $newStatus,
-                'request_data' => $request->all()
-            ]);
+                $shop->update($updateData);
 
-            $updateData = [
-                'status' => $newStatus
-            ];
-
-            if ($newStatus === 'rejected') {
-                if ($request->has('reason')) {
-                    $updateData['rejection_reason'] = $request->reason;
+                // Send notification based on status
+                if ($request->status === 'verified') {
+                    $shop->user->notify(new ShopVerificationNotification($shop));
+                } elseif ($request->status === 'rejected') {
+                    $shop->user->notify(new ShopRejectionNotification($shop, $request->reason));
                 }
-            } else {
-                $updateData['rejection_reason'] = null;
-            }
-
-            // Ensure shop model has status in fillable array
-            DB::table('shops')
-                ->where('id', $shop->id)
-                ->update($updateData);
-
-            // Get fresh data from DB
-            $shop = Shop::find($shop->id);
-
-            Log::info("Shop status updated via direct DB update", [
-                'shop_id' => $shop->id,
-                'new_status' => $shop->status
-            ]);
+            });
 
             return response()->json([
                 'success' => true,
-                'message' => 'Shop status has been updated to ' . $newStatus,
-                'new_status' => $newStatus,
+                'message' => 'Shop status has been updated to ' . $request->status,
+                'new_status' => $request->status,
                 'debug_shop_data' => $shop->toArray()
             ]);
         } catch (\Exception $e) {
