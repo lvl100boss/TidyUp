@@ -7,9 +7,9 @@ const documentKeywords = {
         minimum: 2
     },
     dtiRegistration: {
-        required: ['dti', 'registration'],
-        additional: ['certificate', 'business name', 'trade', 'industry'],
-        minimum: 2
+        required: ['dti'],
+        additional: ['certificate', 'business', 'registration', 'trade', 'industry'],
+        minimum: 1  
     },
     validId: {
         required: [
