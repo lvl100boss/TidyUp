@@ -107,6 +107,12 @@ class ShopAppointmentService
             'id' => $userAppointment->appointment->id,
             'date' => $userAppointment->appointment->date,
             'time' => $userAppointment->appointment->time,
+            'end_time' => $this->calculateRoundedEndTime(
+                $userAppointment->appointment->date,
+                $userAppointment->appointment->time,
+                $totalHours,
+                $totalMinutes
+            ),
             'status' => $userAppointment->appointment->status,
             'customer' => [
                 'id' => $userAppointment->user->id,
@@ -126,6 +132,25 @@ class ShopAppointmentService
             'resched_reason' => $userAppointment->appointment->resched_reason
         ];
     }
+
+    private function calculateRoundedEndTime($date, $time, $durationHours, $durationMinutes)
+    {
+        // Create Carbon instance from date and time
+        $startDateTime = \Carbon\Carbon::parse("$date $time");
+
+        // Add the duration
+        $endDateTime = $startDateTime->addHours($durationHours)->addMinutes($durationMinutes);
+
+        // Round to the nearest 30-minute mark
+        $roundedMinutes = ($endDateTime->minute < 30) ? 30 : 0;
+        if ($roundedMinutes === 0) {
+            $endDateTime->addHour();
+        }
+        $endDateTime->minute($roundedMinutes);
+
+        return $endDateTime->format('H:i') . ':00';
+    }
+
 
     private function getCurrentStaffUpcomingAppointmentSchedules($staffId)
     {
@@ -154,11 +179,12 @@ class ShopAppointmentService
                 'id' => $schedule->appointment->id,
                 'date' => $schedule->appointment->date,
                 'time' => $schedule->appointment->time,
-                'total_duration' => [
-                    'hours' => $hours,
-                    'minutes' => $minutes,
-                    'total_minutes' => $totalMinutes
-                ],
+                'end_time' => $this->calculateRoundedEndTime(
+                    $schedule->appointment->date,
+                    $schedule->appointment->time,
+                    $hours,
+                    $minutes
+                ),
                 'appointment_data' => $schedule
                 // Add any other data you need from the appointment
             ];

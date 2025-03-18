@@ -205,15 +205,23 @@ export default function AppointmentCard({ appointment, upcomingSchedules, shopBu
                     {appointment.status === "pending" && (
                         <>
                             <ApproveButtonModal appointment={appointment} />
-                            <ReschedReqButton appointment={appointment} />
-                            <RejectButtonModal appointment={appointment} upcomingSchedules={upcomingSchedules} shopBusinessSchedules={shopBusinessSchedules} />
+                            <ReschedReqButton
+                                appointment={appointment}
+                                upcomingSchedules={upcomingSchedules}
+                                shopBusinessSchedules={shopBusinessSchedules}
+                            />
+                            <RejectButtonModal appointment={appointment} />
                         </>
                     )}
 
                     {appointment.status === "upcoming" && (
                         <>
                             <StartedButtonModal appointment={appointment} />
-                            <ReschedReqButton appointment={appointment} upcomingSchedules={upcomingSchedules} shopBusinessSchedules={shopBusinessSchedules} />
+                            <ReschedReqButton
+                                appointment={appointment}
+                                upcomingSchedules={upcomingSchedules}
+                                shopBusinessSchedules={shopBusinessSchedules}
+                            />
                             <NoShowButtonModal appointment={appointment} />
                             <CancelButtonModal appointment={appointment} />
                         </>
