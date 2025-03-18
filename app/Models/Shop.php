@@ -4,7 +4,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Appointments;
-use Illuminate\Support\Facades\Log;
 
 class Shop extends Model
 {
@@ -23,22 +22,9 @@ class Shop extends Model
         'availability',
         'is_verified',
         'bio',
-        'status',
-        'rejection_reason',
+        // 'tokens',
     ];
 
-    // Add appends to ensure status is always included
-    protected $appends = ['shop_status'];
-
-    // Clean up the shop status logging to prevent excessive log entries
-    public function getShopStatusAttribute()
-    {
-        $status = $this->attributes['status'] ?? 'unknown';
-        // Only log on dashboard access, not every status check
-        return $status;
-    }
-
-    // These are the relationships you already had - keeping them in case they're used elsewhere
     public function shopGallery()
     {
         return $this->hasMany(ShopGallery::class, 'shop_id');
@@ -78,6 +64,7 @@ class Shop extends Model
     {
         return $this->hasMany(ShopSocialMedia::class, 'shop_id');
     }
+<<<<<<< HEAD
 <<<<<<< Updated upstream
 
     /**
@@ -121,4 +108,6 @@ class Shop extends Model
                 ->withTimestamps();
 >>>>>>> Stashed changes
     }
+=======
+>>>>>>> parent of d6b13c5 (Merge pull request #111 from lvl100boss/main)
 }

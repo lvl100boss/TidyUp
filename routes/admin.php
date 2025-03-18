@@ -5,6 +5,7 @@ use Inertia\Inertia;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\UserRestrictionController;
 use App\Http\Controllers\Admin\RestrictionController;
+<<<<<<< HEAD
 <<<<<<< Updated upstream
 use App\Http\Controllers\Admin\ShopController;
 use App\Http\Controllers\Admin\ShopManagementController;
@@ -29,26 +30,36 @@ Route::middleware(['auth', \App\Http\Middleware\AdminMiddleware::class])->prefix
 =======
 use App\Http\Controllers\Admin\SubscriptionController;
 >>>>>>> Stashed changes
+=======
+>>>>>>> parent of d6b13c5 (Merge pull request #111 from lvl100boss/main)
 
+Route::middleware(['auth', 'verified'])->group(function () {
     // Dashboard
-    Route::redirect('/', '/admin/dashboard');
+    Route::get('/admin/dashboard', function () {
+        return Inertia::render('Admin/Dashboard');
+    })->name('admin.dashboard');
+    Route::redirect('/admin', '/admin/dashboard');
 
     // Static pages
-    Route::get('/analytics', function () {
+    Route::get('/admin/shops', function () {
+        return Inertia::render('Admin/Shops');
+    })->name('admin.shops');
+
+    Route::get('/admin/analytics', function () {
         return Inertia::render('Admin/Analytics');
-    })->name('analytics');
+    })->name('admin.analytics');
 
-    Route::get('/feedback', function () {
+    Route::get('/admin/feedback', function () {
         return Inertia::render('Admin/UserFeedback');
-    })->name('feedback');
+    })->name('admin.feedback');
 
-    Route::get('/customer-service', function () {
+    Route::get('/admin/customer-service', function () {
         return Inertia::render('Admin/CustomerService');
-    })->name('customer-service');
+    })->name('admin.customer-service');
 
-    Route::get('/platform/staff', function () {
+    Route::get('/admin/platform/staff', function () {
         return Inertia::render('Admin/PlatformStaff');
-    })->name('platform.staff');
+    })->name('admin.platform.staff');
 
     Route::get('/admin/subscription', [SubscriptionController::class, 'index'])
     ->name('admin.subscriptions.index');
@@ -63,20 +74,20 @@ Route::delete('/admin/subscriptions/{subscription}', [SubscriptionController::cl
     ->name('admin.subscriptions.destroy');
 
     // User management
-    Route::get('/users', [UserController::class, 'index'])
-        ->name('users');
+    Route::get('/admin/users', [UserController::class, 'index'])
+        ->name('admin.users');
 
     // User restrictions
-    Route::get('/restriction', [UserRestrictionController::class, 'index'])
-        ->name('restriction');
+    Route::get('/admin/restriction', [UserRestrictionController::class, 'index'])
+        ->name('admin.restriction');
 
-    Route::post('/users/restrict', [UserRestrictionController::class, 'store'])
-        ->name('users.restrict');
+    Route::post('/admin/users/restrict', [UserRestrictionController::class, 'store'])
+        ->name('admin.users.restrict');
 
-    Route::post('/restrictions/lift', [UserRestrictionController::class, 'lift'])
-        ->name('restrictions.lift');
-
+    Route::post('/admin/restrictions/lift', [UserRestrictionController::class, 'lift'])
+        ->name('admin.restrictions.lift');
     //  Platform Staff Routes
+<<<<<<< HEAD
 <<<<<<< Updated upstream
     // Route::get('/staff', [PlatformStaffController::class, 'index'])->name('staff.index');
     // Route::post('/staff', [PlatformStaffController::class, 'store'])->name('staff.store');
@@ -84,11 +95,16 @@ Route::delete('/admin/subscriptions/{subscription}', [SubscriptionController::cl
     // Route::post('/staff/{staff}/avatar', [PlatformStaffController::class, 'updateAvatar'])->name('staff.avatar');
     // Route::delete('/staff/{staff}', [PlatformStaffController::class, 'destroy'])->name('staff.destroy');
 =======
+=======
+>>>>>>> parent of d6b13c5 (Merge pull request #111 from lvl100boss/main)
     // Route::get('/admin/staff', [PlatformStaffController::class, 'index'])->name('staff.index');
     // Route::post('/admin/staff', [PlatformStaffController::class, 'store'])->name('staff.store');
     // Route::put('/admin/staff/{staff}', [PlatformStaffController::class, 'update'])->name('staff.update');
     // Route::post('/admin/staff/{staff}/avatar', [PlatformStaffController::class, 'updateAvatar'])->name('staff.avatar');
     // Route::delete('/admin/staff/{staff}', [PlatformStaffController::class, 'destroy'])->name('staff.destroy');
+<<<<<<< HEAD
 
 >>>>>>> Stashed changes
+=======
+>>>>>>> parent of d6b13c5 (Merge pull request #111 from lvl100boss/main)
 });

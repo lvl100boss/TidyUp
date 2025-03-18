@@ -19,11 +19,6 @@ import {
 
 // this is the comment
 export default function ShopCarousel({ shops }) {
-    // Inside your component, before rendering any shops
-    const filteredShops = shops.filter(shop => 
-        shop && shop.status === 'verified'
-    );
-
     return (
         <Carousel
             opts={{
@@ -41,13 +36,12 @@ export default function ShopCarousel({ shops }) {
                 </div>
             </div>
             <CarouselContent className="max-w-[94vw]">
-                {filteredShops.map((shop, index) => (
+                {shops.map((shop, index) => (
                     <CarouselItem
                         key={index}
                         className="basis-[100%] sm:basis-1/2 md:basis-1/3 lg:basis-1/4 xl:basis-1/5 "
                     >
-                        {/* Update the link to the correct route format */}
-                        <Link href={`/shop/${shop.id}`}>
+                        <Link href={`/${shop.id}/shop`}>
                             <div className="">
                                 <div className="aspect-video relative">
                                     <img

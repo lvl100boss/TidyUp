@@ -25,40 +25,29 @@ import ShopCard from "@/Components/User/ShopCard";
 import { useEffect, useState } from "react";
 import HeroSection from "@/Components/User/Home/HeroSection";
 
-export default function Home({ latestShops, barbershops, hairSalons, canLogin, canRegister }) {
+export default function Home({ randomShops }) {
     const [isLoading, setIsLoading] = useState(true);
-    
     useEffect(() => {
-        // Add debugging to see what we're receiving
-        console.log('Latest shops data:', latestShops);
-        console.log('Barbershops data:', barbershops);
-        console.log('Hair salons data:', hairSalons);
-        
         const preloadImages = async () => {
-            // Only try to preload images if we have shop data with gallery images
-            if (!latestShops || !latestShops.length) {
-                setIsLoading(false);
-                return;
-            }
-            
-            const imagePromises = latestShops
-                .filter(shop => shop && shop.shop_gallery && shop.shop_gallery.length > 0)
-                .map((shop) => {
-                    return new Promise((resolve) => {
-                        const img = new Image();
-                        img.src = shop.shop_gallery[0].url;
-                        img.onload = resolve;
-                        img.onerror = resolve;
-                    });
+            const imagePromises = randomShops.map((shop) => {
+                return new Promise((resolve, reject) => {
+                    const img = new Image();
+                    img.src = shop.shop_gallery[0].url;
+                    img.onload = resolve;
+                    img.onerror = resolve; // Resolve even on error to prevent blocking
                 });
+            });
 
             await Promise.all(imagePromises);
-            setTimeout(() => setIsLoading(false), 1000);
+
+            // Add a minimum loading time of 1 second
+            setTimeout(() => {
+                setIsLoading(false);
+            }, 1000);
         };
 
         preloadImages();
-    }, [latestShops, barbershops, hairSalons]);
-
+    }, [randomShops]);
     const sm = useMediaQuery({ minWidth: 640 });
     const md = useMediaQuery({ minWidth: 768 });
     const lg = useMediaQuery({ minWidth: 1024 });
@@ -126,17 +115,9 @@ export default function Home({ latestShops, barbershops, hairSalons, canLogin, c
                 </Link>
             </div>
             <div className="mb-5 grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-5">
-                {latestShops && latestShops.length > 0 ? (
-                    latestShops.map((shop) => (
-                        <ShopCard key={shop.id} shop={shop} isLoading={isLoading} />
-                    ))
-                ) : (
-                    <div className="md:basis-full">
-                        <div className="flex items-center justify-center h-40 border rounded-md bg-muted/10">
-                            <p className="text-muted-foreground">No shops available</p>
-                        </div>
-                    </div>
-                )}
+                {randomShops.map((shop) => (
+                    <ShopCard key={shop.id} shop={shop} isLoading={isLoading} />
+                ))}
             </div>
             <div className="flex items-center justify-between mb-5">
                 <h4 className="text-lg font-medium p-2 border-b border-foreground">

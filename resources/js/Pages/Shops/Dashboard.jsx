@@ -24,50 +24,22 @@ import {
     DollarSign,
     CheckCircle2,
     Coins,
-    Settings,
 } from "lucide-react";
 import ShopsLayout from "@/Layouts/ShopsLayout";
-import { Head, Link } from "@inertiajs/react";
+import { Head } from "@inertiajs/react";
 import { ScrollArea } from "@/components/ui/scroll-area"
-import ShopStatusWarning from "@/Components/Shop/ShopStatusWarning";
-import { Button } from "@/components/ui/button";
 
 const Dashboard = ({
     shop,
     user,
-    pendingAppointments = [],
-    upcomingAppointments = [],
-    popularServices = [],
-    completedBookingsCount = 0,
-    completedBookingsChange = 0,
-    totalRevenue = 0,
-    revenueChange = 0,
-    shopStatusMessage,
-    error,
-    isOwner
+    pendingAppointments,
+    upcomingAppointments,
+    popularServices,
+    completedBookingsCount,
+    completedBookingsChange,
+    totalRevenue,
+    revenueChange
 }) => {
-    // Handle any potential errors from the backend
-    if (error) {
-        return (
-            <ShopsLayout>
-                <Head title="Error" />
-                <div className="flex-1 flex items-center justify-center">
-                    <Card className="w-full max-w-md">
-                        <CardHeader>
-                            <CardTitle className="text-red-600">Error Loading Dashboard</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <p>{error}</p>
-                            <Button asChild className="mt-4">
-                                <Link href="/">Return to Home</Link>
-                            </Button>
-                        </CardContent>
-                    </Card>
-                </div>
-            </ShopsLayout>
-        );
-    }
-
     const stats = [
         {
             title: "Total Revenue",
@@ -233,23 +205,6 @@ const Dashboard = ({
         <ShopsLayout>
             <Head title="Dashboard" />
             <div className="flex-1 space-y-4">
-                {/* Show status warning if applicable */}
-                {shopStatusMessage && (
-                    <ShopStatusWarning statusMessage={shopStatusMessage} />
-                )}
-                
-                {isOwner && (
-                    <div className="flex justify-end">
-                        <Link href="/shop/profile">
-                            <Button variant="outline">
-                                <Settings className="w-4 h-4 mr-2" />
-                                Edit Shop Profile
-                            </Button>
-                        </Link>
-                    </div>
-                )}
-                
-                {/* Rest of the dashboard */}
                 <div className="flex items-center justify-between space-y-2">
                     <div>
                         <h2 className="text-3xl font-semibold tracking-tight">

@@ -13,27 +13,26 @@ class ShopServiceCategories extends Model
 
     protected $fillable = [
         'shop_id',
+        'service_category_id',
         'service_name',
         'cost',
         'duration_hour',
         'duration_minute',
-        'service_category_id',
     ];
 
-    /**
-     * Get the shop that owns this service category.
-     */
+    public function serviceCategories()
+    {
+        return $this->belongsTo(ServiceCategories::class, 'service_category_id');
+    }
+
     public function shop()
     {
         return $this->belongsTo(Shop::class);
     }
 
-    /**
-     * Get the service category - use the correct foreign key.
-     */
-    public function serviceCategories()
+    public function shopCategory()
     {
-        return $this->belongsTo(ServiceCategories::class, 'service_category_id');
+        return $this->belongsTo(ShopCategory::class);
     }
 
     public function appointmentServices()

@@ -6,60 +6,27 @@ use App\Models\Appointments;
 use App\Models\Shop;
 use App\Models\ShopStaffs;
 use App\Models\User;
-use Illuminate\Support\Facades\Log;
 
 class ShopDashboardService
 {
     public function getShopData($userId)
     {
-        try {
-            $user = User::find($userId);
-            if (!$user) {
-                return ['error' => 'User not found'];
-            }
+        $user = User::find($userId);
+        $shopStaff = ShopStaffs::where('staff_id', $user->id)->first();
+        $shop = $shopStaff->shop;
+        $shop = $shop->load('appointments.user.appointmentServices.shopService');
 
-            // Find the shop staff record
-            $shopStaff = ShopStaffs::where('staff_id', $userId)->first();
-
-            if (!$shopStaff) {
-                return ['error' => 'No shop staff record found', 'user' => $user];
-            }
-
-            // Get the shop directly by ID
-            $shop = Shop::find($shopStaff->shop_id);
-
-            if (!$shop) {
-                return ['error' => 'Shop not found', 'user' => $user];
-            }
-
-            // Load shop with relationships
-            $shop->load('appointments.user.appointmentServices.shopService');
-
-            Log::info('Shop data retrieved successfully', [
-                'shop_id' => $shop->id,
-                'shop_name' => $shop->shop_name,
-                'user_id' => $userId
-            ]);
-
-            return [
-                'shop' => $shop,
-                'user' => $user,
-                'pendingAppointments' => $this->getPendingAppointments($shop->id),
-                'upcomingAppointments' => $this->getUpcomingAppointments($shop->id),
-                'popularServices' => $this->getPopularServices($shop->id),
-                'completedBookingsCount' => $this->getCompletedBookingsCount($shop->id),
-                'completedBookingsChange' => $this->getCompletedBookingsChange($shop->id),
-                'totalRevenue' => $this->getTotalRevenue($shop->id),
-                'revenueChange' => $this->getRevenueChange($shop->id),
-            ];
-        } catch (\Exception $e) {
-            Log::error('Error getting shop data', [
-                'error' => $e->getMessage(),
-                'user_id' => $userId
-            ]);
-
-            return ['error' => 'An error occurred while retrieving shop data'];
-        }
+        return [
+            'shop' => $shop,
+            'user' => $user,
+            'pendingAppointments' => $this->getPendingAppointments($shop->id),
+            'upcomingAppointments' => $this->getUpcomingAppointments($shop->id),
+            'popularServices' => $this->getPopularServices($shop->id),
+            'completedBookingsCount' => $this->getCompletedBookingsCount($shop->id),
+            'completedBookingsChange' => $this->getCompletedBookingsChange($shop->id),
+            'totalRevenue' => $this->getTotalRevenue($shop->id),
+            'revenueChange' => $this->getRevenueChange($shop->id),
+        ];
     }
 
     private function getPendingAppointments($shopId)

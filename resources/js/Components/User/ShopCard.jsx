@@ -19,7 +19,7 @@ const ShopCard = ({ shop, isLoading }) => {
 
     return (
         <Link
-            href={`/shop/${shop.id}`}
+            href={`/${shop.id}/shop`}
             className={`
                 block  overflow-hidden
                 ${isLoading ? "pointer-events-none" : ""}

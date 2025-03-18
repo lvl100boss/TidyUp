@@ -15,7 +15,6 @@ use Inertia\Inertia;
 
 //Shop Owner and Shop Staff
 Route::middleware(['auth', 'verified'])->group(function () {
-    // Make sure the dashboard route is defined BEFORE any wildcard routes
     Route::get('/shop/dashboard', [ShopDashboardController::class, 'index'])->name('shop.dashboard');
     Route::redirect('/shop', '/shop/dashboard');
     Route::get('/shop/profile', [ShopProfileController::class, 'index'])->name('shop.profile');
