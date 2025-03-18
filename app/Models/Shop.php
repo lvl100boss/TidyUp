@@ -64,10 +64,13 @@ class Shop extends Model
     {
         return $this->hasMany(ShopSocialMedia::class, 'shop_id');
     }
+
     public function subscriptions()
     {
     return $this->belongsToMany(Subscription::class, 'shop_subscriptions')
                 ->withPivot('start_date', 'end_date', 'status')
                 ->withTimestamps();
     }
+
+
 }
