@@ -244,12 +244,7 @@ export default function Users({ users, links }) {  // Add links prop
     // Add useEffect to handle initial data filtering
     useEffect(() => {
         if (Array.isArray(users)) {
-            const currentDate = new Date();
-            const filteredUsers = users.filter(user => {
-                const userDate = new Date(user.dateRegistered);
-                return userDate <= currentDate;
-            });
-            setData(filteredUsers);
+            setData(users);
         }
     }, [users]);
 
@@ -265,20 +260,10 @@ export default function Users({ users, links }) {  // Add links prop
     };
 
     const handleDateFilter = (range) => {
-        const currentDate = new Date();
-        
-        // Validate the date range
-        if (range.from && range.to && range.to < range.from) {
-            range.to = range.from;
-        }
-        
         setDateRange(range);
         
         const filteredData = users.filter(user => {
             const userDate = new Date(user.dateRegistered);
-            
-            // Skip future dates
-            if (userDate > currentDate) return false;
             
             if (range.from && range.to) {
                 return userDate >= range.from && userDate <= range.to;
@@ -305,25 +290,14 @@ export default function Users({ users, links }) {  // Add links prop
     // Modified search functionality with date filtering
     const handleSearch = (event) => {
         const term = event.target.value.toLowerCase();
-        const currentDate = new Date();
         setSearchTerm(term);
 
         if (term === "") {
-            const filteredUsers = users.filter(user => {
-                const userDate = new Date(user.dateRegistered);
-                return userDate <= currentDate;
-            });
-            setData(filteredUsers);
+            setData(users);
         } else {
             const filteredData = users.filter(item => {
-                const userDate = new Date(item.dateRegistered);
-                // Skip future dates
-                if (userDate > currentDate) return false;
-                
-                // Special handling for date
                 const dateMatch = item.dateRegistered?.toLowerCase().includes(term);
                 
-                // Check other fields
                 const otherFieldsMatch = ["username", "first_name", "last_name", "email"]
                     .some(field => item[field]?.toLowerCase().includes(term));
 
@@ -349,15 +323,9 @@ export default function Users({ users, links }) {  // Add links prop
     };
 
     const handleReset = () => {
-        const currentDate = new Date();
         setSearchTerm("");
         setDateRange({ from: null, to: null });
-        // Filter out future dates when resetting
-        const filteredUsers = users.filter(user => {
-            const userDate = new Date(user.dateRegistered);
-            return userDate <= currentDate;
-        });
-        setData(filteredUsers);
+        setData(users);
     };
 
     return (
