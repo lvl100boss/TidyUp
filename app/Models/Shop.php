@@ -64,50 +64,10 @@ class Shop extends Model
     {
         return $this->hasMany(ShopSocialMedia::class, 'shop_id');
     }
-<<<<<<< HEAD
-<<<<<<< Updated upstream
-
-    /**
-     * Get the legal documents for this shop.
-     */
-    public function legalDocuments()
-    {
-        return $this->hasOne(ShopLegalDocument::class, 'shop_id');
-    }
-
-    // Fix the relationship between Shop and ShopStaffs to ensure it works correctly
-    public function shopStaffs()
-    {
-        return $this->hasMany(ShopStaffs::class, 'shop_id');
-    }
-
-    /**
-     * Get the shop owner from shop staffs
-     */
-    public function owner()
-    {
-        return $this->shopStaffs()
-            ->where(function ($query) {
-                $query->where('role', 'Shop Owner')
-                    ->orWhere('position', 'owner');
-            })
-            ->with('staff')
-            ->first();
-    }
-
-    // Make sure this relationship works correctly
-    public function shopOwner()
-    {
-        $ownerStaff = $this->shopStaffs()->where('role', 'Shop Owner')->orWhere('position', 'owner')->first();
-        return $ownerStaff ? $ownerStaff->staff() : null;
-=======
     public function subscriptions()
     {
     return $this->belongsToMany(Subscription::class, 'shop_subscriptions')
                 ->withPivot('start_date', 'end_date', 'status')
                 ->withTimestamps();
->>>>>>> Stashed changes
     }
-=======
->>>>>>> parent of d6b13c5 (Merge pull request #111 from lvl100boss/main)
 }

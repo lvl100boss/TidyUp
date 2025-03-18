@@ -5,33 +5,7 @@ use Inertia\Inertia;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\UserRestrictionController;
 use App\Http\Controllers\Admin\RestrictionController;
-<<<<<<< HEAD
-<<<<<<< Updated upstream
-use App\Http\Controllers\Admin\ShopController;
-use App\Http\Controllers\Admin\ShopManagementController;
-use App\Http\Controllers\Admin\DashboardController;
-use App\Http\Controllers\Admin\UserManagementController;
-use App\Http\Middleware\AdminMiddleware;
-
-// Testing route outside middleware (accessible to everyone)
-Route::get('/admin/test', function () {
-    return Inertia::render('Admin/Dashboard');
-})->name('admin.test');
-
-// Use the middleware class name, not a string
-Route::middleware(['auth', \App\Http\Middleware\AdminMiddleware::class])->prefix('admin')->name('admin.')->group(function () {
-    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-
-    // Shop management routes
-    Route::get('/shops', [ShopController::class, 'index'])->name('shops');
-    Route::get('/shops/{shop}', [ShopController::class, 'show'])->name('shops.show');
-    Route::post('/shops/{shop}/update-status', [ShopManagementController::class, 'updateStatus'])->name('shops.update-status');
-    Route::get('/shops/{shop}/documents/{type}', [ShopManagementController::class, 'downloadDocument'])->name('shops.download-document');
-=======
 use App\Http\Controllers\Admin\SubscriptionController;
->>>>>>> Stashed changes
-=======
->>>>>>> parent of d6b13c5 (Merge pull request #111 from lvl100boss/main)
 
 Route::middleware(['auth', 'verified'])->group(function () {
     // Dashboard
@@ -87,24 +61,10 @@ Route::delete('/admin/subscriptions/{subscription}', [SubscriptionController::cl
     Route::post('/admin/restrictions/lift', [UserRestrictionController::class, 'lift'])
         ->name('admin.restrictions.lift');
     //  Platform Staff Routes
-<<<<<<< HEAD
-<<<<<<< Updated upstream
-    // Route::get('/staff', [PlatformStaffController::class, 'index'])->name('staff.index');
-    // Route::post('/staff', [PlatformStaffController::class, 'store'])->name('staff.store');
-    // Route::put('/staff/{staff}', [PlatformStaffController::class, 'update'])->name('staff.update');
-    // Route::post('/staff/{staff}/avatar', [PlatformStaffController::class, 'updateAvatar'])->name('staff.avatar');
-    // Route::delete('/staff/{staff}', [PlatformStaffController::class, 'destroy'])->name('staff.destroy');
-=======
-=======
->>>>>>> parent of d6b13c5 (Merge pull request #111 from lvl100boss/main)
     // Route::get('/admin/staff', [PlatformStaffController::class, 'index'])->name('staff.index');
     // Route::post('/admin/staff', [PlatformStaffController::class, 'store'])->name('staff.store');
     // Route::put('/admin/staff/{staff}', [PlatformStaffController::class, 'update'])->name('staff.update');
     // Route::post('/admin/staff/{staff}/avatar', [PlatformStaffController::class, 'updateAvatar'])->name('staff.avatar');
     // Route::delete('/admin/staff/{staff}', [PlatformStaffController::class, 'destroy'])->name('staff.destroy');
-<<<<<<< HEAD
 
->>>>>>> Stashed changes
-=======
->>>>>>> parent of d6b13c5 (Merge pull request #111 from lvl100boss/main)
 });
