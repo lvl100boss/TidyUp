@@ -25,10 +25,8 @@ const documentKeywords = {
             gsis: ['gsis', 'government service']
         },
         patterns: [
-            /\b\d{2}-\d{2}-\d{2,4}\b/, // Date format
             /\b[A-Z0-9]{6,}\b/, // ID number format
             /\b(male|female)\b/i, // Gender
-            /\b\d{1,2}\/\d{1,2}\/\d{2,4}\b/ // Alternative date format
         ],
         minimum: {
             required: 1,
