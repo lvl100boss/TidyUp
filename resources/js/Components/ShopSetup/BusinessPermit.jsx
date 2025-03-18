@@ -24,7 +24,7 @@ export default function BusinessPermit({
         dti_registration: { status: null, message: "", issue: null, statusType: null, loading: false },
         valid_id: { status: null, message: "", issue: null, statusType: null, loading: false },
     });
-    
+
     // State to track which image is being viewed in expanded mode
     const [expandedImage, setExpandedImage] = useState(null);
 
@@ -53,16 +53,16 @@ export default function BusinessPermit({
         } else {
             console.error('CSRF token not found');
         }
-        
+
         // Add event listener to close expanded image when clicking outside
         const handleClickOutside = (e) => {
             if (expandedImage && !e.target.closest('.expanded-image-content')) {
                 setExpandedImage(null);
             }
         };
-        
+
         document.addEventListener('mousedown', handleClickOutside);
-        
+
         // Clean up event listener
         return () => {
             document.removeEventListener('mousedown', handleClickOutside);
@@ -93,7 +93,7 @@ export default function BusinessPermit({
                 case 'valid_id':
                     endpoint = 'api/verify/valid-id';
                     break;
-            }            
+            }
 
             // Use relative URL for better compatibility
             const response = await axios.post(`/${endpoint}`, formData, {
@@ -105,7 +105,7 @@ export default function BusinessPermit({
 
             setVerificationStatus(prev => ({
                 ...prev,
-                [documentType]: { 
+                [documentType]: {
                     status: response.data.is_valid,
                     message: response.data.message,
                     issue: response.data.issue || null,
@@ -116,9 +116,9 @@ export default function BusinessPermit({
         } catch (error) {
             setVerificationStatus(prev => ({
                 ...prev,
-                [documentType]: { 
-                    status: false, 
-                    message: error.response?.data?.message || 'Verification failed', 
+                [documentType]: {
+                    status: false,
+                    message: error.response?.data?.message || 'Verification failed',
                     issue: 'server_error',
                     statusType: 'error',
                     loading: false
@@ -130,7 +130,7 @@ export default function BusinessPermit({
     const handleFileChangeWithVerification = (e, originalHandler, documentType) => {
         // Call the original handler first to update the preview
         originalHandler(e);
-        
+
         // Then verify the document if a file is selected
         if (e.target.files && e.target.files[0]) {
             verifyDocument(documentType, e.target.files[0]);
@@ -151,12 +151,12 @@ export default function BusinessPermit({
                 imageUrl = previewValidIdImage;
                 break;
         }
-        
+
         if (imageUrl) {
             setExpandedImage(expandedImage === imageType ? null : imageType);
         }
     };
-    
+
     // Get the appropriate image URL for expanded view
     const getExpandedImageUrl = () => {
         switch (expandedImage) {
@@ -170,7 +170,7 @@ export default function BusinessPermit({
                 return null;
         }
     };
-    
+
     // Get the title for expanded image modal
     const getExpandedImageTitle = () => {
         switch (expandedImage) {
@@ -187,7 +187,7 @@ export default function BusinessPermit({
 
     const renderVerificationStatus = (documentType) => {
         const { status, message, loading, statusType } = verificationStatus[documentType];
-        
+
         if (loading) {
             return (
                 <Alert className="bg-blue-50 border-blue-100 text-blue-700 mt-2">
@@ -198,9 +198,9 @@ export default function BusinessPermit({
                 </Alert>
             );
         }
-        
+
         if (status === null) return null;
-        
+
         if (status) {
             // Success case
             return (
@@ -238,7 +238,7 @@ export default function BusinessPermit({
     return (
         <div className="space-y-6">
             <h1 className="text-xl font-semibold">Legal Documents</h1>
-            
+
             <div className="space-y-4">
                 <h2 className="text-lg font-semibold">Business Permit</h2>
                 <Label htmlFor="business_permit">Upload Business Permit</Label>
@@ -255,17 +255,17 @@ export default function BusinessPermit({
                             <img
                                 src={previewPermitImage}
                                 alt="Business permit preview"
-                                className="w-full h-48 object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
+                                className="w-full object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
                                 onClick={() => toggleImageExpand('business_permit')}
                             />
-                            <div className="text-xs text-center mt-1 text-gray-500">Click to enlarge</div>
+                            <div className="text-xs text-center mt-1 text-muted-foreground">Click to enlarge</div>
                         </div>
                     )}
                     {renderVerificationStatus('business_permit')}
                     <InputError field="business_permit" errors={errors} />
                 </div>
             </div>
-            
+
             <div className="space-y-4">
                 <h2 className="text-lg font-semibold">DTI Registration</h2>
                 <Label htmlFor="dti_registration">
@@ -283,16 +283,16 @@ export default function BusinessPermit({
                         <img
                             src={previewDtiRegistrationImage}
                             alt="DTI registration preview"
-                            className="w-full h-48 object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
+                            className="w-full object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
                             onClick={() => toggleImageExpand('dti_registration')}
                         />
-                        <div className="text-xs text-center mt-1 text-gray-500">Click to enlarge</div>
+                        <div className="text-xs text-center mt-1 text-muted-foreground">Click to enlarge</div>
                     </div>
                 )}
                 {renderVerificationStatus('dti_registration')}
                 <InputError field="dti_registration" errors={errors} />
             </div>
-            
+
             <div className="space-y-4">
                 <h2 className="text-lg font-semibold">Valid ID</h2>
                 <Label htmlFor="valid_id">Upload Valid ID</Label>
@@ -308,10 +308,10 @@ export default function BusinessPermit({
                         <img
                             src={previewValidIdImage}
                             alt="Valid ID preview"
-                            className="w-full h-48 object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
+                            className="w-full object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
                             onClick={() => toggleImageExpand('valid_id')}
                         />
-                        <div className="text-xs text-center mt-1 text-gray-500">Click to enlarge</div>
+                        <div className="text-xs text-center mt-1 text-muted-foreground">Click to enlarge</div>
                     </div>
                 )}
                 {renderVerificationStatus('valid_id')}
@@ -328,7 +328,7 @@ export default function BusinessPermit({
                     </p>
                 </div>
             </div>
-            
+
             {/* Expanded Image Modal */}
             {expandedImage && (
                 <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">

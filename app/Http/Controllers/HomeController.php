@@ -14,56 +14,20 @@ class HomeController extends Controller
     //
     public function index()
     {
-        // Add debug logging
-        Log::info('Fetching verified shops for home page');
-
-        // Explicitly query for 'verified' shops
-        $latestShops = Shop::where('status', '=', 'verified')
-            ->with(['shopGallery', 'shopCategories.categories'])
-            ->latest()
-            ->take(8)
-            ->get();
-
-        Log::info('Latest shops query result:', [
-            'count' => $latestShops->count(),
-            'shop_ids' => $latestShops->pluck('id')->toArray()
-        ]);
-
-        // If no verified shops, check if we have any shops at all and their statuses
-        if ($latestShops->isEmpty()) {
-            $allShopsCount = Shop::count();
-            $shopsByStatus = Shop::select('status', DB::raw('count(*) as count'))
-                ->groupBy('status')
-                ->get();
-
-            Log::info('No verified shops found. All shops info:', [
-                'total_count' => $allShopsCount,
-                'by_status' => $shopsByStatus
-            ]);
-        }
-
-        $barbershops = Shop::whereHas('shopCategories', function ($query) {
-            $query->where('category_id', 1); // Barbershop category ID
-        })
-            ->where('status', '=', 'verified') // Properly quoted string
-            ->with(['shopGallery'])
+        // Get random shops with their related data
+        // $randomShops = Shop::with(['shopGallery', 'shopCategories.categories'])
+        //     ->where('status', '=', 'verified')
+        //     ->inRandomOrder()
+        //     ->limit(10)
+        //     ->get();
+        $randomShops = Shop::with(['shopGallery', 'shopCategories.categories'])
+            ->where('status', 'verified')
             ->inRandomOrder()
-            ->take(8)
-            ->get();
-
-        $hairSalons = Shop::whereHas('shopCategories', function ($query) {
-            $query->where('category_id', 2); // Hair salon category ID
-        })
-            ->where('status', '=', 'verified') // Properly quoted string
-            ->with(['shopGallery'])
-            ->inRandomOrder()
-            ->take(8)
+            ->limit(10)
             ->get();
 
         return Inertia::render('Users/Home', [
-            'latestShops' => $latestShops,
-            'barbershops' => $barbershops,
-            'hairSalons' => $hairSalons,
+            'randomShops' => $randomShops,
             'canLogin' => Route::has('login'),
             'canRegister' => Route::has('register'),
         ]);

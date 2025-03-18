@@ -3,7 +3,7 @@ import { router, Head, Link } from "@inertiajs/react";
 import AdminLayout from "@/Layouts/AdminLayout";
 import { Input } from "@/Components/ui/input";
 import { Button } from "@/Components/ui/button";
-import { ArrowUpDown, Search, Eye, Store } from "lucide-react";
+import { Search, Eye, Store, CalendarIcon } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/Components/ui/table";
 import { Badge } from "@/Components/ui/badge";
 import {
@@ -14,21 +14,44 @@ import {
   SelectValue,
 } from "@/Components/ui/select";
 import { Toaster } from "sonner";
+import { addDays } from "date-fns";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/Components/ui/popover";
+import { Calendar } from "@/Components/ui/calendar";
 
 export default function Shops({ shops, filters }) {
   const [data, setData] = useState([]);
-  const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
   const [searchTerm, setSearchTerm] = useState(filters?.search || "");
   const [statusFilter, setStatusFilter] = useState(filters?.status || "all");
+  const [dateRange, setDateRange] = useState({
+    from: filters?.dateFrom ? new Date(filters.dateFrom) : null,
+    to: filters?.dateTo ? new Date(filters.dateTo) : null
+  });
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
+  const paginatedData = data.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  const totalPages = Math.ceil(data.length / itemsPerPage);
 
   useEffect(() => {
-    // Check if shops is an array before setting the data
+    // Filter out future-dated shops and set initial data
     if (Array.isArray(shops)) {
-      setData(shops);
+      const currentDate = new Date();
+      const filteredShops = shops.filter(shop => {
+        const shopDate = new Date(shop.created_at);
+        return shopDate <= currentDate;
+      });
+      setData(filteredShops);
     } else {
-      // Log if shops is missing or is not an array
       console.warn("Shops data is missing or is not an array:", shops);
-      setData([]); // Ensure data is an empty array to prevent errors
+      setData([]);
     }
   }, [shops]);
 
@@ -61,41 +84,72 @@ export default function Shops({ shops, filters }) {
     );
   };
 
-  const handleSort = (key) => {
-    const direction = sortConfig.key === key && sortConfig.direction === 'asc' ? 'desc' : 'asc';
-    setSortConfig({ key, direction });
-
-    const sortedData = [...data].sort((a, b) => {
-      let aValue, bValue;
-
-      switch (key) {
-        case 'user_name':
-          aValue = a.user ? `${a.user.first_name} ${a.user.last_name}` : '';
-          bValue = b.user ? `${b.user.first_name} ${b.user.last_name}` : '';
-          break;
-        case 'categories':
-          aValue = a.shopCategories && a.shopCategories.length > 0
-            ? a.shopCategories.map(c => c.categories?.name || '').join(', ')
-            : '';
-          bValue = b.shopCategories && b.shopCategories.length > 0
-            ? b.shopCategories.map(c => c.categories?.name || '').join(', ')
-            : '';
-          break;
-        case 'date_registered':
-          aValue = new Date(a.created_at);
-          bValue = new Date(b.created_at);
-          break;
-        default:
-          aValue = a[key];
-          bValue = b[key];
+  const handleDateFilter = (newRange) => {
+    const currentDate = new Date();
+    
+    // Validate the date range
+    if (newRange.from && newRange.to && newRange.to < newRange.from) {
+      newRange.to = newRange.from;
+    }
+    
+    setDateRange(newRange);
+    
+    // Filter the data based on the validated date range and current date
+    const filteredData = shops.filter(shop => {
+      const shopDate = new Date(shop.created_at);
+      
+      // Skip future dates
+      if (shopDate > currentDate) return false;
+      
+      if (newRange.from && newRange.to) {
+        return shopDate >= newRange.from && shopDate <= newRange.to;
+      } else if (newRange.from) {
+        return shopDate >= newRange.from;
+      } else if (newRange.to) {
+        return shopDate <= newRange.to;
       }
-
-      if (aValue < bValue) return direction === 'asc' ? -1 : 1;
-      if (aValue > bValue) return direction === 'asc' ? 1 : -1;
-      return 0;
+      return true;
     });
 
-    setData(sortedData);
+    setData(filteredData);
+  };
+
+  const handleReset = () => {
+    setSearchTerm("");
+    setStatusFilter("all");
+    setDateRange({ from: null, to: null });
+    setData(shops);
+    setCurrentPage(1);
+    
+    router.get(
+        route('admin.shops'),
+        { page: 1 },
+        { 
+            preserveState: true,
+            replace: true,
+            only: ['shops']
+        }
+    );
+  };
+
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+    
+    router.get(
+        route('admin.shops'),
+        { 
+            search: searchTerm, 
+            status: statusFilter,
+            page: page,
+            dateFrom: dateRange.from?.toISOString() || null,
+            dateTo: dateRange.to?.toISOString() || null,
+        },
+        { 
+            preserveState: true,
+            preserveScroll: true,
+            only: ['shops']
+        }
+    );
   };
 
   const getStatusBadge = (status) => {
@@ -108,6 +162,16 @@ export default function Shops({ shops, filters }) {
       default:
         return <Badge variant="secondary" className="bg-orange-500 hover:bg-orange-600 text-white">Processing</Badge>;
     }
+  };
+
+  const formatDateRange = () => {
+    if (!dateRange.from && !dateRange.to) return "Filter by Date";
+    if (dateRange.from && dateRange.to) {
+        return `${dateRange.from.toLocaleDateString()} - ${dateRange.to.toLocaleDateString()}`;
+    }
+    return dateRange.from ? 
+        `From ${dateRange.from.toLocaleDateString()}` : 
+        `Until ${dateRange.to.toLocaleDateString()}`;
   };
 
   return (
@@ -138,9 +202,51 @@ export default function Shops({ shops, filters }) {
               <SelectItem value="rejected">Rejected</SelectItem>
             </SelectContent>
           </Select>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" className="w-[250px] justify-start text-left font-normal">
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {formatDateRange()}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="end">
+              <div className="flex gap-4 p-3">
+                <div>
+                  <p className="text-sm font-medium mb-2">From</p>
+                  <Calendar
+                    mode="single"
+                    selected={dateRange.from}
+                    onSelect={(date) => handleDateFilter({ ...dateRange, from: date })}
+                    disabled={(date) => date > new Date()} // Prevent future dates
+                    initialFocus
+                  />
+                </div>
+                <div>
+                  <p className="text-sm font-medium mb-2">To</p>
+                  <Calendar
+                    mode="single"
+                    selected={dateRange.to}
+                    onSelect={(date) => handleDateFilter({ ...dateRange, to: date })}
+                    disabled={(date) => 
+                      (dateRange.from && date < dateRange.from) || // Prevent dates before start date
+                      date > new Date() // Prevent future dates
+                    }
+                    initialFocus
+                  />
+                </div>
+              </div>
+            </PopoverContent>
+          </Popover>
+          <Button 
+            variant="outline" 
+            onClick={handleReset}
+            className="px-4"
+          >
+            Reset
+          </Button>
         </div>
 
-        <div className="border rounded-md overflow-x-auto">
+        <div className="border rounded-md">
           <Table>
             <TableHeader>
               <TableRow>
@@ -153,23 +259,17 @@ export default function Shops({ shops, filters }) {
                   { key: 'status', label: 'Status' },
                   { key: 'actions', label: 'Actions' },
                 ].map((header) => (
-                  <TableHead key={header.key}>
-                    <button
-                      onClick={() => header.key !== 'actions' && header.key !== 'no' && handleSort(header.key)}
-                      className="flex items-center space-x-1 hover:text-gray-700"
-                    >
-                      <span>{header.label}</span>
-                      {header.key !== 'actions' && header.key !== 'no' && <ArrowUpDown className="h-4 w-4" />}
-                    </button>
+                  <TableHead key={header.key} className="px-6 py-3 text-left text-xs font-medium text-foreground uppercase tracking-wider">
+                    {header.label}
                   </TableHead>
                 ))}
               </TableRow>
             </TableHeader>
             <TableBody>
-              {data.length > 0 ? (
-                data.map((shop, index) => (
+              {paginatedData.length > 0 ? (
+                paginatedData.map((shop, index) => (
                   <TableRow key={shop.id} className="hover:bg-background hover:text-foreground transition-colors">
-                    <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-foreground">{index + 1}</TableCell>
+                    <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-foreground">{((currentPage - 1) * itemsPerPage) + index + 1}</TableCell>
                     <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-foreground">{shop.shop_name}</TableCell>
                     <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
                       {shop.user ? `${shop.user.first_name} ${shop.user.last_name}` : 'Unknown'}
@@ -222,31 +322,17 @@ export default function Shops({ shops, filters }) {
           </Table>
         </div>
 
-        {shops.links && (
-          <div className="flex justify-center mt-4">
-            {shops.links.map((link, key) => (
-              link.url ? (
-                <Button
-                  key={key}
-                  variant={link.active ? "default" : "outline"}
-                  onClick={() => {
-                    router.get(link.url, {
-                      preserveScroll: true,
-                      preserveState: true,
-                      only: ['shops']
-                    });
-                  }}
-                >
-                  <span dangerouslySetInnerHTML={{ __html: link.label }} />
-                </Button>
-              ) : (
-                <Button key={key} variant="outline" disabled>
-                  <span dangerouslySetInnerHTML={{ __html: link.label }} />
-                </Button>
-              )
-            ))}
-          </div>
-        )}
+        <div className="flex justify-center mt-4 space-x-2">
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+            <Button
+              key={page}
+              variant={currentPage === page ? "default" : "outline"}
+              onClick={() => handlePageChange(page)}
+            >
+              {page}
+            </Button>
+          ))}
+        </div>
       </div>
     </AdminLayout>
   );

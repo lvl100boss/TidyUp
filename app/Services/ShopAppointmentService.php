@@ -107,6 +107,12 @@ class ShopAppointmentService
             'id' => $userAppointment->appointment->id,
             'date' => $userAppointment->appointment->date,
             'time' => $userAppointment->appointment->time,
+            'end_time' => $this->calculateRoundedEndTime(
+                $userAppointment->appointment->date,
+                $userAppointment->appointment->time,
+                $totalHours,
+                $totalMinutes
+            ),
             'status' => $userAppointment->appointment->status,
             'customer' => [
                 'id' => $userAppointment->user->id,
@@ -126,6 +132,25 @@ class ShopAppointmentService
             'resched_reason' => $userAppointment->appointment->resched_reason
         ];
     }
+
+    private function calculateRoundedEndTime($date, $time, $durationHours, $durationMinutes)
+    {
+        // Create Carbon instance from date and time
+        $startDateTime = \Carbon\Carbon::parse("$date $time");
+
+        // Add the duration
+        $endDateTime = $startDateTime->addHours($durationHours)->addMinutes($durationMinutes);
+
+        // Round to the nearest 30-minute mark
+        $roundedMinutes = ($endDateTime->minute < 30) ? 30 : 0;
+        if ($roundedMinutes === 0) {
+            $endDateTime->addHour();
+        }
+        $endDateTime->minute($roundedMinutes);
+
+        return $endDateTime->format('H:i') . ':00';
+    }
+
 
     private function getCurrentStaffUpcomingAppointmentSchedules($staffId)
     {
@@ -154,11 +179,12 @@ class ShopAppointmentService
                 'id' => $schedule->appointment->id,
                 'date' => $schedule->appointment->date,
                 'time' => $schedule->appointment->time,
-                'total_duration' => [
-                    'hours' => $hours,
-                    'minutes' => $minutes,
-                    'total_minutes' => $totalMinutes
-                ],
+                'end_time' => $this->calculateRoundedEndTime(
+                    $schedule->appointment->date,
+                    $schedule->appointment->time,
+                    $hours,
+                    $minutes
+                ),
                 'appointment_data' => $schedule
                 // Add any other data you need from the appointment
             ];
@@ -178,10 +204,25 @@ class ShopAppointmentService
     {
         $shopAppointments = ShopStaffs::find($staffId)->shop->appointments;
         $shopAppointments = $shopAppointments->map(function ($appointment) {
+            $totalHours = $appointment->appointmentServices->sum('shopService.duration_hour');
+            $totalMinutes = $appointment->appointmentServices->sum('shopService.duration_minute');
+
+            // Convert excess minutes to hours
+            if ($totalMinutes >= 60) {
+                $totalHours += floor($totalMinutes / 60);
+                $totalMinutes = $totalMinutes % 60;
+            }
+
+            // Calculate end time
+            $startDateTime = \Carbon\Carbon::parse($appointment->date . ' ' . $appointment->time);
+            $endDateTime = $startDateTime->copy()->addHours($totalHours)->addMinutes($totalMinutes);
+            $endTime = $endDateTime->format('H:i:s');
+
             return [
                 'id' => $appointment->id,
                 'date' => $appointment->date,
                 'time' => $appointment->time,
+                'end_time' => $endTime,
                 'status' => $appointment->status,
                 'customer' => [
                     'id' => $appointment->user->id,
@@ -209,8 +250,8 @@ class ShopAppointmentService
                 }),
                 'total_cost' => $appointment->appointmentServices->sum('shopService.cost'),
                 'total_duration' => [
-                    'hours' => $appointment->appointmentServices->sum('shopService.duration_hour'),
-                    'minutes' => $appointment->appointmentServices->sum('shopService.duration_minute')
+                    'hours' => $totalHours,
+                    'minutes' => $totalMinutes
                 ],
                 'notes' => $appointment->note,
                 'decline_reason' => $appointment->decline_reason,

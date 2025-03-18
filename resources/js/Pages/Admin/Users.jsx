@@ -3,7 +3,7 @@ import { Head } from "@inertiajs/react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ArrowUpDown, Search, EllipsisVertical, Calendar as CalendarIcon } from "lucide-react";
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -19,120 +19,142 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
 import { addDays, differenceInDays } from "date-fns";
-
-const DurationCalendarModal = ({ open, onClose, onSelect, startDate, endDate }) => {
-    return (
-        <Dialog open={open} onOpenChange={onClose}>
-            <DialogContent className="sm:max-w-[800px] p-6"> {/* Increased max width */}
-                <DialogHeader>
-                    <DialogTitle>Select Restriction Duration</DialogTitle>
-                </DialogHeader>
-                <div className="grid gap-6"> {/* Increased gap */}
-                    <div className="grid grid-cols-2 gap-8"> {/* Increased gap between calendars */}
-                        <div className="space-y-2"> {/* Added vertical spacing */}
-                            <p className="text-sm font-medium">Start Date:</p>
-                            <div className="p-3 border rounded-lg"> {/* Added padding and border */}
-                                <Calendar
-                                    mode="single"
-                                    selected={startDate}
-                                    onSelect={(date) => onSelect(date, 'start')}
-                                    disabled={(date) => date < new Date()}
-                                    className="rounded-md"
-                                    styles={{
-                                        calendar: { width: '100%' },
-                                        button: { width: '40px', height: '40px' } // Larger date buttons
-                                    }}
-                                />
-                            </div>
-                        </div>
-                        <div className="space-y-2">
-                            <p className="text-sm font-medium">End Date:</p>
-                            <div className="p-3 border rounded-lg">
-                                <Calendar
-                                    mode="single"
-                                    selected={endDate}
-                                    onSelect={(date) => onSelect(date, 'end')}
-                                    disabled={(date) => date <= startDate}
-                                    className="rounded-md"
-                                    styles={{
-                                        calendar: { width: '100%' },
-                                        button: { width: '40px', height: '40px' }
-                                    }}
-                                />
-                            </div>
-                        </div>
-                    </div>
-                    <div className="flex justify-end">
-                        <Button variant="outline" onClick={onClose}>
-                            Done
-                        </Button>
-                    </div>
-                </div>
-            </DialogContent>
-        </Dialog>
-    );
-};
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { router } from "@inertiajs/react";
 
 const RestrictModal = ({ isOpen, onClose, user }) => {
     const [reason, setReason] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [startDate, setStartDate] = useState(new Date());
     const [endDate, setEndDate] = useState(addDays(new Date(), 7));
-    const [isDurationModalOpen, setIsDurationModalOpen] = useState(false);
-    
+    const [showCalendar, setShowCalendar] = useState(false);
+    const calendarRef = useRef(null);
 
-    // Calculate duration whenever dates change
-    const duration = differenceInDays(endDate, startDate);
 
-    const handleDateSelect = (date, type) => {
-        if (type === 'start') {
-            setStartDate(date);
-            if (date > endDate) {
-                setEndDate(addDays(date, 1));
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (calendarRef.current && !calendarRef.current.contains(event.target)) {
+                setShowCalendar(false);
             }
-        } else {
-            setEndDate(date);
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
+    useEffect(() => {
+        if (isOpen) {
+            setReason("");
+            setStartDate(new Date());
+            setEndDate(addDays(new Date(), 7));
+            setIsSubmitting(false);
         }
-    };
+    }, [isOpen]);
 
-    const handleRestrict = () => {
-        setIsSubmitting(true);
-
-        window.axios.post(route('admin.users.restrict'), {
-            user_id: user.id,
-            reason: reason,
-            duration: duration,
-            start_date: startDate.toISOString(),
-            end_date: endDate.toISOString()
-        })
-        .then((response) => {
-            console.log('Success:', response);
+    const handleRestrict = async () => {
+        try {
+            setIsSubmitting(true);
+            await window.axios.post(route('admin.users.restrict'), {
+                user_id: user.id,
+                reason: reason,
+                duration: differenceInDays(endDate, startDate),
+                start_date: startDate.toISOString(),
+                end_date: endDate.toISOString()
+            });
             onClose();
             window.location.reload();
-        })
-        .catch((error) => {
-            console.error('Full error details:', error);
-            
-            if (error.response) {
-                if (error.response.data.errors) {
-                    const errorMessages = Object.values(error.response.data.errors).flat();
-                    alert('Validation errors:\n' + errorMessages.join('\n'));
-                } else if (error.response.data.message) {
-                    alert('Server error: ' + error.response.data.message);
-                }
-            } else if (error.request) {
-                alert('Network error: Could not connect to server');
-            } else {
-                alert('Error: ' + error.message);
-            }
-        })
-        .finally(() => {
+        } catch (error) {
+            console.error('Error:', error);
+            // ...existing error handling...
+        } finally {
             setIsSubmitting(false);
-        });
+        }
+
     };
 
+    const durationSection = (
+        <div className="grid grid-cols-2 gap-4">
+            <div>
+                <p className="text-sm font-medium">Full Name:</p>
+                <Input value={`${user.first_name} ${user.last_name}`} disabled />
+            </div>
+            <div className="space-y-2">
+                <p className="text-sm font-medium">Duration:</p>
+                <div className="relative" ref={calendarRef}>
+                    <Input 
+                        value={`${differenceInDays(endDate, startDate)} days`}
+                        disabled 
+                        className="pr-10"
+                    />
+                    <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="absolute right-0 top-0"
+                        onClick={() => setShowCalendar(!showCalendar)}
+                    >
+                        <CalendarIcon className="h-4 w-4" />
+                    </Button>
+                    
+                    {showCalendar && (
+                        <div className="absolute right-0 mt-2 p-4 bg-background border rounded-lg shadow-lg z-50">
+                            <div className="flex gap-4">
+                                <div>
+                                    <p className="text-sm font-medium mb-2">Start Date</p>
+                                    <Calendar
+                                        mode="single"
+                                        selected={startDate}
+                                        onSelect={(date) => {
+                                            if (date) {
+                                                setStartDate(date);
+                                                if (date >= endDate) {
+                                                    setEndDate(addDays(date, 1));
+                                                }
+                                            }
+                                        }}
+                                        disabled={(date) => date < new Date()}
+                                        initialFocus
+                                    />
+                                </div>
+                                <div>
+                                    <p className="text-sm font-medium mb-2">End Date</p>
+                                    <Calendar
+                                        mode="single"
+                                        selected={endDate}
+                                        onSelect={(date) => date && setEndDate(date)}
+                                        disabled={(date) => date <= startDate}
+                                        initialFocus
+                                    />
+                                </div>
+                            </div>
+                            <div className="mt-4 flex justify-end">
+                                <Button 
+                                    variant="outline" 
+                                    onClick={() => setShowCalendar(false)}
+                                >
+                                    Done
+                                </Button>
+                            </div>
+                        </div>
+                    )}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                    From {startDate.toLocaleDateString()} to {endDate.toLocaleDateString()}
+                </p>
+            </div>
+        </div>
+    );
+
     return (
-        <Dialog open={isOpen} onOpenChange={onClose}>
+        <Dialog 
+            open={isOpen} 
+            onOpenChange={(open) => {
+                if (!open) {
+                    onClose();
+                }
+            }}
+        >
             <DialogContent className="max-w-lg p-6">
                 <DialogHeader>
                     <DialogTitle>User Restriction</DialogTitle>
@@ -155,34 +177,8 @@ const RestrictModal = ({ isOpen, onClose, user }) => {
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
-                        <div>
-                            <p className="text-sm font-medium">Full Name:</p>
-                            <Input
-                                value={`${user.first_name} ${user.last_name}`}
-                                disabled
-                            />
-                        </div>
-                        <div>
-                            <p className="text-sm font-medium">Duration:</p>
-                            <div className="relative">
-                                <Input 
-                                    value={`${duration} days`}
-                                    disabled 
-                                    className="pr-10"
-                                />
-                                <Button
-                                    type="button"
-                                    variant="ghost"
-                                    size="icon"
-                                    className="absolute right-0 top-0"
-                                    onClick={() => setIsDurationModalOpen(true)}
-                                >
-                                    <CalendarIcon className="h-4 w-4" />
-                                </Button>
-                            </div>
-                        </div>
-                    </div>
+                    {durationSection}
+
 
                     <div className="grid grid-cols-2 gap-4">
                         <div>
@@ -214,16 +210,16 @@ const RestrictModal = ({ isOpen, onClose, user }) => {
                     </div>
 
                     <div className="flex justify-end space-x-2">
-                        <Button 
-                            variant="outline" 
+                        <Button
+                            variant="outline"
                             onClick={onClose}
                             disabled={isSubmitting}
                         >
                             Cancel
                         </Button>
 
-                        <Button 
-                            className="bg-red-500 text-foreground" 
+                        <Button
+                            className="bg-red-500 text-foreground"
                             onClick={handleRestrict}
                             disabled={!reason || isSubmitting}
                         >
@@ -232,71 +228,139 @@ const RestrictModal = ({ isOpen, onClose, user }) => {
                     </div>
                 </div>
             </DialogContent>
-
-            <DurationCalendarModal
-                open={isDurationModalOpen}
-                onClose={() => setIsDurationModalOpen(false)}
-                onSelect={handleDateSelect}
-                startDate={startDate}
-                endDate={endDate}
-            />
         </Dialog>
     );
 };
 
-export default function Users({ users }) {  // Accept users prop from backend
-    const [data, setData] = useState(users);  // Initialize with backend data
+export default function Users({ users, links }) {  // Add links prop
+    const [data, setData] = useState([]);  // Initialize as empty array
     const [searchTerm, setSearchTerm] = useState("");
-    const [sortConfig, setSortConfig] = useState({
-        key: null,
-        direction: "asc",
-    });
     const [isRestrictModalOpen, setIsRestrictModalOpen] = useState(false);
     const [selectedUser, setSelectedUser] = useState(null);
+    const [dateRange, setDateRange] = useState({
+        from: null,
+        to: null
+    });
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 10;
 
-    // Search functionality
+    // Add useEffect to handle initial data filtering
+    useEffect(() => {
+        if (Array.isArray(users)) {
+            const currentDate = new Date();
+            const filteredUsers = users.filter(user => {
+                const userDate = new Date(user.dateRegistered);
+                return userDate <= currentDate;
+            });
+            setData(filteredUsers);
+        }
+    }, [users]);
+
+    const paginatedData = data.slice(
+        (currentPage - 1) * itemsPerPage,
+        currentPage * itemsPerPage
+    );
+
+    const totalPages = Math.ceil(data.length / itemsPerPage);
+
+    const handlePageChange = (page) => {
+        setCurrentPage(page);
+    };
+
+    const handleDateFilter = (range) => {
+        const currentDate = new Date();
+        
+        // Validate the date range
+        if (range.from && range.to && range.to < range.from) {
+            range.to = range.from;
+        }
+        
+        setDateRange(range);
+        
+        const filteredData = users.filter(user => {
+            const userDate = new Date(user.dateRegistered);
+            
+            // Skip future dates
+            if (userDate > currentDate) return false;
+            
+            if (range.from && range.to) {
+                return userDate >= range.from && userDate <= range.to;
+            } else if (range.from) {
+                return userDate >= range.from;
+            } else if (range.to) {
+                return userDate <= range.to;
+            }
+            return true;
+        });
+        setData(filteredData);
+    };
+
+    const formatDateRange = () => {
+        if (!dateRange.from && !dateRange.to) return "Filter by Date";
+        if (dateRange.from && dateRange.to) {
+            return `${dateRange.from.toLocaleDateString()} - ${dateRange.to.toLocaleDateString()}`;
+        }
+        return dateRange.from ? 
+            `From ${dateRange.from.toLocaleDateString()}` : 
+            `Until ${dateRange.to.toLocaleDateString()}`;
+    };
+
+    // Modified search functionality with date filtering
     const handleSearch = (event) => {
         const term = event.target.value.toLowerCase();
+        const currentDate = new Date();
         setSearchTerm(term);
 
         if (term === "") {
-            setData(users);  // Reset to original data from backend
+            const filteredUsers = users.filter(user => {
+                const userDate = new Date(user.dateRegistered);
+                return userDate <= currentDate;
+            });
+            setData(filteredUsers);
         } else {
+            const filteredData = users.filter(item => {
+                const userDate = new Date(item.dateRegistered);
+                // Skip future dates
+                if (userDate > currentDate) return false;
+                
+                // Special handling for date
+                const dateMatch = item.dateRegistered?.toLowerCase().includes(term);
+                
+                // Check other fields
+                const otherFieldsMatch = ["username", "first_name", "last_name", "email"]
+                    .some(field => item[field]?.toLowerCase().includes(term));
 
-            const filteredData = users.filter(item =>
-                Object.values(item).some(value =>
-                    String(value).toLowerCase().includes(term)
-                )
-            );
+                return dateMatch || otherFieldsMatch;
+            });
             setData(filteredData);
         }
     };
 
-
-    const handleSort = (key) => {
-        const direction =
-            sortConfig.key === key && sortConfig.direction === "asc"
-                ? "desc"
-                : "asc";
-        setSortConfig({ key, direction });
-
-        const sortedData = [...data].sort((a, b) => {
-            if (a[key] < b[key]) return direction === "asc" ? -1 : 1;
-            if (a[key] > b[key]) return direction === "asc" ? 1 : -1;
-            return 0;
-        });
-
-        setData(sortedData);
-    };
-
     const handleRestrictUser = (user) => {
+        // Ensure we set the user first before opening the modal
         setSelectedUser(user);
-        setIsRestrictModalOpen(true);
+        setTimeout(() => {
+            setIsRestrictModalOpen(true);
+        }, 0);
     };
 
     const handleCloseRestrictModal = () => {
         setIsRestrictModalOpen(false);
-        setSelectedUser(null);
+        setTimeout(() => {
+            setSelectedUser(null);
+        }, 100); // Give time for modal animation
+    };
+
+    const handleReset = () => {
+        const currentDate = new Date();
+        setSearchTerm("");
+        setDateRange({ from: null, to: null });
+        // Filter out future dates when resetting
+        const filteredUsers = users.filter(user => {
+            const userDate = new Date(user.dateRegistered);
+            return userDate <= currentDate;
+        });
+        setData(filteredUsers);
     };
 
     return (
@@ -315,51 +379,80 @@ export default function Users({ users }) {  // Accept users prop from backend
                             className="pl-8"
                         />
                     </div>
-                    <Button variant="secondary">Search</Button>
+                    <Popover>
+                        <PopoverTrigger asChild>
+                            <Button variant="outline" className="w-[250px] justify-start text-left font-normal">
+                                <CalendarIcon className="mr-2 h-4 w-4" />
+                                {formatDateRange()}
+                            </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="end">
+                            <div className="flex gap-4 p-3">
+                                <div>
+                                    <p className="text-sm font-medium mb-2">From</p>
+                                    <Calendar
+                                        mode="single"
+                                        selected={dateRange.from}
+                                        onSelect={(date) => handleDateFilter({ ...dateRange, from: date })}
+                                        disabled={(date) => date > new Date()} // Prevent future dates
+                                        initialFocus
+                                    />
+                                </div>
+                                <div>
+                                    <p className="text-sm font-medium mb-2">To</p>
+                                    <Calendar
+                                        mode="single"
+                                        selected={dateRange.to}
+                                        onSelect={(date) => handleDateFilter({ ...dateRange, to: date })}
+                                        disabled={(date) => 
+                                          (dateRange.from && date < dateRange.from) || // Prevent dates before start date
+                                          date > new Date() // Prevent future dates
+                                        }
+                                        initialFocus
+                                    />
+                                </div>
+                            </div>
+                        </PopoverContent>
+                    </Popover>
+                    <Button 
+                        variant="outline" 
+                        onClick={handleReset}
+                        className="px-4"
+                    >
+                        Reset
+                    </Button>
                 </div>
 
-                <div className="border rounded-md overflow-x-auto">
+                <div className="border rounded-md">
                     <table className="min-w-full divide-y divide-border">
                         <thead className="bg-background">
                             <tr>
                                 {[
-                                    "ID",
+                                    "No.",
                                     "Username",
                                     "First Name",
                                     "Last Name",
                                     "Email",
                                     "Date Registered",
-                                    "Action",
+                                    "Actions",
                                 ].map((header) => (
                                     <th
                                         key={header}
                                         className="px-6 py-3 text-left text-xs font-medium text-foreground uppercase tracking-wider"
                                     >
-                                        <button
-                                            onClick={() =>
-                                                handleSort(
-                                                    header
-                                                        .toLowerCase()
-                                                        .replace(" ", "")
-                                                )
-                                            }
-                                            className="flex items-center space-x-1 hover:text-gray-700"
-                                        >
-                                            <span>{header}</span>
-                                            <ArrowUpDown className="h-4 w-4" />
-                                        </button>
+                                        {header}
                                     </th>
                                 ))}
                             </tr>
                         </thead>
                         <tbody className="bg-background divide-y divide-border">
-                            {data.map((row, index) => (
+                            {paginatedData.map((row, index) => (
                                 <tr
                                     key={index}
                                     className="hover:bg-secondary/50 hover:text-foreground"
                                 >
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
-                                        {row.id}
+                                        {((currentPage - 1) * itemsPerPage) + index + 1}
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
                                         {row.username}
@@ -392,9 +485,9 @@ export default function Users({ users }) {  // Accept users prop from backend
                                                     Edit
                                                 </DropdownMenuItem>
                                                 <DropdownMenuItem
-                                                    onClick={() =>
-                                                        handleRestrictUser(row)
-                                                    }
+                                                    onClick={(e) => {
+                                                        handleRestrictUser(row);
+                                                    }}
                                                 >
                                                     Restrict
                                                 </DropdownMenuItem>
@@ -409,15 +502,30 @@ export default function Users({ users }) {  // Accept users prop from backend
                         </tbody>
                     </table>
                 </div>
+
+                {/* Add pagination controls */}
+                <div className="flex justify-center mt-4 space-x-2">
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                        <Button
+                            key={page}
+                            variant={currentPage === page ? "default" : "outline"}
+                            onClick={() => handlePageChange(page)}
+                        >
+                            {page}
+                        </Button>
+                    ))}
+                </div>
             </div>
 
-            {selectedUser && (
-                <RestrictModal
-                    isOpen={isRestrictModalOpen}
-                    onClose={handleCloseRestrictModal}
-                    user={selectedUser}
-                />
-            )}
-        </AdminLayout>
+            {
+                selectedUser && (
+                    <RestrictModal
+                        isOpen={isRestrictModalOpen}
+                        onClose={handleCloseRestrictModal}
+                        user={selectedUser}
+                    />
+                )
+            }
+        </AdminLayout >
     );
 }

@@ -59,10 +59,29 @@ import {
 } from "@/Components/ui/dialog";
 import ShopGallery from "@/Components/Shop/ShopGallery";
 
+// Add this helper function at the top level
+const formatDuration = (hours, minutes) => {
+  const parts = [];
+  if (hours > 0) parts.push(`${hours} ${hours === 1 ? 'hour' : 'hours'}`);
+  if (minutes > 0) parts.push(`${minutes} ${minutes === 1 ? 'minute' : 'minutes'}`);
+  return parts.join(' ');
+};
 
 export default function ShopDetails({ shop, categories, setupData }) {
   const [activeTab, setActiveTab] = useState("overview");
   
+  // Update useEffect with more detailed logging
+  useEffect(() => {
+    if (activeTab === "services") {
+      console.log("Full Shop Data:", shop);
+      console.log("Services Data:", {
+        hasServices: Array.isArray(shop.shop_service_categories),
+        servicesCount: shop.shop_service_categories?.length || 0,
+        services: shop.shop_service_categories
+      });
+    }
+  }, [activeTab, shop]);
+
   const { data, setData, post, processing, errors, reset } = useForm({
     status: shop.status || 'processing',
     rejection_reason: shop.rejection_reason || '',
@@ -225,6 +244,62 @@ export default function ShopDetails({ shop, categories, setupData }) {
       </div>
     );
   };
+
+  // Update services section to use correct property name
+  const renderServices = () => (
+    <div className="space-y-4">
+      <h3 className="text-lg font-bold">Service Catalog</h3>
+      {Array.isArray(shop.shop_service_categories) && shop.shop_service_categories.length > 0 ? (
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {shop.shop_service_categories.map((service) => (
+            <Card key={service.id} className="overflow-hidden">
+              <CardHeader>
+                <CardTitle className="text-base">
+                  {service.service_name}
+                </CardTitle>
+                <CardDescription>
+                  {service.service_categories?.name || 'Uncategorized'}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-muted-foreground">Category:</span>
+                    <Badge variant="outline">
+                      {service.service_categories?.name || 'Uncategorized'}
+                    </Badge>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-muted-foreground">Cost:</span>
+                    <Badge variant="secondary">
+                      ₱{parseFloat(service.cost).toFixed(2)}
+                    </Badge>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-muted-foreground">Duration:</span>
+                    <span className="text-sm">
+                      {service.duration_hour > 0 && `${service.duration_hour}h `}
+                      {service.duration_minute > 0 && `${service.duration_minute}m`}
+                    </span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      ) : (
+        <div className="text-center py-10 border rounded bg-gray-50 flex flex-col items-center justify-center">
+          <FileText className="h-12 w-12 text-gray-400 mb-2" />
+          <p className="text-muted-foreground">No services have been added to this shop yet.</p>
+          {shop.status === 'processing' && (
+            <p className="text-sm text-amber-600 mt-2">
+              The shop owner may add services after verification.
+            </p>
+          )}
+        </div>
+      )}
+    </div>
+  );
 
   return (
     <AdminLayout>
@@ -458,26 +533,7 @@ export default function ShopDetails({ shop, categories, setupData }) {
               </TabsContent>
               
               <TabsContent value="services">
-                <div className="space-y-4">
-                  <h3 className="text-lg font-bold">Service Catalog</h3>
-                  {shop.shopServiceCategories && shop.shopServiceCategories.length > 0 ? (
-                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {shop.shopServiceCategories.map((service) => (
-                        <ShopServiceCard key={service.id} service={service} />
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-center py-10 border rounded bg-gray-50 flex flex-col items-center justify-center">
-                      <FileText className="h-12 w-12 text-gray-400 mb-2" />
-                      <p className="text-muted-foreground">No services have been added to this shop yet.</p>
-                      {shop.status === 'processing' && (
-                        <p className="text-sm text-amber-600 mt-2">
-                          The shop owner may add services after verification.
-                        </p>
-                      )}
-                    </div>
-                  )}
-                </div>
+                {renderServices()}
               </TabsContent>
               
               <TabsContent value="documents">
