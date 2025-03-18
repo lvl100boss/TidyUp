@@ -18,6 +18,7 @@ use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use App\Notifications\NewShopRegistrationNotification;
 
 class ShopController extends Controller
 {
@@ -135,6 +136,12 @@ class ShopController extends Controller
                 'is_active' => true,
             ]);
 
+            // Notify all admin users
+            $admins = User::where('role', 'admin')->get();
+            foreach ($admins as $admin) {
+                $admin->notify(new NewShopRegistrationNotification($shop));
+            }
+
             DB::commit();
 
             Log::info('Shop created with categories', [
@@ -142,7 +149,10 @@ class ShopController extends Controller
                 'categories' => $validatedData['categories']
             ]);
 
-            return redirect()->route('shop.success')->with('success', 'Shop created successfully!');
+            return response()->json([
+                'success' => true,
+                'message' => 'Shop registration submitted successfully and is awaiting verification'
+            ]);
         } catch (\Exception $e) {
             DB::rollBack();
 
@@ -157,23 +167,29 @@ class ShopController extends Controller
 
     public function show($id)
     {
+        // Make sure $id is numeric before processing
+        if (!is_numeric($id)) {
+            Log::warning('Invalid shop ID format', ['shop_id' => $id]);
+            return redirect()->route('not-found');
+        }
+
         // Add debug logging
         Log::info('Shop detail page requested', ['shop_id' => $id]);
-        
+
         // Find the shop with all necessary relationships
         $shop = Shop::with(['shopGallery', 'shopServiceCategories.serviceCategories', 'shopOperationHours', 'socialMedia'])
             ->where('status', 'verified') // Only get verified shops
             ->find($id);
-        
+
         // If shop doesn't exist or is not verified, return 404
         if (!$shop) {
             Log::warning('Shop not found or not verified', ['shop_id' => $id]);
             return redirect()->route('not-found');
         }
-        
+
         // Log success
         Log::info('Shop found and being displayed', ['shop' => $shop->shop_name, 'id' => $shop->id]);
-        
+
         // Get random verified shops for customer's choices section
         $randomShops = Shop::with(['shopGallery', 'shopCategories.categories'])
             ->where('status', 'verified')
@@ -181,7 +197,7 @@ class ShopController extends Controller
             ->inRandomOrder()
             ->limit(10)
             ->get();
-        
+
         return Inertia::render('Users/Shop', [
             'shop' => $shop,
             'randomShops' => $randomShops
