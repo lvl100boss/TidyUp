@@ -105,19 +105,8 @@ const Header = ({ onClick, isDarkTheme }) => {
                                 <Link href="/profile">
                                     <DropdownMenuItem>Profile</DropdownMenuItem>
                                 </Link>
-                                {role.role_id === 3 ? (
-                                    <Link>
-                                        <DropdownMenuItem>
-                                            Manage Shop
-                                        </DropdownMenuItem>
-                                    </Link>
-                                ) : (
-                                    <DropdownMenuItem>
-                                        Setup Your Shop
-                                    </DropdownMenuItem>
-                                )}
+
                             </DropdownMenuGroup>
-                            <DropdownMenuSeparator />
                             <DropdownMenuItem onClick={onClick}>
                                 Set Theme to{" "}
                                 {isDarkTheme ? "Light Mode" : "Dark Mode"}

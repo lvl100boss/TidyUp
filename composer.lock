@@ -5,6 +5,7 @@
         "This file is @generated automatically"
     ],
     "content-hash": "94b70298dd5dc52cca8ff9f0f33782d9",
+
     "packages": [
         {
             "name": "brick/math",
@@ -1043,6 +1044,7 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/protocolbuffers/protobuf-php/zipball/f29ba8a30dfd940efb3a8a75dc44446539101f24",
                 "reference": "f29ba8a30dfd940efb3a8a75dc44446539101f24",
+
                 "shasum": ""
             },
             "require": {
@@ -1074,6 +1076,7 @@
                 "source": "https://github.com/protocolbuffers/protobuf-php/tree/v4.30.1"
             },
             "time": "2025-03-13T21:08:17+00:00"
+
         },
         {
             "name": "graham-campbell/result-type",
