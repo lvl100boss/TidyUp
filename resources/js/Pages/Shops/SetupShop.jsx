@@ -353,7 +353,7 @@ export default function SetupShop({ categories, serviceCategories }) {
     return (
         <>
             <Head title="Shop Setup" />
-            <section className="py-2 px-5 relative min-h-screen">
+            <section className="py-2 px-5 relative min-h-screen pb-40">
                 <Header onClick={toggleTheme} isDarkTheme={isDarkTheme} />
                 <div className="max-w-screen-md mx-auto">
                     <div>
