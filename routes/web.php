@@ -50,9 +50,12 @@ Route::get('/shop/{id}', [ShopController::class, 'show'])->where('id', '[0-9]+')
 // Add a compatibility route for links that might be using the /{id}/shop pattern
 Route::get('/{id}/shop', [ShopController::class, 'show'])->where('id', '[0-9]+');
 
+Route::get('/shop/setup', [ShopController::class, 'create'])->name('shop.setup');
+Route::post('/shop/setup', [ShopController::class, 'store'])->name('shop.store');
+
 // Debug route - kept for future potential issues
 Route::get('/debug/check-documents/{shopId}', function ($shopId) {
-    if (!Auth::check() || !Auth::user()->isAdmin()) {
+    if (!Auth::check()) {
         return redirect('/');
     }
 

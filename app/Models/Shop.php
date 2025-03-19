@@ -10,8 +10,8 @@ class Shop extends Model
 {
     //
     protected $fillable = [
-        'user_id',
         'shop_name',
+        'user_id',
         'email',
         'contact_number',
         'shop_photo',

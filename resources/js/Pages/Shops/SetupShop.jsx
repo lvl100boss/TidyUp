@@ -77,6 +77,7 @@ export default function SetupShop({ categories, serviceCategories }) {
         business_permit: null,
         dti_registration: null,
         valid_id: null,
+        _CSRF_TOKEN: window.csrf_token,
     });
 
     const handleMainImageChange = (e) => {
