@@ -208,32 +208,19 @@ class DocumentVerificationController extends Controller
             ];
         }
         
-        // Check image quality
-        $lowQuality = strlen($text) < 100;
+        // Only check for image quality and basic DTI identifier
+        $lowQuality = strlen($text) < 50; // Reduced minimum text length
         
         if ($lowQuality) {
             return [
                 'isValid' => false,
-                'message' => 'The image quality is too low. Please upload a clearer image of your DTI registration.',
+                'message' => 'The image quality is too low. Please upload a clearer image.',
                 'issue' => 'low_quality',
                 'status' => 'warning'
             ];
         }
         
-        // Check for required fields
-        $hasBusinessName = preg_match('/business name[: ]*([\w\s]+)/', $text);
-        $hasRegistrationNumber = preg_match('/registration (?:no|number)[.: ]*([\w\d-]+)/', $text);
-        $hasOwnerName = preg_match('/(?:proprietor|owner)[.: ]*([\w\s]+)/', $text);
-        
-        if (!$hasBusinessName || !$hasRegistrationNumber || !$hasOwnerName) {
-            return [
-                'isValid' => false,
-                'message' => 'The DTI registration is incomplete or key information is not clearly visible.',
-                'issue' => 'incomplete',
-                'status' => 'warning'
-            ];
-        }
-        
+        // If we found DTI identifiers and quality is good, consider it valid
         return [
             'isValid' => true,
             'message' => 'DTI registration certificate verified successfully.',

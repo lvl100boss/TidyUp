@@ -13,6 +13,7 @@ use App\Http\Controllers\Admin\SubscriptionController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\UserManagementController;
 use App\Http\Middleware\AdminMiddleware;
+use App\Http\Controllers\Admin\ShopController as AdminShopController;
 
 // Testing route outside middleware (accessible to everyone)
 Route::get('/admin/test', function () {
@@ -23,10 +24,12 @@ Route::get('/admin/test', function () {
 Route::middleware(['auth', \App\Http\Middleware\AdminMiddleware::class])->prefix('admin')->name('admin.')->group(function () {
 
 
-    // Shop management routes
-    Route::get('/shops', [ShopController::class, 'index'])->name('shops');
+    // Shop management routes with verification
+    Route::get('/shops', [AdminShopController::class, 'index'])->name('shops');
     Route::get('/shops/{shop}', [ShopController::class, 'show'])->name('shops.show');
-    Route::post('/shops/{shop}/update-status', [ShopManagementController::class, 'updateStatus'])->name('shops.update-status');
+    Route::post('/shops/{shop}/verify', [ShopController::class, 'verify'])->name('shops.verify');
+    Route::post('/shops/{shop}/reject', [ShopController::class, 'reject'])->name('shops.reject');
+    Route::post('/shops/{shop}/update-status', [ShopController::class, 'updateStatus'])->name('shops.update-status');
     Route::get('/shops/{shop}/documents/{type}', [ShopManagementController::class, 'downloadDocument'])->name('shops.download-document');
 
 
