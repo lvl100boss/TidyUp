@@ -25,23 +25,21 @@ import ShopCard from "@/Components/User/ShopCard";
 import { useEffect, useState } from "react";
 import HeroSection from "@/Components/User/Home/HeroSection";
 
-export default function Home({ latestShops, barbershops, hairSalons, canLogin, canRegister }) {
+export default function Home({ randomShops, canLogin, canRegister }) {
     const [isLoading, setIsLoading] = useState(true);
     
     useEffect(() => {
         // Add debugging to see what we're receiving
-        console.log('Latest shops data:', latestShops);
-        console.log('Barbershops data:', barbershops);
-        console.log('Hair salons data:', hairSalons);
+        console.log('Random shops data:', randomShops);
         
         const preloadImages = async () => {
             // Only try to preload images if we have shop data with gallery images
-            if (!latestShops || !latestShops.length) {
+            if (!randomShops || !randomShops.length) {
                 setIsLoading(false);
                 return;
             }
             
-            const imagePromises = latestShops
+            const imagePromises = randomShops
                 .filter(shop => shop && shop.shop_gallery && shop.shop_gallery.length > 0)
                 .map((shop) => {
                     return new Promise((resolve) => {
@@ -57,7 +55,7 @@ export default function Home({ latestShops, barbershops, hairSalons, canLogin, c
         };
 
         preloadImages();
-    }, [latestShops, barbershops, hairSalons]);
+    }, [randomShops]);
 
     const sm = useMediaQuery({ minWidth: 640 });
     const md = useMediaQuery({ minWidth: 768 });
@@ -126,8 +124,8 @@ export default function Home({ latestShops, barbershops, hairSalons, canLogin, c
                 </Link>
             </div>
             <div className="mb-5 grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-5">
-                {latestShops && latestShops.length > 0 ? (
-                    latestShops.map((shop) => (
+                {randomShops && randomShops.length > 0 ? (
+                    randomShops.map((shop) => (
                         <ShopCard key={shop.id} shop={shop} isLoading={isLoading} />
                     ))
                 ) : (
