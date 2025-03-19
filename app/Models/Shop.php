@@ -93,6 +93,7 @@ class Shop extends Model
         return $this->hasMany(ShopSocialMedia::class, 'shop_id');
     }
 
+
     /**
      * Get the legal documents for this shop.
      */
@@ -128,5 +129,15 @@ class Shop extends Model
         return $ownerStaff ? $ownerStaff->staff() : null;
     }
 
+
     protected $with = ['user', 'shopCategories.categories', 'legalDocuments'];
+
+    public function subscriptions()
+    {
+    return $this->belongsToMany(Subscription::class, 'shop_subscriptions')
+                ->withPivot('start_date', 'end_date', 'status')
+                ->withTimestamps();
+    }
+
+
 }
