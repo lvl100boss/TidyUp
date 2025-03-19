@@ -22,21 +22,20 @@ class ShopController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Shop::query()
-            ->with([
-                'user',
-                'shopServiceCategories',
-                'shopCategories.categories' => function ($query) {
-                    $query->select('id', 'name');
-                }
-            ]);
+        $query = Shop::with([
+            'user',
+            'shopCategories.categories',
+            'legalDocuments',
+            'shopOperationHours'
+        ])
+            ->orderByRaw("FIELD(status, 'processing', 'rejected', 'verified')")
+            ->orderBy('created_at', 'desc');
 
-        // Apply search filter
-        if ($request->filled('search')) {
+        // Add search filter
+        if ($request->has('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('shop_name', 'like', "%{$search}%")
-                    ->orWhere('email', 'like', "%{$search}%")
                     ->orWhereHas('user', function ($q) use ($search) {
                         $q->where('first_name', 'like', "%{$search}%")
                             ->orWhere('last_name', 'like', "%{$search}%");
@@ -44,16 +43,26 @@ class ShopController extends Controller
             });
         }
 
-        // Apply status filter
-        if ($request->filled('status') && $request->status !== 'all') {
+        // Add status filter
+        if ($request->has('status') && $request->status !== 'all') {
             $query->where('status', $request->status);
         }
 
-        $shops = $query->get();
+        // Add debug logging
+        Log::info('Fetching shops for admin', [
+            'filters' => $request->only(['search', 'status']),
+            'count' => $query->count()
+        ]);
+
+        $shops = $query->get()->map(function ($shop) {
+            // Safely format the date
+            $shop->formatted_date = optional($shop->created_at)->format('n/j/Y');
+            return $shop;
+        });
 
         return Inertia::render('Admin/Shops', [
             'shops' => $shops,
-            'filters' => $request->only(['search', 'status']),
+            'filters' => $request->only(['search', 'status'])
         ]);
     }
 

@@ -43,6 +43,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/report-issue', function () {
         return Inertia::render('Users/ReportAnIssue');
     })->name('ReportAnIssue');
+
+    // Add a route for SetupShop with middleware
+    Route::get('/shop/setup', [ShopController::class, 'setup'])->name('shop.setup');
+    Route::post('/shop/setup', [ShopController::class, 'store'])->name('shop.store');
 });
 
 // Fix the shop detail route pattern to match the links being generated

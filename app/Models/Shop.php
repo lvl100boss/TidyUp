@@ -28,14 +28,28 @@ class Shop extends Model
     ];
 
     // Add appends to ensure status is always included
-    protected $appends = ['shop_status'];
+    protected $appends = ['shop_status', 'formatted_date'];
 
     // Clean up the shop status logging to prevent excessive log entries
     public function getShopStatusAttribute()
     {
-        $status = $this->attributes['status'] ?? 'unknown';
-        // Only log on dashboard access, not every status check
-        return $status;
+        return $this->attributes['status'] ?? 'processing';
+    }
+
+    protected $casts = [
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+    ];
+
+    // Add scope for processing shops
+    public function scopeProcessing($query)
+    {
+        return $query->where('status', 'processing');
+    }
+
+    public function getFormattedDateAttribute()
+    {
+        return $this->created_at ? $this->created_at->format('n/j/Y') : null;
     }
 
     // These are the relationships you already had - keeping them in case they're used elsewhere
@@ -114,11 +128,16 @@ class Shop extends Model
         $ownerStaff = $this->shopStaffs()->where('role', 'Shop Owner')->orWhere('position', 'owner')->first();
         return $ownerStaff ? $ownerStaff->staff() : null;
     }
+
+
+    protected $with = ['user', 'shopCategories.categories', 'legalDocuments'];
+
     public function subscriptions()
     {
     return $this->belongsToMany(Subscription::class, 'shop_subscriptions')
                 ->withPivot('start_date', 'end_date', 'status')
                 ->withTimestamps();
     }
+
 
 }
