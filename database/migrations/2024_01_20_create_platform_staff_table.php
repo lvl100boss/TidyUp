@@ -6,25 +6,31 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    public function up()
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
     {
-        Schema::create('platform_staff', function (Blueprint $table) {
+        Schema::create('platform_staffs', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->string('role');
-            $table->string('email')->unique();
-            $table->string('phone')->nullable();
-            $table->string('avatar')->nullable();
-            $table->string('department');
-            $table->string('office_location')->nullable();
-            $table->date('date_hired');
-            $table->enum('status', ['active', 'inactive', 'on_leave', 'suspended'])->default('active');
+            $table->string('position');
+            $table->boolean('is_active')->default(true);
+            $table->timestamp('started_at')->nullable(); // Added started_at timestamp
+            $table->timestamp('ended_at')->nullable(); // Added ended_at timestamp
             $table->timestamps();
+
+            $table->index(['user_id']); // Added index for better performance on shop_id and staff_id
+            $table->softDeletes(); // Added soft deletes
         });
     }
 
-    public function down()
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
     {
-        Schema::dropIfExists('platform_staff');
+        Schema::dropIfExists('platform_staffs');
     }
 };

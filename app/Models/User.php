@@ -93,4 +93,9 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->hasMany(AppointmentServices::class); // Each user has many appointment services
     }
+
+    public function platformStaff()
+    {
+        return $this->hasOne(PlatformStaff::class); // Each user has one platform staff
+    }
 }

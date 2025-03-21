@@ -2,11 +2,12 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
-class PlatfomStaff extends Model
+class PlatformStaff extends Model
 {
-    //
     //
     protected $table = 'platform_staffs';
 
@@ -25,5 +26,4 @@ class PlatfomStaff extends Model
     {
         return $this->belongsTo(User::class, 'user_id');
     }
-
 }
