@@ -47,6 +47,7 @@ class ShopController extends Controller
         ]);
 
         // Validate basic fields first
+
         $validatedData = $request->validate([
             'shop_name' => 'required|unique:shops,shop_name',
             'shop_bio' => 'required',
@@ -64,6 +65,7 @@ class ShopController extends Controller
             'shop_photo' => 'required|image',
             'shop_gallery' => 'required|array',
             'shop_gallery.*' => 'image',
+
             'business_permit' => 'required|image',
             'dti_registration' => 'required|image',
             'valid_id' => 'required|image',
@@ -86,8 +88,9 @@ class ShopController extends Controller
             $shopPhotoPath = $request->file('shop_photo')->store('shop_photos', 'public');
 
             // Create shop record
+
             $shop = Shop::create([
-                'shop_name' => $validatedData['shop_name'],
+                'shop_name' => $request->shop_name,
                 'user_id' => $userID,
                 'email' => $validatedData['email'],
                 'contact_number' => $validatedData['phone'],
@@ -98,7 +101,10 @@ class ShopController extends Controller
                 'barangay' => $validatedData['barangay'],
                 'detailed_address' => $validatedData['detailed_address'],
                 'bio' => $validatedData['shop_bio'],
+
                 'status' => 'processing',
+                'created_at' => now(), // Explicitly set creation date
+                'updated_at' => now()
             ]);
 
             Log::info('Shop record created', ['shop_id' => $shop->id]);
@@ -107,8 +113,11 @@ class ShopController extends Controller
             if (!empty($validatedData['categories'])) {
                 foreach ($validatedData['categories'] as $categoryId) {
                     $shopCategory = ShopCategory::create([
+
                         'shop_id' => $shop->id,
-                        'category_id' => $categoryId
+                        'category_id' => $categoryId,
+                        'created_at' => now(),
+                        'updated_at' => now()
                     ]);
                 }
                 Log::info('Shop categories associated', ['categories' => $validatedData['categories']]);
@@ -118,6 +127,7 @@ class ShopController extends Controller
             // Create service categories
             foreach ($request->catalog_items as $item) {
                 $shopService = ShopServiceCategories::create([
+
                     'service_name' => $item['service_name'],
                     'cost' => $item['cost'],
                     'duration_hour' => $item['duration_hour'],
@@ -146,6 +156,7 @@ class ShopController extends Controller
                 $closeTime = !empty($value['closeTime']) ? Carbon::createFromFormat('g:i A', $value['closeTime'])->format('H:i:s') : null;
 
                 $businessHour = OperationHours::create([
+
                     'shop_id' => $shop->id,
                     'day' => $key,
                     'is_open' => $value['isOpen'],
@@ -189,20 +200,15 @@ class ShopController extends Controller
             ]);
             Log::info('Shop owner staff record created');
 
-            // dd($shop, $shopCategory, $shopService, $gallery, $businessHour, $shopLegalDoc, $shopStaff);
-            // Notify admins
-            // $admins = User::where('role', 'admin')->get();
-            // foreach ($admins as $admin) {
-            //     $admin->notify(new NewShopRegistrationNotification($shop));
-            // }
-            // Log::info('Admin notifications sent');
+
 
             DB::commit();
 
-            return redirect()->route('home')->with([
+            return redirect()->route('shop.dashboard')->with([
                 'success' => true,
                 'message' => 'Shop registration submitted successfully and is awaiting verification'
             ]);
+
         } catch (\Exception $e) {
             DB::rollBack();
 
@@ -254,6 +260,17 @@ class ShopController extends Controller
         return Inertia::render('Users/Shop', [
             'shop' => $shop,
             'randomShops' => $randomShops
+        ]);
+    }
+
+    public function setup()
+    {
+        $categories = Categories::all();
+        $serviceCategories = ServiceCategories::all();
+
+        return Inertia::render('Shops/SetupShop', [
+            'categories' => $categories,
+            'serviceCategories' => $serviceCategories
         ]);
     }
 }

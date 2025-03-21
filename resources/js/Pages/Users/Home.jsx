@@ -26,18 +26,16 @@ import { useEffect, useState } from "react";
 import HeroSection from "@/Components/User/Home/HeroSection";
 
 export default function Home({ randomShops }) {
+
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-
-
         const preloadImages = async () => {
             // Only try to preload images if we have shop data with gallery images
             if (!randomShops || !randomShops.length) {
                 setIsLoading(false);
                 return;
             }
-
             const imagePromises = randomShops
                 .filter(shop => shop && shop.shop_gallery && shop.shop_gallery.length > 0)
                 .map((shop) => {
@@ -122,6 +120,7 @@ export default function Home({ randomShops }) {
                 </Link>
             </div>
             <div className="mb-5 grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-2">
+
                 {randomShops && randomShops.length > 0 ? (
                     randomShops.map((shop) => (
                         <ShopCard key={shop.id} shop={shop} isLoading={isLoading} />
