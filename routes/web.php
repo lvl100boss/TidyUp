@@ -35,7 +35,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    Route::get('/profile/password', [ProfileController::class, 'passwordEdit'])->name('profile.password.edit');
+    Route::get('/theme', function () {
+        return Inertia::render('Theme/Theme');
+    })->name('theme');
+
     Route::get('/appointments', [AppointmentController::class, 'index'])->name('appointments');
+    Route::patch('/appointments/decline', [AppointmentController::class, 'declineAppointment'])->name('appointments.decline');
+    Route::patch('/appointments/accept', [AppointmentController::class, 'acceptAppointment'])->name('appointments.accept');
+    Route::patch('/appointments/cancel', [AppointmentController::class, 'cancelAppointment'])->name('appointments.cancel');
 
     Route::get('/send-feedback', function () {
         return Inertia::render('Users/SendFeedback');

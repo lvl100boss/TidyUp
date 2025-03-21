@@ -23,7 +23,12 @@ class ProfileController extends Controller
             'status' => session('status'),
         ]);
     }
-
+    public function passwordEdit(Request $request): Response
+    {
+        return Inertia::render('Password/Password', [
+            'status' => session('status'),
+        ]);
+    }
     /**
      * Update the user's profile information.
      */

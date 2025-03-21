@@ -251,7 +251,6 @@ class ShopController extends Controller
             ->inRandomOrder()
             ->limit(10)
             ->get();
-
         return Inertia::render('Users/Shop', [
             'shop' => $shop,
             'randomShops' => $randomShops

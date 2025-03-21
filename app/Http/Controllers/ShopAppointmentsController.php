@@ -27,7 +27,8 @@ class ShopAppointmentsController extends Controller
             'myAppointments' => $myAppointments['appointments'],
             'upcomingSchedules' => $myAppointments['upcomingSchedules'],
             'shopBusinessSchedules' => $myAppointments['shopBusinessSchedules'],
-            'shopAppointments' => $myAppointments['shopAppointments']
+            'shopAppointments' => $myAppointments['shopAppointments'],
+            'rescheduleRequests' => $myAppointments['rescheduleRequests']
         ]);
     }
 
@@ -90,9 +91,8 @@ class ShopAppointmentsController extends Controller
         }
     }
 
-    public function reschedule(Request $request, $appointment)
+    public function requestReschedule(Request $request, $appointment)
     {
-        dd($request->all());
         $validated = $request->validate([
             'date' => 'required|date',
             'time' => 'required|string',
@@ -100,12 +100,22 @@ class ShopAppointmentsController extends Controller
         ]);
 
         $targetAppointment = Appointments::find($appointment);
+
+        if (!$targetAppointment) {
+            return redirect()->back()->with('message', 'Appointment not found')->with('success', false);
+        }
+        $old_data = [
+            'date' => $targetAppointment->date,
+            'time' => $targetAppointment->time
+        ];
         DB::beginTransaction();
         try {
-            $targetAppointment->status = 'rescheduled';
-            $targetAppointment->resched_reason = $validated['reason'];
-            $targetAppointment->date = $validated['date'];
-            $targetAppointment->time = $validated['time'];
+            $targetAppointment->old_data = json_encode($old_data);
+            $targetAppointment->resched_data = json_encode([
+                'date' => $validated['date'],
+                'time' => $validated['time'],
+                'resched_reason' => $validated['reason']
+            ]);
             $targetAppointment->save();
             DB::commit();
             return redirect()->back()->with('message', 'Appointment rescheduled successfully')->with('success', true);

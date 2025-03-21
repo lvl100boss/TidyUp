@@ -77,7 +77,7 @@ export default function Shop({ shop, randomShops }) {
 
     const categories = [
         ...new Set(
-            shop?.shopServiceCategories?.map(
+            shop?.shop_service_categories?.map(
                 (service) => service.service_categories?.name
             ) || []
         ),
@@ -86,7 +86,7 @@ export default function Shop({ shop, randomShops }) {
     const groupedServices = categories.map((category) => ({
         category,
         services:
-            shop?.shopServiceCategories?.filter(
+            shop?.shop_service_categories?.filter(
                 (service) => service.service_categories?.name === category
             ) || [],
     }));
@@ -133,7 +133,7 @@ export default function Shop({ shop, randomShops }) {
                 </div>
                 <div className="lg:w-[15rem] 2xl:w-[22rem] hidden lg:block">
                     <div className="border p-5 rounded-md sticky top-20">
-                        <div className="flex gap-3 items-center">
+                        <div className="flex gap-3">
                             <div>
                                 <Avatar className="size-14">
                                     <AvatarImage src={'/' + shop.shop_photo} className="" />

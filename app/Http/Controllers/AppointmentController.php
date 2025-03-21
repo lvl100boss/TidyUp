@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use App\Models\Appointments;
 use App\Models\User;
 
 class AppointmentController extends Controller
@@ -12,16 +14,28 @@ class AppointmentController extends Controller
     public function index()
     {
         $user = Auth::user();
-        $userAppointments = User::with('appointments.shop.shopGallery')->find($user->id);
+        $userAppointments = User::with(['appointments.shop.shopGallery', 'appointments.userAppointments.staff.staff', 'appointments.appointmentServices.shopService'])->find($user->id);
+        $statuses = ['pending', 'upcoming', 'completed', 'cancelled', 'no-show', 'declined', 'started'];
+        $appointmentsByStatus = [];
 
-        // Convert collections to arrays
-        $pendingAppointments = $userAppointments->appointments->where('status', 'pending')->where('is_successful', true)->values()->all();
-        $upcomingAppointments = $userAppointments->appointments->where('status', 'upcoming')->where('is_successful', true)->values()->all();
-        $completedAppointments = $userAppointments->appointments->where('status', 'completed')->where('is_successful', true)->values()->all();
-        $cancelledAppointments = $userAppointments->appointments->where('status', 'cancelled')->where('is_successful', true)->values()->all();
-        $noShowAppointments = $userAppointments->appointments->where('status', 'no-show')->where('is_successful', true)->values()->all();
-        $declinedAppointments = $userAppointments->appointments->where('status', 'declined')->where('is_successful', true)->values()->all();
-        $startedAppointments = $userAppointments->appointments->where('status', 'started')->where('is_successful', true)->values()->all();
+        foreach ($statuses as $status) {
+            $variableName = $status . 'Appointments';
+            if ($status === 'no-show') {
+                $variableName = 'noShowAppointments';
+            }
+
+            $appointmentsByStatus[$variableName] = $userAppointments->appointments
+                ->where('status', $status)
+                ->where('is_successful', true)
+                ->where('resched_data', null)
+                ->values()
+                ->all();
+        }
+
+        extract($appointmentsByStatus);
+
+
+        $requestRescheduleAppointments = $userAppointments->appointments->where('status', 'pending')->where('is_successful', true)->where('resched_data', '!=', null)->values()->all();
 
         return inertia('Users/Appointments', [
             'pendingAppointments' => $pendingAppointments,
@@ -31,6 +45,41 @@ class AppointmentController extends Controller
             'noShowAppointments' => $noShowAppointments,
             'declinedAppointments' => $declinedAppointments,
             'startedAppointments' => $startedAppointments,
+            'requestRescheduleAppointments' => $requestRescheduleAppointments,
         ]);
+    }
+
+    public function declineAppointment(Request $request)
+    {
+        $appointment = Appointments::find($request->appointment_id);
+
+        DB::beginTransaction();
+        try {
+            $appointment->status = 'declined';
+            $appointment->resched_data = null;
+            $appointment->save();
+            DB::commit();
+            return redirect()->back()->with('message', 'Appointment declined successfully')->with('success', true);
+        } catch (\Exception $e) {
+            DB::rollback();
+            return redirect()->back()->with('error', 'An error occurred while declining appointment');
+        }
+    }
+
+    public function acceptAppointment(Request $request)
+    {
+        $appointment = Appointments::find($request->appointment_id);
+
+        DB::beginTransaction();
+        try {
+            $appointment->status = 'upcoming';
+            $appointment->resched_data = null;
+            $appointment->save();
+            DB::commit();
+            return redirect()->back()->with('message', 'Appointment accepted successfully')->with('success', true);
+        } catch (\Exception $e) {
+            DB::rollback();
+            return redirect()->back()->with('error', 'An error occurred while accepting appointment');
+        }
     }
 }
