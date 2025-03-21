@@ -84,16 +84,6 @@ const Summary = ({ data, categories, onSubmit, isSubmitting }) => {
                         ))}
                     </div>
                 </div>
-
-                <div className="border-t pt-4">
-                    <Button 
-                        onClick={onSubmit}
-                        disabled={isSubmitting}
-                        className="w-full"
-                    >
-                        {isSubmitting ? "Submitting..." : "Submit for Review"}
-                    </Button>
-                </div>
             </div>
         </div>
     );
