@@ -18,6 +18,8 @@ class Appointments extends Model
         'time',
         'total_price',
         'status',
+        'old_data',
+        'resched_data',
         'note',
         'is_successful',
         'created_at',
@@ -25,6 +27,11 @@ class Appointments extends Model
         'decline_reason',
         'cancel_reason',
         'resched_reason',
+    ];
+
+    protected $casts = [
+        'old_data' => 'array',
+        'resched_data' => 'array',
     ];
 
     public function user()

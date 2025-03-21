@@ -11,6 +11,7 @@ use App\Notifications\ShopVerifiedNotification;
 use App\Notifications\ShopRejectedNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
 class ShopManagementController extends Controller
@@ -149,60 +150,56 @@ class ShopManagementController extends Controller
 
     public function updateStatus(Request $request, $id)
     {
-        $request->validate([
+        $validated = $request->validate([
             'status' => 'required|in:processing,verified,rejected',
             'rejection_reason' => 'required_if:status,rejected',
         ]);
+
+        DB::beginTransaction();
 
         try {
             $shop = Shop::with('user')->findOrFail($id);
             $oldStatus = $shop->status;
 
-            $shop->status = $request->status;
-            $shop->shop_status = $request->status; // Update both status fields
-
-            if ($request->status === 'verified') {
-                $shop->is_verified = 1;
-                $shop->verification_status = 'approved';
-                $shop->verified_at = now();
-                $shop->rejection_reason = null;
-            } elseif ($request->status === 'rejected') {
-                $shop->is_verified = 0;
-                $shop->verification_status = 'rejected';
-                $shop->rejection_reason = $request->rejection_reason;
+            // Update shop status fields
+            $shop = Shop::findOrFail($id);
+            $shop->update($validated);
+            // Update verification related fields based on status
+            if ($validated['status'] === 'verified') {
+                $shop->update([
+                    'is_verified' => 1,
+                    'verification_status' => 'approved',
+                    'verified_at' => now(),
+                    'rejection_reason' => null
+                ]);
+            } elseif ($validated['status'] === 'rejected') {
+                $shop->update([
+                    'is_verified' => 0,
+                    'verification_status' => 'rejected',
+                    'rejection_reason' => $validated['rejection_reason']
+                ]);
             } else {
-                $shop->is_verified = 0;
-                $shop->verification_status = 'pending';
-                $shop->rejection_reason = null;
+                $shop->update([
+                    'is_verified' => 0,
+                    'verification_status' => 'pending',
+                    'rejection_reason' => null
+                ]);
             }
+            DB::commit();
 
-            $shop->save();
-
-            // Send notifications to shop owner
-            if ($shop->user) {
-                if ($request->status === 'verified' && $oldStatus !== 'verified') {
-                    $shop->user->notify(new ShopVerifiedNotification($shop));
-                } elseif ($request->status === 'rejected' && $oldStatus !== 'rejected') {
-                    $shop->user->notify(new ShopRejectedNotification($shop, $request->rejection_reason));
-                }
-            }
-
-            Log::info('Shop status updated by admin', [
-                'shop_id' => $id,
-                'old_status' => $oldStatus,
-                'new_status' => $request->status,
-                'admin_id' => auth()->id()
-            ]);
-
-            return back()->with('success', 'Shop status updated successfully');
+            return back()->with('message', 'Shop status updated successfully')->with('success', true);
         } catch (\Exception $e) {
+            DB::rollBack();
+
             Log::error('Error updating shop status', [
                 'shop_id' => $id,
                 'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
+                'line' => $e->getLine(),
+                'file' => $e->getFile()
             ]);
 
-            return back()->with('error', 'An error occurred while updating the shop status');
+            return back()->with('message', 'An error occurred while updating the shop status: ' . $e->getMessage())->with('success', false);
         }
     }
 

@@ -59,7 +59,7 @@ export default function ShopCarousel2({ shops, title, link }) {
                                     <TooltipProvider>
                                         <Tooltip>
                                             <TooltipTrigger asChild className="cursor-pointer">
-                                                <h5 className="mt-2 figtree-medium text-sm md:font-normal">
+                                                <h5 className="mt-2 mb-1 text-sm ">
                                                     {shop.shop_name}
                                                 </h5>
                                             </TooltipTrigger>

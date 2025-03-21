@@ -69,63 +69,63 @@ export default function BusinessPermit({
         };
     }, [expandedImage]);
 
-    const verifyDocument = async (documentType, file) => {
-        if (!file) return;
+    // const verifyDocument = async (documentType, file) => {
+    //     if (!file) return;
 
-        // Set loading state
-        setVerificationStatus(prev => ({
-            ...prev,
-            [documentType]: { ...prev[documentType], loading: true }
-        }));
+    //     // Set loading state
+    //     setVerificationStatus(prev => ({
+    //         ...prev,
+    //         [documentType]: { ...prev[documentType], loading: true }
+    //     }));
 
-        const formData = new FormData();
-        formData.append('image', file);
+    //     const formData = new FormData();
+    //     formData.append('image', file);
 
-        try {
-            let endpoint = '';
-            switch (documentType) {
-                case 'business_permit':
-                    endpoint = 'api/verify/business-permit';
-                    break;
-                case 'dti_registration':
-                    endpoint = 'api/verify/dti-registration';
-                    break;
-                case 'valid_id':
-                    endpoint = 'api/verify/valid-id';
-                    break;
-            }
+    //     try {
+    //         let endpoint = '';
+    //         switch (documentType) {
+    //             case 'business_permit':
+    //                 endpoint = 'api/verify/business-permit';
+    //                 break;
+    //             case 'dti_registration':
+    //                 endpoint = 'api/verify/dti-registration';
+    //                 break;
+    //             case 'valid_id':
+    //                 endpoint = 'api/verify/valid-id';
+    //                 break;
+    //         }
 
-            // Use relative URL for better compatibility
-            const response = await axios.post(`/${endpoint}`, formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                    'Accept': 'application/json'
-                }
-            });
+    //         // Use relative URL for better compatibility
+    //         const response = await axios.post(`/${endpoint}`, formData, {
+    //             headers: {
+    //                 'Content-Type': 'multipart/form-data',
+    //                 'Accept': 'application/json'
+    //             }
+    //         });
 
-            setVerificationStatus(prev => ({
-                ...prev,
-                [documentType]: {
-                    status: response.data.is_valid,
-                    message: response.data.message,
-                    issue: response.data.issue || null,
-                    statusType: response.data.status || (response.data.is_valid ? 'success' : 'error'),
-                    loading: false
-                }
-            }));
-        } catch (error) {
-            setVerificationStatus(prev => ({
-                ...prev,
-                [documentType]: {
-                    status: false,
-                    message: error.response?.data?.message || 'Verification failed',
-                    issue: 'server_error',
-                    statusType: 'error',
-                    loading: false
-                }
-            }));
-        }
-    };
+    //         setVerificationStatus(prev => ({
+    //             ...prev,
+    //             [documentType]: {
+    //                 status: response.data.is_valid,
+    //                 message: response.data.message,
+    //                 issue: response.data.issue || null,
+    //                 statusType: response.data.status || (response.data.is_valid ? 'success' : 'error'),
+    //                 loading: false
+    //             }
+    //         }));
+    //     } catch (error) {
+    //         setVerificationStatus(prev => ({
+    //             ...prev,
+    //             [documentType]: {
+    //                 status: false,
+    //                 message: error.response?.data?.message || 'Verification failed',
+    //                 issue: 'server_error',
+    //                 statusType: 'error',
+    //                 loading: false
+    //             }
+    //         }));
+    //     }
+    // };
 
     const handleFileChangeWithVerification = (e, originalHandler, documentType) => {
         // Call the original handler first to update the preview
