@@ -33,9 +33,6 @@ export default function BusinessPermit({
     // State to track which image is being viewed in expanded mode
     const [expandedImage, setExpandedImage] = useState(null);
 
-    // Add enhanced verification mode toggle
-    const [useEnhancedVerification, setUseEnhancedVerification] = useState(true);
-
     if (
         data.business_permit &&
         data.dti_registration &&
@@ -114,76 +111,26 @@ export default function BusinessPermit({
         }));
 
         try {
-            if (useEnhancedVerification) {
-                // Use the hybrid verification approach
-                const result = await verifyDocumentUpload(file, documentType);
-                
-                // Check if there was a server error but client verification still worked
-                let engineDisplay = result.engine;
-                let messageDisplay = result.message;
-                
-                if (result.error && result.engine === 'tesseract-only') {
-                    messageDisplay += ' (Server verification unavailable)';
+            // Use the hybrid verification approach
+            const result = await verifyDocumentUpload(file, documentType);
+            
+            // Don't show engine display info to the user
+            let messageDisplay = result.message;
+            
+            setVerificationStatus(prev => ({
+                ...prev,
+                [documentType]: {
+                    status: result.isValid,
+                    message: messageDisplay,
+                    issue: result.issue || null,
+                    statusType: result.status || (result.isValid ? 'success' : 'error'),
+                    loading: false,
+                    dateInfo: result.dateInfo || null,
+                    // The engine property is not included here
                 }
-                
-                setVerificationStatus(prev => ({
-                    ...prev,
-                    [documentType]: {
-                        status: result.isValid,
-                        message: messageDisplay,
-                        issue: result.issue || null,
-                        statusType: result.status || (result.isValid ? 'success' : 'error'),
-                        loading: false,
-                        engine: engineDisplay,
-                        confidence: {
-                            client: result.clientConfidence,
-                            server: result.serverConfidence
-                        },
-                        dateInfo: result.dateInfo || null,
-                        suggestions: result.suggestions || []
-                    }
-                }));
-            } else {
-                // Use the original server-side only approach
-                const formData = new FormData();
-                formData.append('image', file);
-
-                let endpoint = '';
-                switch (documentType) {
-                    case 'business_permit':
-                        endpoint = 'api/verify/business-permit';
-                        break;
-                    case 'dti_registration':
-                        endpoint = 'api/verify/dti-registration';
-                        break;
-                    case 'valid_id':
-                        endpoint = 'api/verify/valid-id';
-                        break;
-                }
-
-                const response = await axios.post(`/${endpoint}`, formData, {
-                    headers: {
-                        'Content-Type': 'multipart/form-data',
-                        'Accept': 'application/json'
-                    }
-                });
-
-                setVerificationStatus(prev => ({
-                    ...prev,
-                    [documentType]: {
-                        status: response.data.is_valid,
-                        message: response.data.message,
-                        issue: response.data.issue || null,
-                        statusType: response.data.status || (response.data.is_valid ? 'success' : 'error'),
-                        loading: false,
-                        engine: 'vision',
-                        confidence: {
-                            server: response.data.confidence || 0
-                        },
-                        dateInfo: response.data.dateInfo || null
-                    }
-                }));
-            }
+            }));
+            
+            // ...rest of function
         } catch (error) {
             // Add more detailed error handling
             console.error("Document verification error:", error);
@@ -308,6 +255,7 @@ export default function BusinessPermit({
                     icon = <Server className="h-3 w-3 mr-1" />;
                     break;
                 case 'hybrid':
+                case 'hybrid-client-priority':
                     label = 'Hybrid Verification';
                     icon = <CheckCircle2 className="h-3 w-3 mr-1" />;
                     break;
@@ -423,21 +371,6 @@ export default function BusinessPermit({
         <div className="space-y-6">
             <h1 className="text-xl font-semibold">Legal Documents</h1>
             
-            <div className="flex justify-end mb-2">
-                <div className="flex items-center space-x-2">
-                    <span className="text-sm text-muted-foreground">Enhanced verification:</span>
-                    <label className="relative inline-flex items-center cursor-pointer">
-                        <input 
-                            type="checkbox" 
-                            className="sr-only peer"
-                            checked={useEnhancedVerification}
-                            onChange={() => setUseEnhancedVerification(!useEnhancedVerification)}
-                        />
-                        <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
-                    </label>
-                </div>
-            </div>
-
             <div className="space-y-4">
                 <h2 className="text-lg font-semibold">Business Permit</h2>
                 <Label htmlFor="business_permit">Upload Business Permit</Label>
