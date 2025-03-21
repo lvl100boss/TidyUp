@@ -2,10 +2,15 @@ import React, { useState, useEffect } from "react";
 import { Input } from "@/Components/ui/input";
 import { Label } from "@/Components/ui/label";
 import InputError from "@/Components/InputError";
-import { Info, CheckCircle, AlertTriangle, XCircle, Loader2, X } from "lucide-react";
+import { 
+    Info, CheckCircle, AlertTriangle, XCircle, Loader2, X, 
+    Server, Cpu, CheckCircle2, Calendar
+} from "lucide-react";
 import axios from "axios";
 import { Button } from "@/Components/ui/button";
 import { Alert, AlertDescription } from "@/Components/ui/alert";
+import { verifyDocumentUpload } from "@/Utils/documentVerification";
+import { Badge } from "@/Components/ui/badge";
 
 export default function BusinessPermit({
     data,
@@ -27,6 +32,9 @@ export default function BusinessPermit({
 
     // State to track which image is being viewed in expanded mode
     const [expandedImage, setExpandedImage] = useState(null);
+
+    // Add enhanced verification mode toggle
+    const [useEnhancedVerification, setUseEnhancedVerification] = useState(true);
 
     if (
         data.business_permit &&
@@ -69,6 +77,33 @@ export default function BusinessPermit({
         };
     }, [expandedImage]);
 
+    /**
+     * Reset verification status for a specific document type or all types
+     * @param {string|null} documentType - Document type to reset, or null to reset all
+     */
+    const resetVerification = (documentType = null) => {
+        if (documentType) {
+            // Reset only specific document type
+            setVerificationStatus(prev => ({
+                ...prev,
+                [documentType]: { 
+                    status: null, 
+                    message: "", 
+                    issue: null, 
+                    statusType: null, 
+                    loading: false 
+                }
+            }));
+        } else {
+            // Reset all document types
+            setVerificationStatus({
+                business_permit: { status: null, message: "", issue: null, statusType: null, loading: false },
+                dti_registration: { status: null, message: "", issue: null, statusType: null, loading: false },
+                valid_id: { status: null, message: "", issue: null, statusType: null, loading: false },
+            });
+        }
+    };
+
     const verifyDocument = async (documentType, file) => {
         if (!file) return;
 
@@ -78,62 +113,117 @@ export default function BusinessPermit({
             [documentType]: { ...prev[documentType], loading: true }
         }));
 
-        const formData = new FormData();
-        formData.append('image', file);
-
         try {
-            let endpoint = '';
-            switch (documentType) {
-                case 'business_permit':
-                    endpoint = 'api/verify/business-permit';
-                    break;
-                case 'dti_registration':
-                    endpoint = 'api/verify/dti-registration';
-                    break;
-                case 'valid_id':
-                    endpoint = 'api/verify/valid-id';
-                    break;
+            if (useEnhancedVerification) {
+                // Use the hybrid verification approach
+                const result = await verifyDocumentUpload(file, documentType);
+                
+                // Check if there was a server error but client verification still worked
+                let engineDisplay = result.engine;
+                let messageDisplay = result.message;
+                
+                if (result.error && result.engine === 'tesseract-only') {
+                    messageDisplay += ' (Server verification unavailable)';
+                }
+                
+                setVerificationStatus(prev => ({
+                    ...prev,
+                    [documentType]: {
+                        status: result.isValid,
+                        message: messageDisplay,
+                        issue: result.issue || null,
+                        statusType: result.status || (result.isValid ? 'success' : 'error'),
+                        loading: false,
+                        engine: engineDisplay,
+                        confidence: {
+                            client: result.clientConfidence,
+                            server: result.serverConfidence
+                        },
+                        dateInfo: result.dateInfo || null,
+                        suggestions: result.suggestions || []
+                    }
+                }));
+            } else {
+                // Use the original server-side only approach
+                const formData = new FormData();
+                formData.append('image', file);
+
+                let endpoint = '';
+                switch (documentType) {
+                    case 'business_permit':
+                        endpoint = 'api/verify/business-permit';
+                        break;
+                    case 'dti_registration':
+                        endpoint = 'api/verify/dti-registration';
+                        break;
+                    case 'valid_id':
+                        endpoint = 'api/verify/valid-id';
+                        break;
+                }
+
+                const response = await axios.post(`/${endpoint}`, formData, {
+                    headers: {
+                        'Content-Type': 'multipart/form-data',
+                        'Accept': 'application/json'
+                    }
+                });
+
+                setVerificationStatus(prev => ({
+                    ...prev,
+                    [documentType]: {
+                        status: response.data.is_valid,
+                        message: response.data.message,
+                        issue: response.data.issue || null,
+                        statusType: response.data.status || (response.data.is_valid ? 'success' : 'error'),
+                        loading: false,
+                        engine: 'vision',
+                        confidence: {
+                            server: response.data.confidence || 0
+                        },
+                        dateInfo: response.data.dateInfo || null
+                    }
+                }));
             }
-
-            // Use relative URL for better compatibility
-            const response = await axios.post(`/${endpoint}`, formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                    'Accept': 'application/json'
-                }
-            });
-
-            setVerificationStatus(prev => ({
-                ...prev,
-                [documentType]: {
-                    status: response.data.is_valid,
-                    message: response.data.message,
-                    issue: response.data.issue || null,
-                    statusType: response.data.status || (response.data.is_valid ? 'success' : 'error'),
-                    loading: false
-                }
-            }));
         } catch (error) {
+            // Add more detailed error handling
+            console.error("Document verification error:", error);
+            let errorMessage = 'Verification failed';
+            
+            if (error.response?.data?.message) {
+                errorMessage = error.response.data.message;
+            } else if (error.message) {
+                errorMessage = error.message;
+            }
+            
             setVerificationStatus(prev => ({
                 ...prev,
                 [documentType]: {
                     status: false,
-                    message: error.response?.data?.message || 'Verification failed',
+                    message: errorMessage,
                     issue: 'server_error',
                     statusType: 'error',
-                    loading: false
+                    loading: false,
+                    engine: 'error'
                 }
             }));
         }
     };
 
     const handleFileChangeWithVerification = (e, originalHandler, documentType) => {
-        // Call the original handler first to update the preview
-        originalHandler(e);
-
-        // Then verify the document if a file is selected
-        if (e.target.files && e.target.files[0]) {
+        // If user selects a new file
+        if (e.target.files && e.target.files.length > 0) {
+            // Reset the verification status before starting a new verification
+            resetVerification(documentType);
+            
+            // Call the original handler to update the preview
+            originalHandler(e);
+            
+            // Automatically verify the document when file is selected
             verifyDocument(documentType, e.target.files[0]);
+        } else {
+            // If the file selection was cancelled or cleared, reset verification
+            resetVerification(documentType);
+            originalHandler(e);
         }
     };
 
@@ -186,7 +276,7 @@ export default function BusinessPermit({
     };
 
     const renderVerificationStatus = (documentType) => {
-        const { status, message, loading, statusType } = verificationStatus[documentType];
+        const { status, message, loading, statusType, engine, confidence, dateInfo, suggestions } = verificationStatus[documentType];
 
         if (loading) {
             return (
@@ -201,14 +291,98 @@ export default function BusinessPermit({
 
         if (status === null) return null;
 
+        // Engine badge component
+        const EngineBadge = () => {
+            if (!engine) return null;
+            
+            let label = 'Unknown';
+            let icon = null;
+            
+            switch(engine) {
+                case 'tesseract-only':
+                    label = 'Client-side OCR';
+                    icon = <Cpu className="h-3 w-3 mr-1" />;
+                    break;
+                case 'vision-only':
+                    label = 'Cloud Vision';
+                    icon = <Server className="h-3 w-3 mr-1" />;
+                    break;
+                case 'hybrid':
+                    label = 'Hybrid Verification';
+                    icon = <CheckCircle2 className="h-3 w-3 mr-1" />;
+                    break;
+            }
+            
+            return (
+                <Badge variant="outline" className="ml-2 text-xs font-normal">
+                    {icon}{label}
+                </Badge>
+            );
+        };
+
+        // Date badge component to show expiration status
+        const DateBadge = () => {
+            if (!dateInfo) return null;
+            
+            let color = "bg-green-100 text-green-800";
+            let icon = <Calendar className="h-3 w-3 mr-1" />;
+            let text = `Valid until ${dateInfo.formatted || dateInfo.date}`;
+            
+            if (dateInfo.status === 'expired') {
+                color = "bg-red-100 text-red-800";
+                icon = <XCircle className="h-3 w-3 mr-1" />;
+                text = `Expired on ${dateInfo.formatted || dateInfo.date}`;
+            } else if (dateInfo.status === 'expiring_soon') {
+                color = "bg-yellow-100 text-yellow-800";
+                icon = <AlertTriangle className="h-3 w-3 mr-1" />;
+                text = `Expires soon (${dateInfo.formatted || dateInfo.date})`;
+            }
+            
+            return (
+                <span className={`text-xs font-medium px-2 py-1 rounded ${color} inline-flex items-center ml-2`}>
+                    {icon} {text}
+                </span>
+            );
+        };
+
+        // Render suggestions if available
+        const SuggestionsList = () => {
+            if (!suggestions || suggestions.length === 0) return null;
+            
+            return (
+                <div className="mt-2 text-sm">
+                    <p className="font-medium">Suggestions:</p>
+                    <ul className="list-disc pl-5 mt-1 space-y-1">
+                        {suggestions.map((suggestion, index) => (
+                            <li key={index}>{suggestion}</li>
+                        ))}
+                    </ul>
+                </div>
+            );
+        };
+
         if (status) {
             // Success case
             return (
                 <Alert className="bg-green-50 border-green-100 text-green-700 mt-2">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
                         <CheckCircle className="h-4 w-4" />
-                        <AlertDescription>{message}</AlertDescription>
+                        <AlertDescription className="flex items-center flex-wrap">
+                            {message}
+                            <EngineBadge />
+                            <DateBadge />
+                        </AlertDescription>
                     </div>
+                    {confidence && (
+                        <div className="text-xs mt-1 pl-6">
+                            {confidence.server && 
+                                <div>Server confidence: {confidence.server.toFixed(1)}%</div>
+                            }
+                            {confidence.client && 
+                                <div>Client confidence: {confidence.client.toFixed(1)}%</div>
+                            }
+                        </div>
+                    )}
                 </Alert>
             );
         } else {
@@ -216,19 +390,29 @@ export default function BusinessPermit({
             if (statusType === 'warning') {
                 return (
                     <Alert className="bg-yellow-50 border-yellow-100 text-yellow-700 mt-2">
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 flex-wrap">
                             <AlertTriangle className="h-4 w-4" />
-                            <AlertDescription>{message}</AlertDescription>
+                            <AlertDescription className="flex items-center flex-wrap">
+                                {message}
+                                <EngineBadge />
+                                <DateBadge />
+                            </AlertDescription>
                         </div>
+                        <SuggestionsList />
                     </Alert>
                 );
             } else {
                 return (
                     <Alert className="bg-red-50 border-red-100 text-red-700 mt-2">
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 flex-wrap">
                             <XCircle className="h-4 w-4" />
-                            <AlertDescription>{message}</AlertDescription>
+                            <AlertDescription className="flex items-center flex-wrap">
+                                {message}
+                                <EngineBadge />
+                                <DateBadge />
+                            </AlertDescription>
                         </div>
+                        <SuggestionsList />
                     </Alert>
                 );
             }
@@ -238,6 +422,21 @@ export default function BusinessPermit({
     return (
         <div className="space-y-6">
             <h1 className="text-xl font-semibold">Legal Documents</h1>
+            
+            <div className="flex justify-end mb-2">
+                <div className="flex items-center space-x-2">
+                    <span className="text-sm text-muted-foreground">Enhanced verification:</span>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                        <input 
+                            type="checkbox" 
+                            className="sr-only peer"
+                            checked={useEnhancedVerification}
+                            onChange={() => setUseEnhancedVerification(!useEnhancedVerification)}
+                        />
+                        <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                    </label>
+                </div>
+            </div>
 
             <div className="space-y-4">
                 <h2 className="text-lg font-semibold">Business Permit</h2>

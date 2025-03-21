@@ -1,32 +1,61 @@
 import { createWorker } from 'tesseract.js';
+import axios from 'axios';
 
 const documentKeywords = {
     businessPermit: {
         required: ['permit', 'business'],
-        additional: ['municipal', 'mayor', 'valid until', 'registration'],
-        minimum: 2
+        additional: ['municipal', 'mayor', 'valid until', 'registration', 'certificate', 'authority', 'operate', 'owner', 'city', 'registered'],
+        minimum: 2,
+        datePatterns: [
+            /valid\s+(?:until|through|thru|till|to)\s+(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})/i,
+            /expir(?:y|ation|es)\s+(?:date|on)?\s*:?\s*(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})/i,
+            /(?:date of expiry|expiry date|valid until|expiration)\s*:?\s*(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})/i,
+            /(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})\s*(?:valid until|expiry|expiration)/i,
+            /(?:issue|issuance)\s+date\s*:\s*(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})/i,
+            /(?:permit\s+expires|expires\s+on)\s+(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})/i,
+            /(?:validity|valid\s+period)\s*:\s*(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})/i
+        ],
     },
     dtiRegistration: {
         required: ['dti'],
-        additional: ['certificate', 'business', 'registration', 'trade', 'industry'],
-        minimum: 1  
+        additional: ['certificate', 'business', 'registration', 'trade', 'industry', 'secretary', 'commerce', 'registry', 'enterprise'],
+        minimum: 2,
+        datePatterns: [
+            /valid\s+(?:until|through|thru|till|to)\s+(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})/i,
+            /expir(?:y|ation|es)\s+(?:date|on)?\s*:?\s*(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})/i,
+            /(?:date of expiry|expiry date|valid until|expiration)\s*:?\s*(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})/i,
+            /(?:registration|issued)\s+(?:date|on)\s*:?\s*(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})/i,
+            /date\s+(?:of|:)?\s*(?:registration|issue)\s*:?\s*(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})/i
+        ]
     },
     validId: {
         required: [
             'republic', 'philippines', 'republika', 'pilipinas',
-            'valid', 'identification', 'identity'
+            'valid', 'identification', 'identity', 'government', 'id'
         ],
         types: {
-            passport: ['passport', 'dfa', 'department of foreign affairs'],
-            sss: ['social security', 'sss', 'social security system'],
-            umid: ['umid', 'unified', 'multipurpose'],
-            drivers: ['driver', 'license', 'lto', 'land transportation'],
-            postal: ['postal', 'philpost'],
-            gsis: ['gsis', 'government service']
+            passport: ['passport', 'dfa', 'department of foreign affairs', 'travel', 'document'],
+            sss: ['social security', 'sss', 'social security system', 'pension'],
+            umid: ['umid', 'unified', 'multipurpose', 'gsis-sss'],
+            drivers: ['driver', 'license', 'lto', 'land transportation', 'driving'],
+            postal: ['postal', 'philpost', 'philippine postal', 'mail'],
+            gsis: ['gsis', 'government service', 'insurance'],
+            philhealth: ['philhealth', 'health insurance', 'medical'],
+            nationalid: ['national id', 'philippine identification system', 'philsys'],
+            prc: ['prc', 'professional regulation', 'profession', 'license']
         },
         patterns: [
-            /\b[A-Z0-9]{6,}\b/, // ID number format
-            /\b(male|female)\b/i, // Gender
+            /\b[A-Z0-9]{6,}\b/,
+            /\b(male|female)\b/i,
+            /birth(?:day|date|place)/i,
+            /nationality/i,
+            /signature/i,
+            /expir(?:y|ation|es)/i,
+        ],
+        datePatterns: [
+            /valid\s+(?:until|through|thru|till|to)\s+(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})/i,
+            /expir(?:y|ation|es)\s+(?:date|on)?\s*:?\s*(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})/i,
+            /(?:date of expiry|expiry date|valid until|expiration)\s*:?\s*(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})/i
         ],
         minimum: {
             required: 1,
@@ -49,29 +78,188 @@ async function processImage(imageFile) {
     }
 }
 
+/**
+ * Extract expiration date from document text using regular expressions
+ * @param {string} text - The extracted text from the document
+ * @param {Array} patterns - Array of regex patterns to match dates
+ * @returns {Object} - Date information including validity and expiration date
+ */
+function extractExpirationDate(text, patterns) {
+    // Default result
+    const result = {
+        hasDate: false,
+        expirationDate: null,
+        isExpired: false,
+        isAboutToExpire: false, // Within 30 days of expiration
+        message: null
+    };
+
+    // Try each pattern until a date is found
+    for (const pattern of patterns) {
+        const match = text.match(pattern);
+        if (match && match[1]) {
+            const dateStr = match[1].trim();
+            const date = parseDate(dateStr);
+
+            if (date && isValidDate(date)) {
+                result.hasDate = true;
+                result.expirationDate = date;
+                result.formattedDate = formatDate(date);
+
+                // Check if expired or about to expire
+                const today = new Date();
+                const thirtyDaysFromNow = new Date();
+                thirtyDaysFromNow.setDate(today.getDate() + 30);
+
+                if (date < today) {
+                    result.isExpired = true;
+                    result.message = `Document expired on ${formatDate(date)}`;
+                    result.severity = 'error';
+                } else if (date < thirtyDaysFromNow) {
+                    result.isAboutToExpire = true;
+                    result.message = `Document will expire soon (${formatDate(date)})`;
+                    result.severity = 'warning';
+                } else {
+                    result.message = `Document valid until ${formatDate(date)}`;
+                    result.severity = 'success';
+                }
+
+                break;
+            }
+        }
+    }
+
+    return result;
+}
+
+/**
+ * Parse a date string with flexible format
+ * @param {string} dateStr - Date string in various formats
+ * @returns {Date|null} - JavaScript Date object or null if invalid
+ */
+function parseDate(dateStr) {
+    // Try to standardize the date format
+    const parts = dateStr.split(/[\/\-\.]/);
+    if (parts.length !== 3) return null;
+
+    let day, month, year;
+
+    // Handle different date formats (mm/dd/yyyy, dd/mm/yyyy)
+    if (parseInt(parts[0]) > 12) {
+        // If first part > 12, assume DD-MM-YYYY
+        day = parseInt(parts[0]);
+        month = parseInt(parts[1]) - 1; // JS months are 0-based
+    } else {
+        // Otherwise assume MM-DD-YYYY which is common in Philippines
+        month = parseInt(parts[0]) - 1;
+        day = parseInt(parts[1]);
+    }
+
+    // Handle 2-digit years
+    year = parseInt(parts[2]);
+    if (year < 100) {
+        year = year + (year > 50 ? 1900 : 2000);
+    }
+
+    return new Date(year, month, day);
+}
+
+/**
+ * Check if a date is valid
+ * @param {Date} date - Date object to check
+ * @returns {boolean} - Whether the date is valid
+ */
+function isValidDate(date) {
+    return date instanceof Date && !isNaN(date);
+}
+
+/**
+ * Format a date in a user-friendly format
+ * @param {Date} date - Date to format
+ * @returns {string} - Formatted date string
+ */
+function formatDate(date) {
+    return date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+    });
+}
+
 async function scanDocument(imageFile, type) {
     try {
         const { text, confidence } = await processImage(imageFile);
 
         // Special handling for valid IDs
         if (type === 'validId') {
-            return validateId(text, confidence);
+            const validationResult = validateId(text, confidence);
+
+            // Add expiration date check for valid IDs
+            if (validationResult.isValid) {
+                const datePatterns = documentKeywords.validId.datePatterns;
+                const dateInfo = extractExpirationDate(text, datePatterns);
+
+                if (dateInfo.hasDate) {
+                    validationResult.dateInfo = dateInfo;
+
+                    // Always update validation if document is expired
+                    if (dateInfo.isExpired) {
+                        validationResult.isValid = false;
+                        validationResult.message = dateInfo.message;
+                        validationResult.issue = 'expired';
+                        validationResult.status = 'error';
+                    } else if (dateInfo.isAboutToExpire) {
+                        // Still valid but with warning
+                        validationResult.warning = dateInfo.message;
+                        validationResult.status = 'warning';
+                    } else {
+                        validationResult.validUntil = dateInfo.message;
+                        validationResult.status = 'success';
+                    }
+                }
+            }
+
+            return validationResult;
         }
 
+        // For other document types
         const specs = documentKeywords[type];
         const requiredMatches = specs.required.filter(word => text.includes(word)).length;
-        const additionalMatches = (specs.additional || specs.types)
-            .filter(word => text.includes(word)).length;
-
+        const additionalMatches = specs.additional.filter(word => text.includes(word)).length;
         const isValid = requiredMatches + additionalMatches >= specs.minimum;
-        
-        return {
+
+        // Result object
+        const result = {
             isValid,
-            message: isValid 
-                ? `Document verified successfully`
-                : getFailureMessage(type),
-            suggestions: !isValid ? getDocumentSuggestions(type) : []
+            confidence,
+            message: isValid ? `Document verified successfully` : getFailureMessage(type),
+            suggestions: !isValid ? getDocumentSuggestions(type) : [],
+            status: isValid ? 'success' : 'error'
         };
+
+        // Always check expiration date regardless of initial validation
+        if (specs.datePatterns) {
+            const dateInfo = extractExpirationDate(text, specs.datePatterns);
+
+            if (dateInfo.hasDate) {
+                result.dateInfo = dateInfo;
+
+                // If expired, document is invalid regardless of other checks
+                if (dateInfo.isExpired) {
+                    result.isValid = false;
+                    result.message = dateInfo.message;
+                    result.issue = 'expired';
+                    result.status = 'error';
+                } else if (dateInfo.isAboutToExpire) {
+                    result.warning = dateInfo.message;
+                    result.status = 'warning';
+                } else {
+                    result.validUntil = dateInfo.message;
+                }
+            }
+        }
+
+        return result;
     } catch (error) {
         console.error('Verification error:', error);
         throw new Error('Document verification failed - please try again');
@@ -83,7 +271,7 @@ function validateId(text, confidence) {
     const lowercaseText = text.toLowerCase();
 
     // Check required keywords
-    const requiredMatches = specs.required.filter(word => 
+    const requiredMatches = specs.required.filter(word =>
         lowercaseText.includes(word.toLowerCase())
     ).length;
 
@@ -97,16 +285,16 @@ function validateId(text, confidence) {
     }
 
     // Check patterns (dates, numbers, etc)
-    const patternMatches = specs.patterns.filter(pattern => 
+    const patternMatches = specs.patterns.filter(pattern =>
         pattern.test(text)
     ).length;
 
     // Calculate overall validity
-    const isValid = 
+    const isValid =
         requiredMatches >= specs.minimum.required &&
         detectedType !== null &&
         patternMatches >= specs.minimum.patterns &&
-        confidence >= 50;
+        confidence >= 60;
 
     if (!isValid) {
         const suggestions = [];
@@ -152,23 +340,338 @@ function getDocumentSuggestions(type) {
     const suggestions = {
         businessPermit: [
             "Make sure it's an official Business/Mayor's Permit",
-            "Ensure the permit number is visible",
-            "Check if the business name is clearly shown"
+            "Ensure the permit number is clearly visible",
+            "Check if the business name is clearly shown",
+            "Verify that the address is legible",
+            "Ensure that issue and expiration dates are clearly visible",
+            "Try taking the photo in better lighting conditions"
         ],
         dtiRegistration: [
             "Ensure it's a DTI Certificate of Registration",
             "Make sure the registration number is visible",
-            "Check if the business name is clearly shown"
+            "Check if the business name is clearly shown",
+            "Verify that the issue and expiration dates are legible",
+            "Make sure the entire document is in the frame"
         ],
         validId: [
             "Use a valid government-issued ID",
-            "Make sure both front and text are clear",
-            "Ensure the ID type and number are visible"
+            "Make sure both front and back are clear",
+            "Ensure the ID type and number are visible",
+            "Verify that your name and photo are clearly visible"
         ]
     };
     return suggestions[type] || [];
 }
 
+/**
+ * Performs hybrid verification using both Tesseract.js (client-side) and Google Vision API (server-side)
+ * @param {File} file - The file to verify
+ * @param {string} documentType - Type of document to verify
+ * @returns {Promise<object>} - Combined verification results
+ */
+async function hybridDocumentVerification(file, documentType) {
+    try {
+        // Start both verifications in parallel
+        const clientVerificationPromise = clientSideVerification(file, documentType);
+        const serverVerificationPromise = serverSideVerification(file, documentType);
+
+        // Wait for both to complete
+        const [clientResult, serverResult] = await Promise.all([
+            clientVerificationPromise,
+            serverVerificationPromise
+        ]);
+
+        // Log results for debugging
+        console.log('Client verification result:', clientResult);
+        console.log('Server verification result:', serverResult);
+
+        // Combine the results, giving preference to server result if available
+        return combineVerificationResults(clientResult, serverResult, documentType);
+    } catch (error) {
+        console.error('Hybrid verification error:', error);
+
+        // If one verification fails, return the result from the other
+        // Or return an error if both fail
+        if (error.fallbackResult) {
+            return {
+                ...error.fallbackResult,
+                note: 'Using fallback verification result due to partial system failure',
+                status: error.fallbackResult.isValid ? 'success' : 'warning'
+            };
+        }
+
+        throw new Error('Document verification failed - both verification systems unavailable');
+    }
+}
+
+/**
+ * Performs client-side verification using Tesseract.js
+ * @param {File} file - The file to verify
+ * @param {string} documentType - Type of document to verify
+ * @returns {Promise<object>} - Client-side verification results
+ */
+async function clientSideVerification(file, documentType) {
+    try {
+        const type = documentType.replace(/_/g, '');
+        switch (type) {
+            case 'businesspermit':
+                return await verifyBusinessPermit(file);
+            case 'dtiregistration':
+                return await verifyDTIRegistration(file);
+            case 'validid':
+                return await verifyValidID(file);
+            default:
+                throw new Error('Invalid document type');
+        }
+    } catch (error) {
+        console.error('Client-side verification error:', error);
+        return {
+            isValid: false,
+            confidence: 0,
+            message: 'Client-side verification failed',
+            engine: 'tesseract',
+            error: error.message
+        };
+    }
+}
+
+/**
+ * Performs server-side verification using Google Vision API
+ * @param {File} file - The file to verify
+ * @param {string} documentType - Type of document to verify
+ * @returns {Promise<object>} - Server-side verification results
+ */
+async function serverSideVerification(file, documentType) {
+    try {
+        const formData = new FormData();
+        formData.append('image', file);
+
+        // Map the document type to the correct API endpoint
+        let endpoint;
+        switch (documentType) {
+            case 'business_permit':
+                endpoint = 'api/verify/business-permit';
+                break;
+            case 'dti_registration':
+                endpoint = 'api/verify/dti-registration';
+                break;
+            case 'valid_id':
+                endpoint = 'api/verify/valid-id';
+                break;
+            default:
+                throw new Error('Invalid document type');
+        }
+
+        const response = await axios.post(`/${endpoint}`, formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+                'Accept': 'application/json'
+            }
+        });
+
+        // Check if the response contains an error
+        if (!response.data.success) {
+            throw new Error(response.data.message || 'Server verification failed');
+        }
+
+        return {
+            isValid: response.data.is_valid,
+            confidence: response.data.confidence || 75, // Default confidence if not provided
+            message: response.data.message,
+            issue: response.data.issue,
+            status: response.data.status,
+            engine: 'vision',
+            dateInfo: response.data.date_info || null,
+            extractedText: response.data.extracted_text || null
+        };
+    } catch (error) {
+        console.error('Server-side verification error:', error);
+        // Instead of failing completely, return an error object that can be used
+        // to inform the hybrid verification to fall back to client-side only
+        return {
+            isValid: false,
+            confidence: 0,
+            message: 'Server-side verification failed',
+            engine: 'vision',
+            error: error.response?.data?.message || error.message
+        };
+    }
+}
+
+/**
+ * Combines results from both verification methods
+ * @param {object} clientResult - Client-side verification result
+ * @param {object} serverResult - Server-side verification result
+ * @param {string} documentType - Type of document being verified
+ * @returns {object} - Combined verification result
+ */
+function combineVerificationResults(clientResult, serverResult, documentType) {
+    // If server verification failed with an error
+    const serverFailed = serverResult.error !== undefined;
+    const clientFailed = clientResult.error !== undefined;
+
+    // If both failed, we have a problem
+    if (serverFailed && clientFailed) {
+        return {
+            isValid: false,
+            message: 'Document verification failed on both systems',
+            status: 'error',
+            suggestions: getDocumentSuggestions(documentType.replace(/_/g, ''))
+        };
+    }
+
+    // If only server failed, use client result with a note
+    if (serverFailed) {
+        return {
+            ...clientResult,
+            message: clientResult.message + ' (server verification unavailable)',
+            status: clientResult.isValid ? 'success' : 'warning',
+            engine: 'tesseract-only'
+        };
+    }
+
+    // If only client failed, use server result with a note
+    if (clientFailed) {
+        return {
+            ...serverResult,
+            message: serverResult.message + ' (client verification unavailable)',
+            status: serverResult.isValid ? 'success' : 'warning',
+            engine: 'vision-only'
+        };
+    }
+
+    // Both succeeded, combine the results
+    const combinedIsValid = serverResult.isValid && clientResult.isValid;
+
+    // If expired (from either source), mark as invalid regardless
+    const isExpired = (serverResult.issue === 'expired' || 
+                      (serverResult.status === 'error' && serverResult.date_info?.status === 'expired')) ||
+                      (clientResult.issue === 'expired' || 
+                      (clientResult.status === 'error' && clientResult.dateInfo?.isExpired));
+
+    // For business permit, check if it's marked as incomplete
+    let isIncomplete = false;
+    if (documentType === 'business_permit') {
+        isIncomplete = serverResult.issue === 'incomplete' || clientResult.issue === 'incomplete';
+    }
+
+    // If valid but about to expire, include a warning
+    const isAboutToExpire = !isExpired &&
+                           ((serverResult.warning && serverResult.warning.includes('expire soon')) ||
+                           (serverResult.status === 'warning' && serverResult.date_info?.status === 'expiring_soon') ||
+                           (clientResult.warning && clientResult.warning.includes('expire soon')) ||
+                           (clientResult.status === 'warning' && clientResult.dateInfo?.isAboutToExpire));
+
+    // Determine combined status
+    let combinedStatus = combinedIsValid ? 'success' : 'warning';
+    if (isExpired) {
+        combinedStatus = 'error';
+    } else if (isAboutToExpire || isIncomplete) {
+        combinedStatus = 'warning';
+    }
+
+    // Determine message based on results
+    let combinedMessage;
+    if (isExpired) {
+        combinedMessage = serverResult.message || clientResult.dateInfo?.message || 
+                         'Document has expired and is no longer valid';
+    } else if (isIncomplete) {
+        combinedMessage = 'Key details on the business permit are unclear or missing. Please upload a clearer image.';
+    } else if (isAboutToExpire) {
+        const expiryMessage = serverResult.warning || 
+                             (clientResult.dateInfo?.message || 'Document will expire soon');
+        combinedMessage = `Document verified successfully. ${expiryMessage}`;
+    } else if (combinedIsValid) {
+        combinedMessage = 'Document verified successfully';
+    } else {
+        // Use the more specific message for invalid documents
+        combinedMessage = serverResult.message || clientResult.message || 
+                         getFailureMessage(documentType.replace(/_/g, ''));
+    }
+
+    // Merge date information
+    const dateInfo = serverResult.date_info || clientResult.dateInfo || null;
+
+    return {
+        isValid: combinedIsValid && !isExpired && !isIncomplete,
+        message: combinedMessage,
+        status: combinedStatus,
+        issue: isExpired ? 'expired' : (isIncomplete ? 'incomplete' : serverResult.issue || null),
+        engine: 'hybrid',
+        clientConfidence: clientResult.confidence || 0,
+        serverConfidence: serverResult.confidence || 0,
+        dateInfo: dateInfo,
+        suggestions: (!combinedIsValid || isIncomplete) ? getDocumentSuggestions(documentType.replace(/_/g, '')) : [],
+        warning: isAboutToExpire ? (serverResult.warning || clientResult.dateInfo?.message) : null
+    };
+}
+
+/**
+ * Verify a document during upload using hybrid approach
+ * @param {File} file - The file being uploaded
+ * @param {string} documentType - Type of document: 'businessPermit', 'dtiRegistration', or 'validId'
+ * @returns {Promise<Object>} - Verification result with status and messages
+ */
+export const verifyDocumentUpload = async (file, documentType) => {
+    // Basic file validation checks
+    if (!file) {
+        return {
+            isValid: false,
+            message: 'No file selected',
+            status: 'error'
+        };
+    }
+
+    if (!file.type.startsWith('image/')) {
+        return {
+            isValid: false,
+            message: 'File must be an image (JPG, PNG, etc.)',
+            status: 'error'
+        };
+    }
+
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    if (file.size > maxSize) {
+        return {
+            isValid: false,
+            message: 'File size exceeds 5MB limit',
+            status: 'error'
+        };
+    }
+
+    try {
+        // Transform documentType to internal format if needed
+        let internalDocType = documentType;
+
+        // Convert from camelCase to snake_case if necessary
+        if (documentType === 'businessPermit') internalDocType = 'business_permit';
+        if (documentType === 'dtiRegistration') internalDocType = 'dti_registration';
+        if (documentType === 'validId') internalDocType = 'valid_id';
+
+        // Perform hybrid verification
+        const result = await hybridDocumentVerification(file, internalDocType);
+
+        // Handle warnings
+        if (result.warning) {
+            return {
+                ...result,
+                status: 'warning',
+                message: result.message
+            };
+        }
+
+        return result;
+    } catch (error) {
+        console.error('Document verification failed:', error);
+        return {
+            isValid: false,
+            message: error.message || 'Document verification failed',
+            status: 'error'
+        };
+    }
+};
+
+// Keep the original functions for compatibility
 export const verifyBusinessPermit = (file) => scanDocument(file, 'businessPermit');
 export const verifyDTIRegistration = (file) => scanDocument(file, 'dtiRegistration');
 export const verifyValidID = (file) => scanDocument(file, 'validId');
