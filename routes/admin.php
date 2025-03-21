@@ -6,10 +6,10 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\UserRestrictionController;
 use App\Http\Controllers\Admin\RestrictionController;
 use App\Http\Controllers\Admin\SubscriptionController;
+use App\Http\Controllers\PlatformStaffController;
 
 use App\Http\Controllers\Admin\ShopController;
 use App\Http\Controllers\Admin\ShopManagementController;
-use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\UserManagementController;
 use App\Http\Middleware\AdminMiddleware;
 use App\Http\Controllers\Admin\ShopController as AdminShopController;
@@ -31,9 +31,6 @@ Route::middleware(['auth', \App\Http\Middleware\AdminMiddleware::class])->prefix
     Route::patch('/shops/{shop}/update-status', [ShopManagementController::class, 'updateStatus'])->name('shops.update-status');
     Route::get('/shops/{shop}/documents/{type}', [ShopManagementController::class, 'downloadDocument'])->name('shops.download-document');
 
-
-
-
     // Dashboard
     Route::redirect('/', '/admin/dashboard');
 
@@ -50,10 +47,6 @@ Route::middleware(['auth', \App\Http\Middleware\AdminMiddleware::class])->prefix
         return Inertia::render('Admin/CustomerService');
     })->name('customer-service');
 
-    Route::get('/platform/staff', function () {
-        return Inertia::render('Admin/PlatformStaff');
-    })->name('platform.staff');
-
     Route::get('/admin/subscription', [SubscriptionController::class, 'index'])
     ->name('admin.subscriptions.index');
 
@@ -65,6 +58,15 @@ Route::put('/admin/subscriptions/{subscription}', [SubscriptionController::class
 
 Route::delete('/admin/subscriptions/{subscription}', [SubscriptionController::class, 'destroy'])
     ->name('admin.subscriptions.destroy');
+
+    // Platform Staff Routes
+    Route::get('/platform-staff', [PlatformStaffController::class, 'index'])->name('platform-staff');
+    Route::get('/platform-staff/create', [PlatformStaffController::class, 'create'])->name('platform-staff.create');
+    Route::post('/platform-staff', [PlatformStaffController::class, 'store'])->name('platform-staff.store');
+    Route::get('/platform-staff/{id}/edit', [PlatformStaffController::class, 'edit'])->name('platform-staff.edit');
+    Route::patch('/platform-staff/{id}', [PlatformStaffController::class, 'update'])->name('platform-staff.update');
+    Route::delete('/platform-staff/{id}', [PlatformStaffController::class, 'destroy'])->name('platform-staff.destroy');
+    Route::post('/platform-staff/{id}/avatar', [PlatformStaffController::class, 'updateAvatar'])->name('platform-staff.avatar');
 
     // User management
     Route::get('/users', [UserController::class, 'index'])
@@ -79,19 +81,5 @@ Route::delete('/admin/subscriptions/{subscription}', [SubscriptionController::cl
 
     Route::post('/restrictions/lift', [UserRestrictionController::class, 'lift'])
         ->name('restrictions.lift');
-
-    //  Platform Staff Routes
-
-    // Route::get('/staff', [PlatformStaffController::class, 'index'])->name('staff.index');
-    // Route::post('/staff', [PlatformStaffController::class, 'store'])->name('staff.store');
-    // Route::put('/staff/{staff}', [PlatformStaffController::class, 'update'])->name('staff.update');
-    // Route::post('/staff/{staff}/avatar', [PlatformStaffController::class, 'updateAvatar'])->name('staff.avatar');
-    // Route::delete('/staff/{staff}', [PlatformStaffController::class, 'destroy'])->name('staff.destroy');
-
-    // Route::get('/admin/staff', [PlatformStaffController::class, 'index'])->name('staff.index');
-    // Route::post('/admin/staff', [PlatformStaffController::class, 'store'])->name('staff.store');
-    // Route::put('/admin/staff/{staff}', [PlatformStaffController::class, 'update'])->name('staff.update');
-    // Route::post('/admin/staff/{staff}/avatar', [PlatformStaffController::class, 'updateAvatar'])->name('staff.avatar');
-    // Route::delete('/admin/staff/{staff}', [PlatformStaffController::class, 'destroy'])->name('staff.destroy');
 
 });
