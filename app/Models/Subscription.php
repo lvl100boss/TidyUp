@@ -10,17 +10,11 @@ class Subscription extends Model
     use HasFactory;
 
     protected $fillable = [
-        'name',
-        'description',
-        'price',
-        'duration',
-        'duration_unit',
-        'status',
+        'tier',
+        'monthly_price',
+        'yearly_price',
+        'monthly_discount',
+        'yearly_discount',
+        'status', // Add status to fillable attributes
     ];
-
-    // Shop subscriptions relationship (if needed)
-    public function shops()
-    {
-        return $this->hasMany(ShopSubscription::class);
-    }
 }

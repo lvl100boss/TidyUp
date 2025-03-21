@@ -13,7 +13,7 @@ class SubscriptionController extends Controller
     public function index()
     {
         $subscriptions = Subscription::all();
-        
+
         return Inertia::render('Admin/Subscription', [
             'subscriptions' => $subscriptions,
         ]);
@@ -21,62 +21,48 @@ class SubscriptionController extends Controller
 
     public function store(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'price' => 'required|numeric|min:0',
-            'duration' => 'required|integer|min:1',
-            'duration_unit' => 'required|in:days,months,years',
-            'status' => 'required|in:active,inactive',
+        // Validate the request
+        $validated = $request->validate([
+            'tier' => 'required|string|max:255',
+            'monthly_price' => 'required|numeric|min:0',
+            'yearly_price' => 'required|numeric|min:0',
+            'monthly_discount' => 'nullable|numeric|min:0|max:100',
+            'yearly_discount' => 'nullable|numeric|min:0|max:100',
+            'status' => 'required|in:active,inactive', // Add status validation
         ]);
-        
-        if ($validator->fails()) {
-            return back()->withErrors($validator)->withInput();
-        }
     
-        Subscription::create($request->all());
-        
-        // Get all subscriptions after creating the new one
-        $subscriptions = Subscription::all();
+        // Create the subscription
+        $subscription = Subscription::create($validated);
     
-        return redirect()->route('admin.subscriptions.index')
-            ->with('success', 'Subscription plan created successfully.')
-            ->with('subscriptions', $subscriptions); // Pass updated subscriptions
+        // Return the created subscription as JSON
+        return response()->json($subscription);
     }
-
+    
     public function update(Request $request, Subscription $subscription)
     {
-        $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'price' => 'required|numeric|min:0',
-            'duration' => 'required|integer|min:1',
-            'duration_unit' => 'required|in:days,months,years',
-            'status' => 'required|in:active,inactive',
+        // Validate the request
+        $validated = $request->validate([
+            'tier' => 'required|string|max:255',
+            'monthly_price' => 'required|numeric|min:0',
+            'yearly_price' => 'required|numeric|min:0',
+            'monthly_discount' => 'nullable|numeric|min:0|max:100',
+            'yearly_discount' => 'nullable|numeric|min:0|max:100',
+            'status' => 'required|in:active,inactive', // Add status validation
         ]);
-
-        if ($validator->fails()) {
-            return back()->withErrors($validator)->withInput();
-        }
-
-        $subscription->update($request->all());
-
-        $subscriptions = Subscription::all();
-
-        return redirect()->route('admin.subscriptions.index')
-            ->with('success', 'Subscription plan updated successfully.')
-            ->with('subscriptions', $subscriptions); // Pass updated subscriptions
+    
+        // Update the subscription
+        $subscription->update($validated);
+    
+        // Return the updated subscription as JSON
+        return response()->json($subscription);
     }
 
     public function destroy(Subscription $subscription)
     {
+        // Delete the subscription
         $subscription->delete();
-        
-        // Get all subscriptions after deleting
-        $subscriptions = Subscription::all();
-    
-        return redirect()->route('admin.subscriptions.index')
-            ->with('success', 'Subscription plan deleted successfully.')
-            ->with('subscriptions', $subscriptions); // Pass updated subscriptions
+
+        // Return a success response
+        return response()->json(['message' => 'Subscription plan deleted successfully.']);
     }
 }

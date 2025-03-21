@@ -11,7 +11,6 @@ return new class extends Migration
      */
     public function up(): void
     {
-
         Schema::create('shop_subscriptions', function (Blueprint $table) {
             $table->id();
             $table->foreignId('shop_id')->constrained()->onDelete('cascade');
@@ -19,7 +18,7 @@ return new class extends Migration
             $table->dateTime('start_date');
             $table->dateTime('end_date');
             $table->string('status')->default('active'); // active, canceled, expired
-            $table->string('payment_method')->nullable();
+            $table->string('billing_cycle')->default('monthly'); // monthly or yearly
             $table->string('payment_id')->nullable();
             $table->timestamps();
         });
