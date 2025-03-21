@@ -13,7 +13,6 @@ class PlatformStaff extends Model
 
     protected $fillable = [
         'user_id',
-        'role',
         'position',
         'is_active',
         'started_at',

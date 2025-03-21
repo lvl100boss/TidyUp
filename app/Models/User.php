@@ -29,7 +29,6 @@ class User extends Authenticatable implements MustVerifyEmail
         'profile_photo_path',
         'gender',
         'date_of_birth',
-        'is_service_provider',
         'email_verified_at'
     ];
 
@@ -98,4 +97,12 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->hasOne(PlatformStaff::class); // Each user has one platform staff
     }
+
+    /**
+     * Check if the user has a specific role
+     *
+     * @param string $roleName
+     * @return bool
+     */
+
 }

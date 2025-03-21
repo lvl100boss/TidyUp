@@ -14,7 +14,6 @@ return new class extends Migration
         Schema::create('platform_staffs', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->string('role');
             $table->string('position');
             $table->boolean('is_active')->default(true);
             $table->timestamp('started_at')->nullable(); // Added started_at timestamp

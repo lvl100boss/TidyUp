@@ -44,7 +44,7 @@ export default function PlatformStaff({ staffs, isAdmin }) {
                     </Link>
                 </div>
                 <div>
-                    <PlatformStaffTable staffs={staffs || []} isAdmin={isAdmin} />
+                    <StaffTable staffs={staffs || []} isAdmin={isAdmin} />
                 </div>
             </div>
         </AdminLayout>

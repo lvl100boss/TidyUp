@@ -1,6 +1,6 @@
 import AdminLayout from "@/Layouts/AdminLayout";
 import { Head, useForm, usePage } from "@inertiajs/react";
-import StaffForm from "@/Components/Admin/ManageStaff/PlatformStaffForm";
+import PlatformStaffForm from "@/Components/Admin/ManageStaff/PlatformStaffForm";
 import { useEffect } from 'react';
 import { toast, Toaster } from 'sonner';
 
@@ -39,8 +39,13 @@ export default function CreatePlatformStaff({ isAdmin }) {
 
     function handleSubmit(e) {
         e.preventDefault();
-        // Use direct URL instead of route helper to ensure it matches route definition
-        post("/admin/platform-staff");
+        console.log("Submitting form with data:", data); // Add logging to check data
+        // Use route helper to ensure correct URL
+        post(route('admin.platform-staff.store'), {
+            onError: (errors) => {
+                console.error("Form submission errors:", errors);
+            }
+        });
     }
 
     return (
@@ -48,7 +53,7 @@ export default function CreatePlatformStaff({ isAdmin }) {
             <Head title="Create Platform Staff" />
             <Toaster richColors />
             <div className="max-w-screen-lg mx-auto">
-                <StaffForm
+                <PlatformStaffForm
                     isAdmin={isAdmin}
                     data={data}
                     setData={setData}

@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/tooltip"
 import { useState, useEffect } from "react";
 
-function StaffForm(props) {
+function PlatformStaffForm(props) {
     const [passwordStrength, setPasswordStrength] = useState("");
     const [passwordsMatch, setPasswordsMatch] = useState(false);
     const [previewUrl, setPreviewUrl] = useState(null);
@@ -221,15 +221,15 @@ function StaffForm(props) {
                         <Label htmlFor="position" className="font-bold">Position</Label>
                         <Input
                             id="position"
-                            value={props.data.role}
+                            value={props.data.position}
                             onChange={e => props.setData(prevData => ({
                                 ...prevData,
-                                role: e.target.value
+                                position: e.target.value  // Make sure this is spelled correctly
                             }))}
                             placeholder="ex. Project Manager, UI/UX Designer, etc."
                             className="mt-1"
                         />
-                        <InputError message={props.errors.role} />
+                        <InputError message={props.errors.position} />
                     </div>
                     <div>
                         <Label htmlFor="is_active" className="font-bold">Status</Label>
@@ -359,4 +359,4 @@ function StaffForm(props) {
     );
 }
 
-export default StaffForm;
+export default PlatformStaffForm;

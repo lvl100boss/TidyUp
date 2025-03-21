@@ -20,7 +20,7 @@ class PlatformStaffController extends Controller
         $platformStaffs = PlatformStaff::with('user')->get();
         $userRole = $user->userRole()->first();
 
-        if ($userRole->role_id === 1) {
+        if ($userRole->role_id === true) {
             $isAdmin = true;
         } else {
             $isAdmin = false;
@@ -57,7 +57,6 @@ class PlatformStaffController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'role' => ['required', 'string', 'max:255'],
             'position' => ['required', 'string', 'max:255'],
             'first_name' => ['required', 'string', 'max:255'],
             'last_name' => ['required', 'string', 'max:255'],
@@ -95,7 +94,6 @@ class PlatformStaffController extends Controller
                 'gender' => $validated['gender'],
                 'password' => Hash::make($validated['password']),
                 'contact_number' => $validated['contact_number'] ?? null,
-                'is_service_provider' => false,
                 'email_verified_at' => now(),
             ]);
 
@@ -108,42 +106,48 @@ class PlatformStaffController extends Controller
                 $user->profile_photo_path = $path;
                 $user->save(); // Save the user again to store the profile photo path
             }
-
-            PlatformStaff::create([
+            
+            $platformStaff = PlatformStaff::create([
                 'user_id' => $user->id,
-                'role' => $validated['role'],
                 'position' => $validated['position'],
                 'is_active' => $validated['is_active'] === "1" ? true : false,
                 'started_at' => now(),
             ]);
 
+            // Remove this debug line that stops execution
+            // dd($platformStaff);
+
             // Assign admin role to platform staff
             $user->userRole()->create([
                 'user_id' => $user->id,
-                'role_id' => 1, // assuming 1 is admin role
+                'role_id' => 2, // assuming 2 is platform staff role
             ]);
 
             DB::commit();
-            return redirect('/admin/platform-staff')->with('message', 'Platform staff member added successfully')->with('success', true);
+            // Use the route helper instead of hardcoded URL
+            return redirect()->route('admin.platform-staff')->with('message', 'Platform staff member added successfully')->with('success', true);
         } catch (\Exception $e) {
             DB::rollBack();
-            return redirect()->route('admin.platform-staff.create')->with('message', 'Failed to add platform staff member')->with('success', false);
+            return redirect()->route('admin.platform-staff.create')->with('message', 'Failed to add platform staff member: ' . $e->getMessage())->with('success', false);
         }
     }
 
     public function edit($id)
     {
         $platformStaff = PlatformStaff::with('user')->where('id', $id)->firstOrFail();
-        $isAdmin = auth()->user()->hasRole('admin');
+        $user = User::find(auth()->id());
+        $platformStaffs = PlatformStaff::with('user')->get();
+        $userRole = $user->userRole()->first();
 
-        if (!$isAdmin) {
-            abort(403);
+        if ($userRole->role_id === 1) {
+            $isAdmin = true;
+        } else {
+            $isAdmin = false;
         }
 
         return Inertia::render('Admin/EditPlatformStaff', [
             'staff' => [
                 'id' => $platformStaff->id,
-                'role' => $platformStaff->role,
                 'position' => $platformStaff->position,
                 'first_name' => $platformStaff->user->first_name,
                 'last_name' => $platformStaff->user->last_name,
@@ -163,7 +167,6 @@ class PlatformStaffController extends Controller
     {
         $platformStaff = PlatformStaff::with('user')->findOrFail($id);
         $validated = $request->validate([
-            'role' => ['required', 'string', 'max:255'],
             'position' => ['required', 'string', 'max:255'],
             'first_name' => ['required', 'string', 'max:255'],
             'last_name' => ['required', 'string', 'max:255'],
@@ -216,7 +219,6 @@ class PlatformStaffController extends Controller
             $platformStaff->user->update($userData);
 
             $platformStaff->update([
-                'role' => $validated['role'],
                 'position' => $validated['position'],
                 'is_active' => $validated['is_active'] === "1" ? true : false,
             ]);

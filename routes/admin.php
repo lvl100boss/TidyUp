@@ -61,7 +61,7 @@ Route::put('/admin/subscriptions/{subscription}', [SubscriptionController::class
 Route::delete('/admin/subscriptions/{subscription}', [SubscriptionController::class, 'destroy'])
     ->name('admin.subscriptions.destroy');
 
-    // Platform Staff Routes - Clean up and ensure routes match what's being referenced
+    // Platform Staff Routes
     Route::get('/platform-staff', [PlatformStaffController::class, 'index'])->name('platform-staff');
     Route::get('/platform-staff/create', [PlatformStaffController::class, 'create'])->name('platform-staff.create');
     Route::post('/platform-staff', [PlatformStaffController::class, 'store'])->name('platform-staff.store');

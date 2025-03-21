@@ -1,6 +1,6 @@
 import AdminLayout from "@/Layouts/AdminLayout";
 import { Head, useForm } from "@inertiajs/react";
-import StaffForm from "@/Components/Admin/ManageStaff/PlatformStaffForm";
+import PlatformStaffForm from "@/Components/Admin/ManageStaff/PlatformStaffForm";
 
 export default function EditPlatformStaff({ staff, isAdmin }) {
     const { data, setData, post, processing, errors, recentlySuccessful } = useForm({
@@ -50,7 +50,7 @@ export default function EditPlatformStaff({ staff, isAdmin }) {
         <AdminLayout>
             <Head title="Edit Platform Staff" />
             <div className="max-w-screen-lg mx-auto">
-                <StaffForm
+                <PlatformStaffForm
                     isAdmin={isAdmin}
                     data={data}
                     setData={setData}

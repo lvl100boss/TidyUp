@@ -33,20 +33,11 @@ import { Link } from "@inertiajs/react";
 import ViewInfoModal from "@/Components/Admin/ManageStaff/PlatformViewInfoModal";
 import DeleteStaffModal from "@/Components/Admin/ManageStaff/PlatformDeleteStaffModal";
 
-const StaffTable = ({ staffs = [], isAdmin }) => {
+const PlatformStaffTable = ({ staffs = [], isAdmin }) => {
     const [sorting, setSorting] = useState([]);
     const [columnFilters, setColumnFilters] = useState([]);
     const [searchTerm, setSearchTerm] = useState("");
-    const [roleFilter, setRoleFilter] = useState("all");
     const [positionFilter, setPositionFilter] = useState("all");
-
-    // Extract unique roles and positions for filter options
-    const uniqueRoles = useMemo(() => {
-        // Add null check for staffs
-        if (!staffs || staffs.length === 0) return [];
-        const roles = [...new Set(staffs.map(staff => staff.role))];
-        return roles.sort();
-    }, [staffs]);
 
     const uniquePositions = useMemo(() => {
         // Add null check for staffs
@@ -69,7 +60,7 @@ const StaffTable = ({ staffs = [], isAdmin }) => {
                 return (
                     <>
                         {member.user.profile_photo_path ? (
-                            <img src={`/storage/${member.user.profile_photo_path}`} className="size-20 object-cover rounded-md" />
+                            <img src={`/storage/${member.user.profile_photo_path}`} className="size-20 object-cover rounded-md" alt=""/>
                         ) : (
                             <div className="size-20 bg-secondary rounded-md flex items-center justify-center">
                                 <span className="text-2xl font-bold">{member.user.first_name[0] + member.user.last_name[0]}</span>
@@ -97,15 +88,6 @@ const StaffTable = ({ staffs = [], isAdmin }) => {
                 return <div>{`${member.user.first_name} ${member.user.last_name}`}</div>;
             },
             accessorFn: (row) => `${row.user.first_name} ${row.user.last_name}`,
-        },
-        {
-            accessorKey: "role",
-            header: "Role", 
-            cell: ({ row }) => {
-                const role = row.original.role;
-                return <div>{role[0].toUpperCase() + role.slice(1)}</div>;
-            },
-            accessorFn: (row) => row.role,
         },
         {
             accessorKey: "position",
@@ -262,7 +244,6 @@ const StaffTable = ({ staffs = [], isAdmin }) => {
     const clearFilters = () => {
         setRoleFilter("all");
         setPositionFilter("all");
-        table.getColumn("role")?.setFilterValue("");
         table.getColumn("position")?.setFilterValue("");
     };
 
@@ -270,24 +251,6 @@ const StaffTable = ({ staffs = [], isAdmin }) => {
         <div>
             <div className="flex items-center justify-between py-4 gap-3 flex-wrap">
                 <div className="flex items-center gap-2 flex-wrap">
-                    <div>
-                        <Select
-                            value={roleFilter}
-                            onValueChange={handleRoleFilter}
-                        >
-                            <SelectTrigger className="w-[180px]">
-                                <SelectValue placeholder="Filter by role" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="all">All roles</SelectItem>
-                                {uniqueRoles.map(role => (
-                                    <SelectItem key={role} value={role}>
-                                        {role.charAt(0).toUpperCase() + role.slice(1)}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    </div>
                     <div>
                         <Select
                             value={positionFilter}
@@ -306,7 +269,7 @@ const StaffTable = ({ staffs = [], isAdmin }) => {
                             </SelectContent>
                         </Select>
                     </div>
-                    {(roleFilter !== "all" || positionFilter !== "all") && (
+                    {positionFilter !== "all" && (
                         <Button
                             variant="outline"
                             size="icon"
@@ -395,4 +358,4 @@ const StaffTable = ({ staffs = [], isAdmin }) => {
     );
 }
 
-export default StaffTable;
+export default PlatformStaffTable;

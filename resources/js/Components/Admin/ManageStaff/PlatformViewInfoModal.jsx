@@ -34,10 +34,6 @@ const PlatformViewInfoModal = ({ staff }) => {
                     <p className='text-muted-foreground'>{staff.position[0].toUpperCase() + staff.position.slice(1)}</p>
                 </div>
                 <div>
-                    <h6 className='figtree-medium'>Role</h6>
-                    <p className='text-muted-foreground'>{staff.role[0].toUpperCase() + staff.role.slice(1)}</p>
-                </div>
-                <div>
                     <h6 className='figtree-medium'>Status</h6>
                     <p className='text-muted-foreground'>{staff.is_active ? 'Active' : 'Inactive'}</p>
                 </div>
