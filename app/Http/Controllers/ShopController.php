@@ -39,18 +39,18 @@ class ShopController extends Controller
     public function store(Request $request)
     {
         $userID = Auth::user()->id;
-
         // Log the incoming request for debugging
         Log::info('Shop registration request received', [
             'user_id' => $userID,
             'request_data' => $request->except(['shop_photo', 'shop_gallery', 'business_permit', 'dti_registration', 'valid_id'])
         ]);
 
+
         // Validate basic fields first
 
         $validatedData = $request->validate([
             'shop_name' => 'required|unique:shops,shop_name',
-            'shop_bio' => 'required',
+            'shop_bio' => 'nullable|string',
             'email' => 'required|email',
             'phone' => 'required|numeric',
             'region' => 'required',
@@ -199,8 +199,6 @@ class ShopController extends Controller
                 'is_active' => true,
             ]);
             Log::info('Shop owner staff record created');
-
-
 
             DB::commit();
 

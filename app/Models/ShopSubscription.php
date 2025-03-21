@@ -15,7 +15,7 @@ class ShopSubscription extends Model
         'start_date',
         'end_date',
         'status',
-        'payment_method',
+        'billing_cycle', // Added billing_cycle
         'payment_id',
     ];
 

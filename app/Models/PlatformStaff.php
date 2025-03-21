@@ -4,24 +4,25 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class PlatformStaff extends Model
 {
-    use HasFactory;
+    //
+    protected $table = 'platform_staffs';
 
     protected $fillable = [
-        'name',
-        'role',
-        'email',
-        'phone',
-        'avatar',
-        'department',
-        'office_location',
-        'date_hired',
-        'status'
+        'user_id',
+        'position',
+        'is_active',
+        'started_at',
+        'ended_at',
+        'created_at',
+        'updated_at'
     ];
 
-    protected $casts = [
-        'date_hired' => 'date'
-    ];
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
 }
