@@ -32,11 +32,11 @@ class ShopAppointmentService
             'appointments' => $this->getCategorizedAppointments($currentStaff->id),
             'upcomingSchedules' => $this->getCurrentStaffUpcomingAppointmentSchedules($currentStaff->id),
             'shopBusinessSchedules' => $this->getShopBusinessHours($currentStaff->id),
-            'shopAppointments' => $this->getShopAppointments($currentStaff->id)
+            'shopAppointments' => $this->getShopAppointments($currentStaff->id),
+            'rescheduleRequests' => $this->requestReschedule($currentStaff->id)
         ];
     }
 
-    private function getAllAppointments($staffId) {}
 
     /**
      * Get appointments for a staff member categorized by status
@@ -47,6 +47,9 @@ class ShopAppointmentService
     private function getCategorizedAppointments($staffId)
     {
         $userAppointments = UserAppointments::where('staff_id', $staffId)
+            ->whereHas('appointment', function ($query) {
+                $query->whereNull('resched_data');
+            })
             ->with([
                 'user',
                 'appointment',
@@ -129,7 +132,8 @@ class ShopAppointmentService
             'notes' => $userAppointment->appointment->note,
             'decline_reason' => $userAppointment->appointment->decline_reason,
             'cancel_reason' => $userAppointment->appointment->cancel_reason,
-            'resched_reason' => $userAppointment->appointment->resched_reason
+            'resched_reason' => $userAppointment->appointment->resched_reason,
+            'resched_data' => $userAppointment->appointment->resched_data
         ];
     }
 
@@ -185,7 +189,8 @@ class ShopAppointmentService
                     $hours,
                     $minutes
                 ),
-                'appointment_data' => $schedule
+                'appointment_data' => $schedule,
+                'appointment_resched_data' => $schedule->appointment->resched_data
                 // Add any other data you need from the appointment
             ];
         }
@@ -203,6 +208,71 @@ class ShopAppointmentService
     private function getShopAppointments($staffId)
     {
         $shopAppointments = ShopStaffs::find($staffId)->shop->appointments;
+        $shopAppointments = $shopAppointments->map(function ($appointment) {
+            $totalHours = $appointment->appointmentServices->sum('shopService.duration_hour');
+            $totalMinutes = $appointment->appointmentServices->sum('shopService.duration_minute');
+
+            // Convert excess minutes to hours
+            if ($totalMinutes >= 60) {
+                $totalHours += floor($totalMinutes / 60);
+                $totalMinutes = $totalMinutes % 60;
+            }
+
+            // Calculate end time
+            $startDateTime = \Carbon\Carbon::parse($appointment->date . ' ' . $appointment->time);
+            $endDateTime = $startDateTime->copy()->addHours($totalHours)->addMinutes($totalMinutes);
+            $endTime = $endDateTime->format('H:i:s');
+
+            return [
+                'id' => $appointment->id,
+                'date' => $appointment->date,
+                'time' => $appointment->time,
+                'end_time' => $endTime,
+                'status' => $appointment->status,
+                'customer' => [
+                    'id' => $appointment->user->id,
+                    'name' => $appointment->user->first_name . " " . $appointment->user->last_name,
+                    'email' => $appointment->user->email,
+                    'profile_photo' => '/storage/' . $appointment->user->profile_photo_path
+                ],
+                'stylist' => [
+                    'id' => $appointment->userAppointments->isNotEmpty() ? $appointment->userAppointments[0]->staff->id : null,
+                    'name' => $appointment->userAppointments->isNotEmpty() ? $appointment->userAppointments[0]->staff->staff->first_name . " " . $appointment->userAppointments[0]->staff->staff->last_name : null,
+                    'email' => $appointment->userAppointments->isNotEmpty() ? $appointment->userAppointments[0]->staff->staff->email : null,
+                    'profile_photo' => $appointment->userAppointments->isNotEmpty() ? '/storage/' . $appointment->userAppointments[0]->staff->staff->profile_photo_path : null
+                ],
+
+                'services' => $appointment->appointmentServices->map(function ($service) {
+                    return [
+                        'id' => $service->shopService->id,
+                        'name' => $service->shopService->service_name,
+                        'cost' => $service->shopService->cost,
+                        'duration' => [
+                            'hours' => $service->shopService->duration_hour,
+                            'minutes' => $service->shopService->duration_minute
+                        ]
+                    ];
+                }),
+                'total_cost' => $appointment->appointmentServices->sum('shopService.cost'),
+                'total_duration' => [
+                    'hours' => $totalHours,
+                    'minutes' => $totalMinutes
+                ],
+                'notes' => $appointment->note,
+                'decline_reason' => $appointment->decline_reason,
+                'cancel_reason' => $appointment->cancel_reason,
+                'resched_reason' => $appointment->resched_reason
+            ];
+        })->sortByDesc(function ($appointment) {
+            return $appointment['date'] . ' ' . $appointment['time'];
+        })->values();
+        return $shopAppointments;
+    }
+
+    private function requestReschedule($staffId)
+    {
+        $shopAppointments = ShopStaffs::find($staffId)->shop->appointments
+            ->where('resched_data', '!=', null);
         $shopAppointments = $shopAppointments->map(function ($appointment) {
             $totalHours = $appointment->appointmentServices->sum('shopService.duration_hour');
             $totalMinutes = $appointment->appointmentServices->sum('shopService.duration_minute');

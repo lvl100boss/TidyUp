@@ -39,21 +39,18 @@ class ShopController extends Controller
     public function store(Request $request)
     {
         $userID = Auth::user()->id;
+        // Log the incoming request for debugging
+        Log::info('Shop registration request received', [
+            'user_id' => $userID,
+            'request_data' => $request->except(['shop_photo', 'shop_gallery', 'business_permit', 'dti_registration', 'valid_id'])
+        ]);
 
-        // Get raw data without decoding
-        $categories = $request->input('categories');
-        $operationHours = $request->input('operation_hours');
-        $catalogItems = $request->input('catalog_items');
 
-        // Decode JSON strings if they're strings
-        $categories = is_string($categories) ? json_decode($categories, true) : $categories;
-        $operationHours = is_string($operationHours) ? json_decode($operationHours, true) : $operationHours;
-        $catalogItems = is_string($catalogItems) ? json_decode($catalogItems, true) : $catalogItems;
+        // Validate basic fields first
 
-        // Validate the request data
         $validatedData = $request->validate([
             'shop_name' => 'required|unique:shops,shop_name',
-            'shop_bio' => 'required',
+            'shop_bio' => 'nullable|string',
             'email' => 'required|email',
             'phone' => 'required|numeric',
             'region' => 'required',
@@ -61,52 +58,76 @@ class ShopController extends Controller
             'city' => 'required',
             'barangay' => 'required',
             'detailed_address' => 'required',
+            'categories' => 'required|array|min:1',
+            'categories.*' => 'exists:categories,id',
+            'operation_hours' => 'required|array',
+            'catalog_items' => 'required|array',
             'shop_photo' => 'required|image',
-            'shop_gallery.*' => 'required|image',
+            'shop_gallery' => 'required|array',
+            'shop_gallery.*' => 'image',
+
             'business_permit' => 'required|image',
             'dti_registration' => 'required|image',
             'valid_id' => 'required|image',
         ]);
+        // Validate structure of catalog items
+        foreach ($request->catalog_items as $index => $item) {
+            $request->validate([
+                "catalog_items.{$index}.service_name" => 'required|string',
+                "catalog_items.{$index}.cost" => 'required|numeric',
+                "catalog_items.{$index}.duration_hour" => 'required|integer|min:0',
+                "catalog_items.{$index}.duration_minute" => 'required|integer|min:0|max:59',
+                "catalog_items.{$index}.category_id" => 'required|exists:service_categories,id',
+            ]);
+        }
 
         DB::beginTransaction();
 
         try {
-            // Create shop with basic info
+            // Store shop photo
+            $shopPhotoPath = $request->file('shop_photo')->store('shop_photos', 'public');
+
+            // Create shop record
+
             $shop = Shop::create([
                 'shop_name' => $request->shop_name,
                 'user_id' => $userID,
-                'email' => $request->email,
-                'contact_number' => $request->phone,
-                'shop_photo' => $request->file('shop_photo') ?
-                    'storage/' . $request->file('shop_photo')->store('shop_photos', 'public') : null,
-                'region' => $request->region,
-                'province' => $request->province,
-                'city' => $request->city,
-                'barangay' => $request->barangay,
-                'detailed_address' => $request->detailed_address,
-                'bio' => $request->shop_bio,
+                'email' => $validatedData['email'],
+                'contact_number' => $validatedData['phone'],
+                'shop_photo' => 'storage/' . $shopPhotoPath,
+                'region' => $validatedData['region'],
+                'province' => $validatedData['province'],
+                'city' => $validatedData['city'],
+                'barangay' => $validatedData['barangay'],
+                'detailed_address' => $validatedData['detailed_address'],
+                'bio' => $validatedData['shop_bio'],
+
                 'status' => 'processing',
                 'created_at' => now(), // Explicitly set creation date
                 'updated_at' => now()
             ]);
 
-            // Immediately load relationships for admin view
-            $shop->load(['user', 'shopCategories.categories']);
+            Log::info('Shop record created', ['shop_id' => $shop->id]);
 
-            // Save categories
-            if (!empty($categories)) {
-                foreach ($categories as $categoryId) {
-                    ShopCategory::create([
+            // Associate shop categories
+            if (!empty($validatedData['categories'])) {
+                foreach ($validatedData['categories'] as $categoryId) {
+                    $shopCategory = ShopCategory::create([
+
                         'shop_id' => $shop->id,
                         'category_id' => $categoryId,
                         'created_at' => now(),
                         'updated_at' => now()
                     ]);
                 }
+                Log::info('Shop categories associated', ['categories' => $validatedData['categories']]);
             }
 
-            foreach ($catalogItems as $item) {
-                $shopServiceCategories = ShopServiceCategories::create([
+
+            // Create service categories
+            foreach ($request->catalog_items as $item) {
+                $shopService = ShopServiceCategories::create([
+
                     'service_name' => $item['service_name'],
                     'cost' => $item['cost'],
                     'duration_hour' => $item['duration_hour'],
@@ -115,16 +136,27 @@ class ShopController extends Controller
                     'shop_id' => $shop->id
                 ]);
             }
-            foreach ($validatedData['shop_gallery'] as $gallery) {
-                $shopGallery = ShopGallery::create([
-                    'url' => 'storage/' . $gallery->store('shop_gallery', 'public'),
-                    'shop_id' => $shop->id
-                ]);
+            Log::info('Shop service categories created');
+
+            // Store gallery images
+            if ($request->hasFile('shop_gallery')) {
+                foreach ($request->file('shop_gallery') as $gallery) {
+                    $galleryPath = $gallery->store('shop_gallery', 'public');
+                    $gallery = ShopGallery::create([
+                        'url' => 'storage/' . $galleryPath,
+                        'shop_id' => $shop->id
+                    ]);
+                }
+                Log::info('Shop gallery images uploaded');
             }
-            foreach ($operationHours as $key => $value) {
-                $openTime = $value['openTime'] ? Carbon::createFromFormat('g:i A', $value['openTime'])->format('H:i:s') : null;
-                $closeTime = $value['closeTime'] ? Carbon::createFromFormat('g:i A', $value['closeTime'])->format('H:i:s') : null;
-                $shopOperationHours = OperationHours::create([
+
+            // Create operation hours
+            foreach ($request->operation_hours as $key => $value) {
+                $openTime = !empty($value['openTime']) ? Carbon::createFromFormat('g:i A', $value['openTime'])->format('H:i:s') : null;
+                $closeTime = !empty($value['closeTime']) ? Carbon::createFromFormat('g:i A', $value['closeTime'])->format('H:i:s') : null;
+
+                $businessHour = OperationHours::create([
+
                     'shop_id' => $shop->id,
                     'day' => $key,
                     'is_open' => $value['isOpen'],
@@ -133,66 +165,61 @@ class ShopController extends Controller
                 ]);
             }
 
-            // Store legal documents in public storage for direct accessibility
-            $shopLegalDocument = ShopLegalDocument::create([
-                'shop_id' => $shop->id,
-                'business_permit_url' => 'storage/' . $validatedData['business_permit']->store('legal_documents', 'public'),
-                'dti_registration_url'  => 'storage/' . $validatedData['dti_registration']->store('legal_documents', 'public'),
-                'valid_id_url' => 'storage/' . $validatedData['valid_id']->store('legal_documents', 'public'),
-            ]);
 
+            Log::info('Shop operation hours created');
+
+            // Store legal documents
+            $businessPermitPath = $request->file('business_permit')->store('legal_documents', 'public');
+            $dtiRegistrationPath = $request->file('dti_registration')->store('legal_documents', 'public');
+            $validIdPath = $request->file('valid_id')->store('legal_documents', 'public');
+
+
+
+
+            $shopLegalDoc = ShopLegalDocument::create([
+                'shop_id' => $shop->id,
+                'business_permit_url' => 'storage/' . $businessPermitPath,
+                'dti_registration_url'  => 'storage/' . $dtiRegistrationPath,
+                'valid_id_url' => 'storage/' . $validIdPath,
+            ]);
+            Log::info('Legal documents uploaded');
+            // Update user role
             $authenticatedUser = User::find(Auth::id());
             $authenticatedUser->userRole()->update([
                 'role_id' => 3
             ]);
+            Log::info('User role updated to shop owner');
 
-            ShopStaffs::create([
+            // Create shop staff record for owner
+            $shopStaff = ShopStaffs::create([
                 'shop_id' => $shop->id,
                 'staff_id' => $userID,
                 'role' => 'Shop Owner',
                 'position' => 'owner',
                 'is_active' => true,
             ]);
-
-            // Find admin users and send notifications immediately
-            $admins = User::whereHas('userRole', function ($query) {
-                $query->where('role_id', 1); // Assuming 1 is admin role_id
-            })->get();
-
-            foreach ($admins as $admin) {
-                $admin->notify(new NewShopRegistrationNotification($shop));
-            }
+            Log::info('Shop owner staff record created');
 
             DB::commit();
 
-            Log::info('Shop created successfully', [
-                'shop_id' => $shop->id,
-                'shop_name' => $shop->shop_name,
-                'categories' => $categories
+            return redirect()->route('shop.dashboard')->with([
+                'success' => true,
+                'message' => 'Shop registration submitted successfully and is awaiting verification'
             ]);
 
-            // Replace JSON response with a redirect response for Inertia
-            if ($request->wantsJson()) {
-                return response()->json([
-                    'success' => true,
-                    'shop' => $shop,
-                    'message' => 'Shop registration submitted successfully and is awaiting verification'
-                ]);
-            }
-
-            // For Inertia requests
-            return redirect()
-                ->route('home')
-                ->with('success', 'Shop registration submitted successfully and is awaiting verification');
         } catch (\Exception $e) {
             DB::rollBack();
 
             Log::error('Failed to create shop', [
                 'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
+                'line' => $e->getLine(),
+                'file' => $e->getFile()
             ]);
 
-            return back()->withErrors(['error' => 'Failed to create shop: ' . $e->getMessage()])->withInput();
+            return back()->withErrors([
+                'error' => 'Failed to register shop: ' . $e->getMessage()
+            ])->withInput();
         }
     }
 
@@ -228,7 +255,6 @@ class ShopController extends Controller
             ->inRandomOrder()
             ->limit(10)
             ->get();
-
         return Inertia::render('Users/Shop', [
             'shop' => $shop,
             'randomShops' => $randomShops

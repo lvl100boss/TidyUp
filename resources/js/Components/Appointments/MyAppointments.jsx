@@ -3,9 +3,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import AppointmentCard from "./AppointmentCard";
 import { Button } from "@/components/ui/button";
 import AddAppointmentModal from "./AddAppointmentModal";
+import { Separator } from "@/components/ui/separator"
 
-export default function MyAppointments({ appointments, upcomingSchedules, shopBusinessSchedules }) {
 
+export default function MyAppointments({ appointments, upcomingSchedules, shopBusinessSchedules, rescheduleRequests }) {
+    console.log("rescheduleRequests", rescheduleRequests);
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const statuses = [
         { value: "pending", label: "Pending" },
@@ -63,6 +65,27 @@ export default function MyAppointments({ appointments, upcomingSchedules, shopBu
                     </TabsContent>
                 ))}
             </Tabs>
+
+            <Separator />
+
+
+            <div>
+                <h2 className="text-xl font-semibold mb-5">Pending Rescedule</h2>
+                {rescheduleRequests.length > 0 ? (
+                    rescheduleRequests.map(appointment => (
+                        <AppointmentCard
+                            key={appointment.id}
+                            appointment={appointment}
+                            upcomingSchedules={upcomingSchedules}
+                            shopBusinessSchedules={shopBusinessSchedules}
+                        />
+                    ))
+                ) : (
+                    <div className="text-center py-10 text-gray-500">
+                        No pending reschedule requests found.
+                    </div>
+                )}
+            </div>
 
             <AddAppointmentModal isOpen={isAddModalOpen} setIsOpen={setIsAddModalOpen} />
         </div>

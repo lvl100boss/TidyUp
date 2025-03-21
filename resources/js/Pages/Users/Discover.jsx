@@ -62,17 +62,39 @@ export default function Discover({ shops, barberShops, salons }) {
                             <span>See More</span>
                         </Link>
                     </div>
-                    <div className="mb-5 grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-5">
+                    <div className="mb-5 grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-2">
                         {shops.map((shop) => (
                             <ShopCard key={shop.id} shop={shop} isLoading={isLoading} />
                         ))}
                     </div>
                 </div>
                 <div>
-                    <div className="w-full py-20 mt-20 rounded-md bg-muted/50">
-                        <h1 className="text-center text-xl sm:text-3xl font-light tracking-widest underline underline-offset-8 animate-bounce">
-                            EXPLORE BY CATEGORIES
-                        </h1>
+                    <div className="relative w-full py-24 mt-20 rounded-md bg-gradient-to-r from-muted/30 via-muted/70 to-muted/30 overflow-hidden">
+                        {/* Light rays effect */}
+                        <div className="absolute inset-0 flex justify-center">
+                            <div className="w-1/2 h-full bg-gradient-to-b from-primary/10 via-primary/5 to-transparent blur-xl transform -translate-y-1/2"></div>
+                        </div>
+                        <div className="absolute inset-0 flex justify-center items-center">
+                            <div className="w-3/4 h-1 bg-gradient-to-r from-transparent via-primary/20 to-transparent"></div>
+                        </div>
+
+                        {/* Category heading with improved styling */}
+                        <div className="relative z-10">
+                            <h1 className="text-center text-xl sm:text-3xl font-semibold tracking-wider">
+                                <span className="relative inline-block px-2">
+                                    <span className="relative z-10 py-1 px-4 border-primary/70 hover:border-primary transition-colors duration-300">
+                                        EXPLORE BY CATEGORIES
+                                    </span>
+
+                                </span>
+                            </h1>
+                            <p className="mt-3 text-center text-sm sm:text-base text-muted-foreground">
+                                Discover specialized services tailored to your specific needs and preferences
+                            </p>
+                            <div className="mt-4 flex justify-center">
+                                <div className="h-1 w-16 bg-gradient-to-r from-transparent via-primary/50 to-transparent rounded-full"></div>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div>
