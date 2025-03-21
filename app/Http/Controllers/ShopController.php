@@ -39,7 +39,6 @@ class ShopController extends Controller
     public function store(Request $request)
     {
         $userID = Auth::user()->id;
-
         // Get raw data without decoding
         $categories = $request->input('categories');
         $operationHours = $request->input('operation_hours');
@@ -53,7 +52,7 @@ class ShopController extends Controller
         // Validate the request data
         $validatedData = $request->validate([
             'shop_name' => 'required|unique:shops,shop_name',
-            'shop_bio' => 'required',
+            'shop_bio' => 'nullable|string',
             'email' => 'required|email',
             'phone' => 'required|numeric',
             'region' => 'required',
@@ -62,6 +61,7 @@ class ShopController extends Controller
             'barangay' => 'required',
             'detailed_address' => 'required',
             'shop_photo' => 'required|image',
+            'shop_gallery' => 'required|array', // Add this line
             'shop_gallery.*' => 'required|image',
             'business_permit' => 'required|image',
             'dti_registration' => 'required|image',
@@ -90,13 +90,14 @@ class ShopController extends Controller
                 'updated_at' => now()
             ]);
 
+
             // Immediately load relationships for admin view
             $shop->load(['user', 'shopCategories.categories']);
 
             // Save categories
             if (!empty($categories)) {
                 foreach ($categories as $categoryId) {
-                    ShopCategory::create([
+                    $shopCategory = ShopCategory::create([
                         'shop_id' => $shop->id,
                         'category_id' => $categoryId,
                         'created_at' => now(),
@@ -104,7 +105,6 @@ class ShopController extends Controller
                     ]);
                 }
             }
-
             foreach ($catalogItems as $item) {
                 $shopServiceCategories = ShopServiceCategories::create([
                     'service_name' => $item['service_name'],
@@ -154,14 +154,14 @@ class ShopController extends Controller
                 'is_active' => true,
             ]);
 
-            // Find admin users and send notifications immediately
-            $admins = User::whereHas('userRole', function ($query) {
-                $query->where('role_id', 1); // Assuming 1 is admin role_id
-            })->get();
+            // // Find admin users and send notifications immediately
+            // $admins = User::whereHas('userRole', function ($query) {
+            //     $query->where('role_id', 1); // Assuming 1 is admin role_id
+            // })->get();
 
-            foreach ($admins as $admin) {
-                $admin->notify(new NewShopRegistrationNotification($shop));
-            }
+            // foreach ($admins as $admin) {
+            //     $admin->notify(new NewShopRegistrationNotification($shop));
+            // }
 
             DB::commit();
 
@@ -182,7 +182,7 @@ class ShopController extends Controller
 
             // For Inertia requests
             return redirect()
-                ->route('home')
+                ->route('shop.dashboard')
                 ->with('success', 'Shop registration submitted successfully and is awaiting verification');
         } catch (\Exception $e) {
             DB::rollBack();

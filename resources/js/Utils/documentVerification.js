@@ -13,7 +13,9 @@ const documentKeywords = {
             /(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})\s*(?:valid until|expiry|expiration)/i,
             /(?:issue|issuance)\s+date\s*:\s*(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})/i,
             /(?:permit\s+expires|expires\s+on)\s+(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})/i,
-            /(?:validity|valid\s+period)\s*:\s*(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})/i
+            /(?:validity|valid\s+period)\s*:\s*(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})/i,
+            // Add more specific patterns for business permits
+            /(?:business|mayor['']?s)\s+permit\s+expires\s+(?:on)?\s*(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})/i,
         ],
     },
     dtiRegistration: {
@@ -25,7 +27,9 @@ const documentKeywords = {
             /expir(?:y|ation|es)\s+(?:date|on)?\s*:?\s*(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})/i,
             /(?:date of expiry|expiry date|valid until|expiration)\s*:?\s*(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})/i,
             /(?:registration|issued)\s+(?:date|on)\s*:?\s*(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})/i,
-            /date\s+(?:of|:)?\s*(?:registration|issue)\s*:?\s*(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})/i
+            /date\s+(?:of|:)?\s*(?:registration|issue)\s*:?\s*(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})/i,
+            // Add more specific patterns for DTI
+            /(?:certificate|registration)\s+expires(?:\s+on)?\s*(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})/i,
         ]
     },
     validId: {
@@ -55,7 +59,9 @@ const documentKeywords = {
         datePatterns: [
             /valid\s+(?:until|through|thru|till|to)\s+(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})/i,
             /expir(?:y|ation|es)\s+(?:date|on)?\s*:?\s*(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})/i,
-            /(?:date of expiry|expiry date|valid until|expiration)\s*:?\s*(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})/i
+            /(?:date of expiry|expiry date|valid until|expiration)\s*:?\s*(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})/i,
+            // Add more specific patterns for IDs
+            /(?:id|card)\s+expires(?:\s+on)?\s*(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})/i,
         ],
         minimum: {
             required: 1,
@@ -105,23 +111,42 @@ function extractExpirationDate(text, patterns) {
                 result.hasDate = true;
                 result.expirationDate = date;
                 result.formattedDate = formatDate(date);
+                
+                // Store raw date string for debugging
+                result.rawDateString = dateStr;
 
                 // Check if expired or about to expire
                 const today = new Date();
                 const thirtyDaysFromNow = new Date();
                 thirtyDaysFromNow.setDate(today.getDate() + 30);
+                const ninetyDaysFromNow = new Date();
+                ninetyDaysFromNow.setDate(today.getDate() + 90);
+
+                // Calculate days until expiration for more precise warnings
+                const daysUntilExpiry = Math.ceil((date - today) / (1000 * 60 * 60 * 24));
+                result.daysUntilExpiry = daysUntilExpiry;
 
                 if (date < today) {
                     result.isExpired = true;
                     result.message = `Document expired on ${formatDate(date)}`;
                     result.severity = 'error';
+                    result.expirationStatus = 'expired';
                 } else if (date < thirtyDaysFromNow) {
                     result.isAboutToExpire = true;
                     result.message = `Document will expire soon (${formatDate(date)})`;
                     result.severity = 'warning';
+                    result.expirationStatus = 'critical';
+                    result.daysWarning = `Expires in ${daysUntilExpiry} days`;
+                } else if (date < ninetyDaysFromNow) {
+                    result.isAboutToExpire = false;
+                    result.message = `Document valid until ${formatDate(date)}`;
+                    result.severity = 'info';
+                    result.expirationStatus = 'warning';
+                    result.daysWarning = `Expires in ${daysUntilExpiry} days`;
                 } else {
                     result.message = `Document valid until ${formatDate(date)}`;
                     result.severity = 'success';
+                    result.expirationStatus = 'valid';
                 }
 
                 break;
@@ -133,35 +158,104 @@ function extractExpirationDate(text, patterns) {
 }
 
 /**
- * Parse a date string with flexible format
+ * Parse a date string with flexible formats
  * @param {string} dateStr - Date string in various formats
  * @returns {Date|null} - JavaScript Date object or null if invalid
  */
 function parseDate(dateStr) {
-    // Try to standardize the date format
-    const parts = dateStr.split(/[\/\-\.]/);
-    if (parts.length !== 3) return null;
+    // Try different parsing strategies for more robust date extraction
+    
+    // Strategy 1: Try standard date splitting with delimiters
+    const delimiterParts = dateStr.split(/[\/\-\.]/);
+    if (delimiterParts.length === 3) {
+        let day, month, year;
+        
+        // Handle different date formats (mm/dd/yyyy, dd/mm/yyyy)
+        if (parseInt(delimiterParts[0]) > 12) {
+            // If first part > 12, assume DD-MM-YYYY
+            day = parseInt(delimiterParts[0]);
+            month = parseInt(delimiterParts[1]) - 1; // JS months are 0-based
+        } else {
+            // Otherwise assume MM-DD-YYYY which is common in Philippines
+            month = parseInt(delimiterParts[0]) - 1;
+            day = parseInt(delimiterParts[1]);
+        }
 
-    let day, month, year;
-
-    // Handle different date formats (mm/dd/yyyy, dd/mm/yyyy)
-    if (parseInt(parts[0]) > 12) {
-        // If first part > 12, assume DD-MM-YYYY
-        day = parseInt(parts[0]);
-        month = parseInt(parts[1]) - 1; // JS months are 0-based
-    } else {
-        // Otherwise assume MM-DD-YYYY which is common in Philippines
-        month = parseInt(parts[0]) - 1;
-        day = parseInt(parts[1]);
+        // Handle 2-digit years
+        year = parseInt(delimiterParts[2]);
+        if (year < 100) {
+            year = year + (year > 50 ? 1900 : 2000);
+        }
+        
+        const candidateDate = new Date(year, month, day);
+        if (isValidDate(candidateDate)) {
+            return candidateDate;
+        }
     }
-
-    // Handle 2-digit years
-    year = parseInt(parts[2]);
-    if (year < 100) {
-        year = year + (year > 50 ? 1900 : 2000);
+    
+    // Strategy 2: Try parsing text dates like "January 15, 2023"
+    try {
+        // Format text dates for better parsing
+        const normalizedDateStr = dateStr.replace(/(\d)(st|nd|rd|th)/, '$1'); // Remove ordinals
+        const textDate = new Date(normalizedDateStr);
+        if (isValidDate(textDate)) {
+            return textDate;
+        }
+    } catch (e) {
+        // Silently continue if text date parsing fails
     }
-
-    return new Date(year, month, day);
+    
+    // Strategy 3: Use Date.parse for ISO format and other standard formats
+    try {
+        const timestamp = Date.parse(dateStr);
+        if (!isNaN(timestamp)) {
+            return new Date(timestamp);
+        }
+    } catch (e) {
+        // Silently continue if ISO parsing fails
+    }
+    
+    // Strategy 4: Advanced pattern matching for special formats
+    // Philippine date format with month name: "15 January 2023" or "January 15 2023"
+    const monthNamePattern = /(\d{1,2})\s+([a-z]+)\s+(\d{4})|([a-z]+)\s+(\d{1,2})\s+(\d{4})/i;
+    const monthNameMatch = dateStr.match(monthNamePattern);
+    
+    if (monthNameMatch) {
+        try {
+            const months = {
+                'january': 0, 'february': 1, 'march': 2, 'april': 3, 'may': 4, 'june': 5,
+                'july': 6, 'august': 7, 'september': 8, 'october': 9, 'november': 10, 'december': 11,
+                'jan': 0, 'feb': 1, 'mar': 2, 'apr': 3, 'jun': 5, 'jul': 6, 'aug': 7, 
+                'sep': 8, 'sept': 8, 'oct': 9, 'nov': 10, 'dec': 11
+            };
+            
+            let day, month, year;
+            
+            if (monthNameMatch[1] && monthNameMatch[2] && monthNameMatch[3]) {
+                // Format: "15 January 2023"
+                day = parseInt(monthNameMatch[1]);
+                month = months[monthNameMatch[2].toLowerCase()];
+                year = parseInt(monthNameMatch[3]);
+            } else {
+                // Format: "January 15 2023"
+                month = months[monthNameMatch[4].toLowerCase()];
+                day = parseInt(monthNameMatch[5]);
+                year = parseInt(monthNameMatch[6]);
+            }
+            
+            if (month !== undefined && !isNaN(day) && !isNaN(year)) {
+                const candidateDate = new Date(year, month, day);
+                if (isValidDate(candidateDate)) {
+                    return candidateDate;
+                }
+            }
+        } catch (e) {
+            // Silently continue if month name parsing fails
+        }
+    }
+    
+    // Failed to parse with all strategies
+    return null;
 }
 
 /**
@@ -193,15 +287,14 @@ async function scanDocument(imageFile, type) {
         // Special handling for valid IDs
         if (type === 'validId') {
             const validationResult = validateId(text, confidence);
-
+            
             // Add expiration date check for valid IDs
             if (validationResult.isValid) {
                 const datePatterns = documentKeywords.validId.datePatterns;
                 const dateInfo = extractExpirationDate(text, datePatterns);
-
                 if (dateInfo.hasDate) {
                     validationResult.dateInfo = dateInfo;
-
+                    
                     // Always update validation if document is expired
                     if (dateInfo.isExpired) {
                         validationResult.isValid = false;
@@ -218,10 +311,10 @@ async function scanDocument(imageFile, type) {
                     }
                 }
             }
-
+            
             return validationResult;
         }
-
+        
         // For other document types
         const specs = documentKeywords[type];
         const requiredMatches = specs.required.filter(word => text.includes(word)).length;
@@ -236,11 +329,10 @@ async function scanDocument(imageFile, type) {
             suggestions: !isValid ? getDocumentSuggestions(type) : [],
             status: isValid ? 'success' : 'error'
         };
-
+        
         // Always check expiration date regardless of initial validation
         if (specs.datePatterns) {
             const dateInfo = extractExpirationDate(text, specs.datePatterns);
-
             if (dateInfo.hasDate) {
                 result.dateInfo = dateInfo;
 
@@ -258,7 +350,7 @@ async function scanDocument(imageFile, type) {
                 }
             }
         }
-
+        
         return result;
     } catch (error) {
         console.error('Verification error:', error);
@@ -290,7 +382,7 @@ function validateId(text, confidence) {
     ).length;
 
     // Calculate overall validity
-    const isValid =
+    const isValid = 
         requiredMatches >= specs.minimum.required &&
         detectedType !== null &&
         patternMatches >= specs.minimum.patterns &&
@@ -319,7 +411,7 @@ function validateId(text, confidence) {
             suggestions
         };
     }
-
+    
     return {
         isValid: true,
         message: `Valid ID verified successfully`,
@@ -381,26 +473,35 @@ async function hybridDocumentVerification(file, documentType) {
             serverVerificationPromise
         ]);
 
-        // Log results for debugging
-        console.log('Client verification result:', clientResult);
-        console.log('Server verification result:', serverResult);
-
         // Combine the results, giving preference to server result if available
-        return combineVerificationResults(clientResult, serverResult, documentType);
+        const result = combineVerificationResults(clientResult, serverResult, documentType);
+        
+        // Remove 'engine' property to hide verification method
+        if (result.engine) {
+            delete result.engine;
+        }
+        
+        return result;
     } catch (error) {
-        console.error('Hybrid verification error:', error);
+        console.error('Verification error:', error);
 
         // If one verification fails, return the result from the other
         // Or return an error if both fail
         if (error.fallbackResult) {
-            return {
+            const result = {
                 ...error.fallbackResult,
-                note: 'Using fallback verification result due to partial system failure',
                 status: error.fallbackResult.isValid ? 'success' : 'warning'
             };
+            
+            // Remove any implementation details
+            if (result.engine) {
+                delete result.engine;
+            }
+            
+            return result;
         }
 
-        throw new Error('Document verification failed - both verification systems unavailable');
+        throw new Error('Document verification failed - please try again');
     }
 }
 
@@ -462,38 +563,67 @@ async function serverSideVerification(file, documentType) {
                 throw new Error('Invalid document type');
         }
 
+        // Add a timeout to the request to prevent hanging
         const response = await axios.post(`/${endpoint}`, formData, {
             headers: {
                 'Content-Type': 'multipart/form-data',
                 'Accept': 'application/json'
-            }
+            },
+            timeout: 30000, // 30 second timeout
         });
 
+        // Safely check the response structure
+        if (!response.data || typeof response.data !== 'object') {
+            throw new Error('Invalid response format from server');
+        }
+
         // Check if the response contains an error
-        if (!response.data.success) {
+        if (response.data.success === false || !response.data.success) {
             throw new Error(response.data.message || 'Server verification failed');
         }
 
         return {
-            isValid: response.data.is_valid,
+            isValid: response.data.is_valid === true,
             confidence: response.data.confidence || 75, // Default confidence if not provided
-            message: response.data.message,
-            issue: response.data.issue,
-            status: response.data.status,
+            message: response.data.message || 'Document verified by server',
+            issue: response.data.issue || null,
+            status: response.data.status || (response.data.is_valid ? 'success' : 'error'),
             engine: 'vision',
             dateInfo: response.data.date_info || null,
             extractedText: response.data.extracted_text || null
         };
     } catch (error) {
         console.error('Server-side verification error:', error);
+        
+        // Check specifically for JSON parsing errors
+        const errorMessage = error.message || '';
+        const isJsonError = errorMessage.includes('JSON') || 
+                           errorMessage.includes('Unclosed') ||
+                           errorMessage.includes('match');
+        
+        // Create a more specific error message based on the type of error
+        let message = 'Server-side verification failed';
+        if (isJsonError) {
+            message = 'Server returned invalid data format';
+        } else if (error.code === 'ECONNABORTED') {
+            message = 'Server verification timed out';
+        } else if (error.response?.status === 413) {
+            message = 'File is too large for server processing';
+        } else if (error.response?.status === 415) {
+            message = 'File format not supported by server';
+        } else if (error.response?.status >= 500) {
+            message = 'Server error occurred during verification';
+        }
+        
         // Instead of failing completely, return an error object that can be used
         // to inform the hybrid verification to fall back to client-side only
         return {
             isValid: false,
             confidence: 0,
-            message: 'Server-side verification failed',
+            message: message,
             engine: 'vision',
-            error: error.response?.data?.message || error.message
+            error: error.response?.data?.message || error.message,
+            errorType: isJsonError ? 'parse_error' : (error.code || 'request_failed')
         };
     }
 }
@@ -514,19 +644,18 @@ function combineVerificationResults(clientResult, serverResult, documentType) {
     if (serverFailed && clientFailed) {
         return {
             isValid: false,
-            message: 'Document verification failed on both systems',
+            message: 'Document verification failed',
             status: 'error',
             suggestions: getDocumentSuggestions(documentType.replace(/_/g, ''))
         };
     }
 
-    // If only server failed, use client result with a note
+    // If only server failed, use client result
     if (serverFailed) {
         return {
             ...clientResult,
-            message: clientResult.message + ' (server verification unavailable)',
-            status: clientResult.isValid ? 'success' : 'warning',
-            engine: 'tesseract-only'
+            message: clientResult.message,
+            status: clientResult.isValid ? 'success' : 'warning'
         };
     }
 
@@ -534,14 +663,29 @@ function combineVerificationResults(clientResult, serverResult, documentType) {
     if (clientFailed) {
         return {
             ...serverResult,
-            message: serverResult.message + ' (client verification unavailable)',
-            status: serverResult.isValid ? 'success' : 'warning',
-            engine: 'vision-only'
+            message: serverResult.message,
+            status: serverResult.isValid ? 'success' : 'warning'
         };
     }
 
-    // Both succeeded, combine the results
-    const combinedIsValid = serverResult.isValid && clientResult.isValid;
+    // Special case: When server reports incomplete details but client verification succeeds
+    // This handles the case where Google Vision misses details that Tesseract finds
+    if (!serverResult.isValid && serverResult.issue === 'incomplete' && clientResult.isValid) {
+        // Trust client-side verification for incomplete issues
+        return {
+            isValid: true,
+            message: 'Document verified successfully',
+            status: 'success',
+            dateInfo: serverResult.date_info || clientResult.dateInfo || null,
+            suggestions: []
+        };
+    }
+
+    // Both succeeded or have different results, combine them with modified logic
+    // For business permits, prioritize client validation for incomplete issues
+    const combinedIsValid = documentType === 'business_permit' && serverResult.issue === 'incomplete' 
+        ? clientResult.isValid 
+        : (serverResult.isValid && clientResult.isValid);
 
     // If expired (from either source), mark as invalid regardless
     const isExpired = (serverResult.issue === 'expired' || 
@@ -549,14 +693,14 @@ function combineVerificationResults(clientResult, serverResult, documentType) {
                       (clientResult.issue === 'expired' || 
                       (clientResult.status === 'error' && clientResult.dateInfo?.isExpired));
 
-    // For business permit, check if it's marked as incomplete
+    // For business permit, check if it's marked as incomplete but consider it valid if client verification passes
     let isIncomplete = false;
     if (documentType === 'business_permit') {
-        isIncomplete = serverResult.issue === 'incomplete' || clientResult.issue === 'incomplete';
+        isIncomplete = serverResult.issue === 'incomplete' && !clientResult.isValid;
     }
 
     // If valid but about to expire, include a warning
-    const isAboutToExpire = !isExpired &&
+    const isAboutToExpire = !isExpired && 
                            ((serverResult.warning && serverResult.warning.includes('expire soon')) ||
                            (serverResult.status === 'warning' && serverResult.date_info?.status === 'expiring_soon') ||
                            (clientResult.warning && clientResult.warning.includes('expire soon')) ||
@@ -570,39 +714,69 @@ function combineVerificationResults(clientResult, serverResult, documentType) {
         combinedStatus = 'warning';
     }
 
+    // Enhanced expiration status handling
+    let expirationDetails = null;
+    
+    // Get the most critical expiration information from either source
+    if (serverResult.dateInfo || clientResult.dateInfo) {
+        const serverExpiry = serverResult.dateInfo;
+        const clientExpiry = clientResult.dateInfo;
+        
+        // Choose the most critical expiration status
+        if (serverExpiry && clientExpiry) {
+            // If we have both, use the more critical one
+            if (serverExpiry.isExpired || clientExpiry.isExpired) {
+                expirationDetails = serverExpiry.isExpired ? serverExpiry : clientExpiry;
+            } else if (serverExpiry.isAboutToExpire || clientExpiry.isAboutToExpire) {
+                expirationDetails = serverExpiry.isAboutToExpire ? serverExpiry : clientExpiry;
+            } else {
+                // If neither is critical, prefer server data as it's usually more accurate
+                expirationDetails = serverExpiry;
+            }
+        } else {
+            // Use whichever one is available
+            expirationDetails = serverExpiry || clientExpiry;
+        }
+    }
+    
     // Determine message based on results
     let combinedMessage;
     if (isExpired) {
-        combinedMessage = serverResult.message || clientResult.dateInfo?.message || 
-                         'Document has expired and is no longer valid';
+        const expiryDate = expirationDetails?.formattedDate || '';
+        combinedMessage = `Document has expired${expiryDate ? ` on ${expiryDate}` : ''}. Please provide a valid document.`;
     } else if (isIncomplete) {
         combinedMessage = 'Key details on the business permit are unclear or missing. Please upload a clearer image.';
     } else if (isAboutToExpire) {
-        const expiryMessage = serverResult.warning || 
-                             (clientResult.dateInfo?.message || 'Document will expire soon');
-        combinedMessage = `Document verified successfully. ${expiryMessage}`;
+        if (expirationDetails && expirationDetails.daysUntilExpiry) {
+            combinedMessage = `Document verified successfully. Will expire in ${expirationDetails.daysUntilExpiry} days (${expirationDetails.formattedDate})`;
+        } else {
+            combinedMessage = `Document verified successfully. ${serverResult.warning || clientResult.dateInfo?.message || 'Will expire soon'}`;
+        }
+    } else if (documentType === 'business_permit' && serverResult.issue === 'incomplete' && clientResult.isValid) {
+        combinedMessage = 'Business permit verified successfully';
     } else if (combinedIsValid) {
-        combinedMessage = 'Document verified successfully';
+        if (expirationDetails && expirationDetails.formattedDate) {
+            combinedMessage = `Document verified successfully. Valid until ${expirationDetails.formattedDate}`;
+        } else {
+            combinedMessage = 'Document verified successfully';
+        }
     } else {
-        // Use the more specific message for invalid documents
         combinedMessage = serverResult.message || clientResult.message || 
                          getFailureMessage(documentType.replace(/_/g, ''));
     }
 
-    // Merge date information
-    const dateInfo = serverResult.date_info || clientResult.dateInfo || null;
+    // Merge date information with enhanced details
+    const dateInfo = expirationDetails || serverResult.date_info || clientResult.dateInfo || null;
 
     return {
         isValid: combinedIsValid && !isExpired && !isIncomplete,
         message: combinedMessage,
         status: combinedStatus,
         issue: isExpired ? 'expired' : (isIncomplete ? 'incomplete' : serverResult.issue || null),
-        engine: 'hybrid',
-        clientConfidence: clientResult.confidence || 0,
-        serverConfidence: serverResult.confidence || 0,
         dateInfo: dateInfo,
         suggestions: (!combinedIsValid || isIncomplete) ? getDocumentSuggestions(documentType.replace(/_/g, '')) : [],
-        warning: isAboutToExpire ? (serverResult.warning || clientResult.dateInfo?.message) : null
+        warning: isAboutToExpire ? (serverResult.warning || clientResult.dateInfo?.message) : null,
+        expirationStatus: dateInfo?.expirationStatus || null
     };
 }
 
@@ -626,7 +800,7 @@ export const verifyDocumentUpload = async (file, documentType) => {
         return {
             isValid: false,
             message: 'File must be an image (JPG, PNG, etc.)',
-            status: 'error'
+            status: 'error',
         };
     }
 
