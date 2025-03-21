@@ -33,10 +33,16 @@ export function LoopingShopCards({ shops }) {
                                         className="w-full h-[32rem] object-cover"
                                     />
                                 </div>
+                                <div className="absolute top-0 left-0 p-3 space-x-2">
+
+                                </div>
                                 <div class="absolute bottom-0 right-0 left-0 bg-gradient-to-t from-black to-transparent p-5 pt-7 z-20 text-white">
-                                    <div>
-                                        <h2 className="text-sm font-light group-hover:underline">{shop.detailed_address}</h2>
-                                        <h2 className="text-3xl font-medium group-hover:underline">{shop.shop_name}</h2>
+                                    <div className="flex items-center space-x-3">
+                                        <img src={shop.shop_photo} className="size-14 rounded-full" alt="" />
+                                        <div>
+                                            <h2 className="text-sm font-light group-hover:underline">{shop.detailed_address}</h2>
+                                            <h2 className="text-3xl font-medium group-hover:underline">{shop.shop_name}</h2>
+                                        </div>
                                     </div>
                                 </div>
                                 <div className="absolute top-0 right-0 p-3 space-x-2">

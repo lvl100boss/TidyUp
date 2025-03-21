@@ -39,7 +39,7 @@ export default function Sidebar() {
         },
         {
             label: "Platform Staff",
-            href: "/admin/platform/staff",
+            href: "/admin/platform-staff",
             icon: IdCard,
         },
     ];

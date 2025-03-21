@@ -20,7 +20,7 @@ import {
 // this is the comment
 export default function ShopCarousel({ shops }) {
     // Inside your component, before rendering any shops
-    const filteredShops = shops.filter(shop => 
+    const filteredShops = shops.filter(shop =>
         shop && shop.status === 'verified'
     );
 
@@ -44,7 +44,7 @@ export default function ShopCarousel({ shops }) {
                 {filteredShops.map((shop, index) => (
                     <CarouselItem
                         key={index}
-                        className="basis-[100%] sm:basis-1/2 md:basis-1/3 lg:basis-1/4 xl:basis-1/5 "
+                        className="basis-[100%] sm:basis-1/2 md:basis-1/3 lg:basis-1/4 xl:basis-1/5"
                     >
                         {/* Update the link to the correct route format */}
                         <Link href={`/shop/${shop.id}`}>
@@ -61,7 +61,7 @@ export default function ShopCarousel({ shops }) {
                                     <TooltipProvider>
                                         <Tooltip>
                                             <TooltipTrigger asChild className="cursor-pointer">
-                                                <h5 className="mt-2 figtree-medium text-sm md:font-normal">
+                                                <h5 className="mt-2 mb-1 text-sm ">
                                                     {shop.shop_name}
                                                 </h5>
                                             </TooltipTrigger>
@@ -109,8 +109,9 @@ export default function ShopCarousel({ shops }) {
                             </div>
                         </Link>
                     </CarouselItem>
-                ))}
-            </CarouselContent>
-        </Carousel>
+                ))
+                }
+            </CarouselContent >
+        </Carousel >
     );
 }

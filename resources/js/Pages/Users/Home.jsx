@@ -25,20 +25,17 @@ import ShopCard from "@/Components/User/ShopCard";
 import { useEffect, useState } from "react";
 import HeroSection from "@/Components/User/Home/HeroSection";
 
-export default function Home({ randomShops, canLogin, canRegister }) {
+export default function Home({ randomShops }) {
+
     const [isLoading, setIsLoading] = useState(true);
-    
+
     useEffect(() => {
-        // Add debugging to see what we're receiving
-        console.log('Random shops data:', randomShops);
-        
         const preloadImages = async () => {
             // Only try to preload images if we have shop data with gallery images
             if (!randomShops || !randomShops.length) {
                 setIsLoading(false);
                 return;
             }
-            
             const imagePromises = randomShops
                 .filter(shop => shop && shop.shop_gallery && shop.shop_gallery.length > 0)
                 .map((shop) => {
@@ -110,7 +107,6 @@ export default function Home({ randomShops, canLogin, canRegister }) {
             <Head title="Home" />
 
             <HeroSection />
-            {/* {sampleShops[0].shop_gallery[0].url} */}
             <div className="flex items-end justify-between mb-5">
                 <h4 className="text-lg font-medium p-2 border-b border-foreground">
                     Customer's Choice
@@ -123,14 +119,18 @@ export default function Home({ randomShops, canLogin, canRegister }) {
                     <span>See More</span>
                 </Link>
             </div>
-            <div className="mb-5 grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-5">
+            <div className="mb-5 grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-2">
+
                 {randomShops && randomShops.length > 0 ? (
                     randomShops.map((shop) => (
                         <ShopCard key={shop.id} shop={shop} isLoading={isLoading} />
                     ))
                 ) : (
                     <div className="md:basis-full">
-                        <div className="flex items-center justify-center h-40 border rounded-md bg-muted/10">
+                        <div
+                            className="flex items-center justify-center h-40 border rounded-md bg-muted/10"
+                            style={{ boxSizing: "border-box" }}
+                        >
                             <p className="text-muted-foreground">No shops available</p>
                         </div>
                     </div>
@@ -142,9 +142,12 @@ export default function Home({ randomShops, canLogin, canRegister }) {
                 </h4>
             </div>
             <div className="mb-10">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2 ">
                     {cardData.map((card, index) => (
-                        <Card key={index} className="hover:shadow-md transition-all ease-in-out">
+                        <Card
+                            key={index}
+                            className="hover:shadow-md transition-all ease-in-out border-0 hover:border-primary hover:bg-muted/30 border-l-4"
+                        >
                             <CardHeader>
                                 <CardTitle className="text-xl font-semibold inline-flex gap-2 items-center">
                                     <card.icon size={20} />

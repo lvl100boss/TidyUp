@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from "react";
 import AdminLayout from "@/Layouts/AdminLayout";
 import { Head, useForm, Link } from "@inertiajs/react";
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardFooter, 
-  CardHeader, 
-  CardTitle 
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle
 } from "@/Components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/Components/ui/tabs";
 import { Badge } from "@/Components/ui/badge";
@@ -35,23 +35,23 @@ import {
   SelectValue,
 } from "@/Components/ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/Components/ui/avatar";
-import { 
-  User, 
-  Mail, 
-  Phone, 
-  MapPin, 
-  FileText, 
-  Clock, 
-  Calendar, 
-  CheckCircle, 
-  XCircle, 
-  AlertCircle, 
+import {
+  User,
+  Mail,
+  Phone,
+  MapPin,
+  FileText,
+  Clock,
+  Calendar,
+  CheckCircle,
+  XCircle,
+  AlertCircle,
   Download,
   Eye,
   ArrowLeft
 } from "lucide-react";
 import ShopServiceCard from "@/Components/Shop/ShopServiceCard";
-import { 
+import {
   Dialog,
   DialogContent,
   DialogHeader,
@@ -69,7 +69,7 @@ const formatDuration = (hours, minutes) => {
 
 export default function ShopDetails({ shop, categories, setupData }) {
   const [activeTab, setActiveTab] = useState("overview");
-  
+
   // Update useEffect with more detailed logging
   useEffect(() => {
     if (activeTab === "services") {
@@ -83,6 +83,7 @@ export default function ShopDetails({ shop, categories, setupData }) {
   }, [activeTab, shop]);
 
   const { data, setData, post, processing, errors, reset } = useForm({
+    _method: 'PATCH',
     status: shop.status || 'processing',
     rejection_reason: shop.rejection_reason || '',
   });
@@ -93,45 +94,26 @@ export default function ShopDetails({ shop, categories, setupData }) {
 
   const handleUpdateStatus = (e) => {
     e.preventDefault();
-    
-    // Show confirmation toast before submitting
-    if (data.status === 'verified') {
-      toast.info('Verifying shop and sending notification to owner...');
-    } else if (data.status === 'rejected') {
-      toast.info('Rejecting shop and notifying owner...');
-    } else {
-      toast.info('Updating shop status...');
-    }
-    
+
+    const formData = new FormData();
+    formData.append('_method', 'PATCH');
+    formData.append('status', data.status);
+    formData.append('rejection_reason', data.rejection_reason);
+
     post(route('admin.shops.update-status', shop.id), {
-      onSuccess: (response) => {
-        // Get response message or use default
-        const message = response?.props?.flash?.success || 'Shop status updated successfully';
-        
-        if (data.status === 'verified') {
-          toast.success('Shop verified! Owner has been notified.');
-        } else if (data.status === 'rejected') {
-          toast.success('Shop rejected. Owner has been notified with the reason.');
-        } else {
-          toast.success(message);
-        }
-        
-        // Reload the page after 1.5 seconds to show updated data
-        setTimeout(() => {
-          window.location.reload();
-        }, 1500);
+      preserveScroll: true,
+      data: formData,
+      onSuccess: () => {
+        toast.success('Shop status updated successfully.');
+        reset();
       },
-      onError: (errors) => {
-        const errorMessage = errors.message || Object.values(errors).flat().join(', ') || 'An error occurred';
-        toast.error(errorMessage);
-      }
     });
   };
 
   const downloadDocument = (type) => {
-    window.location.href = route('admin.shops.download-document', { 
-      id: shop.id, 
-      type: type 
+    window.location.href = route('admin.shops.download-document', {
+      id: shop.id,
+      type: type
     });
   };
 
@@ -163,7 +145,7 @@ export default function ShopDetails({ shop, categories, setupData }) {
     if (!data || !data.basicInfo) {
       return <p>No setup data available</p>;
     }
-    
+
     return (
       <div>
         <h3 className="font-semibold mb-3">Setup Information</h3>
@@ -186,7 +168,7 @@ export default function ShopDetails({ shop, categories, setupData }) {
               </div>
             )}
           </div>
-          
+
           {/* Location */}
           <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded-md">
             <h4 className="text-sm font-medium text-gray-500 mb-2">Location</h4>
@@ -203,7 +185,7 @@ export default function ShopDetails({ shop, categories, setupData }) {
               <dd>{data.location.detailed_address}</dd>
             </dl>
           </div>
-          
+
           {/* Categories */}
           <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded-md">
             <h4 className="text-sm font-medium text-gray-500 mb-2">Selected Categories</h4>
@@ -219,7 +201,7 @@ export default function ShopDetails({ shop, categories, setupData }) {
               <p className="text-sm text-gray-500">No categories selected</p>
             )}
           </div>
-          
+
           {/* Operating Hours */}
           <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded-md">
             <h4 className="text-sm font-medium text-gray-500 mb-2">Operating Hours</h4>
@@ -305,12 +287,12 @@ export default function ShopDetails({ shop, categories, setupData }) {
     <AdminLayout>
       <Head title={`Shop Details - ${shop.shop_name}`} />
       <Toaster />
-      
+
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div className="space-y-1">
-            <Link 
-              href={route('admin.shops')} 
+            <Link
+              href={route('admin.shops')}
               className="flex items-center text-sm text-muted-foreground hover:text-primary transition-colors"
             >
               <ArrowLeft className="h-4 w-4 mr-1" />
@@ -320,7 +302,7 @@ export default function ShopDetails({ shop, categories, setupData }) {
           </div>
           {getStatusBadge(shop.status)}
         </div>
-        
+
         {/* Status info cards - New addition to show detailed status information */}
         {shop.status === 'verified' && (
           <Card className="mb-6 bg-green-50 border-green-200">
@@ -338,7 +320,7 @@ export default function ShopDetails({ shop, categories, setupData }) {
             </CardContent>
           </Card>
         )}
-        
+
         {shop.status === 'rejected' && (
           <Card className="mb-6 bg-red-50 border-red-200">
             <CardContent className="pt-6">
@@ -356,7 +338,7 @@ export default function ShopDetails({ shop, categories, setupData }) {
             </CardContent>
           </Card>
         )}
-        
+
         {shop.status === 'processing' && (
           <Card className="mb-6 bg-amber-50 border-amber-200">
             <CardContent className="pt-6">
@@ -371,7 +353,7 @@ export default function ShopDetails({ shop, categories, setupData }) {
             </CardContent>
           </Card>
         )}
-        
+
         <Card>
           <CardHeader>
             <div className="flex justify-between items-center">
@@ -379,7 +361,7 @@ export default function ShopDetails({ shop, categories, setupData }) {
                 <CardTitle>Shop Details</CardTitle>
                 <CardDescription>ID: {shop.id} | Created: {formatDate(shop.created_at)}</CardDescription>
               </div>
-              
+
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <Button>Update Status</Button>
@@ -392,12 +374,12 @@ export default function ShopDetails({ shop, categories, setupData }) {
                         Change the verification status of this shop.
                       </AlertDialogDescription>
                     </AlertDialogHeader>
-                    
+
                     <div className="py-4 space-y-4">
                       <div className="space-y-2">
                         <Label htmlFor="status">Status</Label>
-                        <Select 
-                          value={data.status} 
+                        <Select
+                          value={data.status}
                           onValueChange={handleStatusChange}
                         >
                           <SelectTrigger>
@@ -410,7 +392,7 @@ export default function ShopDetails({ shop, categories, setupData }) {
                           </SelectContent>
                         </Select>
                       </div>
-                      
+
                       {data.status === 'rejected' && (
                         <div className="space-y-2">
                           <Label htmlFor="rejection_reason">Rejection Reason</Label>
@@ -424,11 +406,11 @@ export default function ShopDetails({ shop, categories, setupData }) {
                         </div>
                       )}
                     </div>
-                    
+
                     <AlertDialogFooter>
                       <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <Button 
-                        type="submit" 
+                      <Button
+                        type="submit"
                         disabled={processing}
                         variant={data.status === 'rejected' ? 'destructive' : 'default'}
                       >
@@ -440,7 +422,7 @@ export default function ShopDetails({ shop, categories, setupData }) {
               </AlertDialog>
             </div>
           </CardHeader>
-          
+
           <CardContent>
             <Tabs defaultValue="overview" value={activeTab} onValueChange={setActiveTab}>
               <TabsList className="grid grid-cols-5 mb-8">
@@ -450,7 +432,7 @@ export default function ShopDetails({ shop, categories, setupData }) {
                 <TabsTrigger value="documents">Documents</TabsTrigger>
                 <TabsTrigger value="staff">Staff</TabsTrigger>
               </TabsList>
-              
+
               <TabsContent value="overview" className="space-y-8">
                 <div className="grid md:grid-cols-2 gap-8">
                   <div className="space-y-4">
@@ -462,18 +444,18 @@ export default function ShopDetails({ shop, categories, setupData }) {
                       <div>
                         <h3 className="font-bold text-lg">{shop.shop_name}</h3>
                         <p className="text-muted-foreground text-sm">
-                          {shop.shopCategories && shop.shopCategories.map(cat => 
+                          {shop.shopCategories && shop.shopCategories.map(cat =>
                             cat.categories && <Badge key={cat.id} variant="outline" className="mr-1">{cat.categories.name}</Badge>
                           )}
                         </p>
                       </div>
                     </div>
-                    
+
                     <div className="space-y-2">
                       <h3 className="font-semibold">Bio</h3>
                       <p className="text-sm">{shop.bio}</p>
                     </div>
-                    
+
                     <div className="space-y-2">
                       <h3 className="font-semibold">Contact Information</h3>
                       <div className="space-y-1 text-sm">
@@ -487,7 +469,7 @@ export default function ShopDetails({ shop, categories, setupData }) {
                         </div>
                       </div>
                     </div>
-                    
+
                     <div className="space-y-2">
                       <h3 className="font-semibold">Address</h3>
                       <div className="flex items-start gap-2 text-sm">
@@ -498,15 +480,15 @@ export default function ShopDetails({ shop, categories, setupData }) {
                       </div>
                     </div>
                   </div>
-                  
+
                   <div className="space-y-4">
                     <div className="space-y-2">
                       <h3 className="font-semibold">Owner Information</h3>
                       <div className="flex items-center gap-2">
                         <Avatar className="h-8 w-8">
-                          <AvatarImage 
-                            src={shop.user?.profile_photo_path ? `/storage/${shop.user.profile_photo_path}` : null} 
-                            alt={shop.user?.username} 
+                          <AvatarImage
+                            src={shop.user?.profile_photo_path ? `/storage/${shop.user.profile_photo_path}` : null}
+                            alt={shop.user?.username}
                           />
                           <AvatarFallback>
                             {shop.user?.first_name?.charAt(0)}{shop.user?.last_name?.charAt(0)}
@@ -522,20 +504,20 @@ export default function ShopDetails({ shop, categories, setupData }) {
                     </div>
 
                     <ShopGallery shop={shop} />
-                    
+
 
                   </div>
                 </div>
               </TabsContent>
-              
+
               <TabsContent value="setup" className="space-y-8">
                 <SetupDetails data={setupData} />
               </TabsContent>
-              
+
               <TabsContent value="services">
                 {renderServices()}
               </TabsContent>
-              
+
               <TabsContent value="documents">
                 <div className="space-y-4">
                   <h3 className="text-lg font-bold">Legal Documents</h3>
@@ -550,9 +532,9 @@ export default function ShopDetails({ shop, categories, setupData }) {
                           <div className="flex justify-center mb-4">
                             {shop.legalDocuments.business_permit_url ? (
                               <div className="relative h-40 w-full rounded overflow-hidden">
-                                <img 
+                                <img
                                   src={`/storage/${shop.legalDocuments.business_permit_url}`}
-                                  alt="Business Permit" 
+                                  alt="Business Permit"
                                   className="h-full w-full object-contain"
                                   onError={(e) => {
                                     console.error('Failed to load image:', shop.legalDocuments.business_permit_url);
@@ -574,16 +556,16 @@ export default function ShopDetails({ shop, categories, setupData }) {
                           </div>
                         </CardContent>
                         <CardFooter className="flex gap-2">
-                          <Button 
-                            variant="outline" 
+                          <Button
+                            variant="outline"
                             className="flex-1"
                             onClick={() => window.open(`/storage/${shop.legalDocuments.business_permit_url}`, '_blank')}
                             disabled={!shop.legalDocuments?.business_permit_url}
                           >
                             <Eye className="mr-2 h-4 w-4" /> View
                           </Button>
-                          <Button 
-                            variant="outline" 
+                          <Button
+                            variant="outline"
                             className="flex-1"
                             onClick={() => downloadDocument('business-permit')}
                             disabled={!shop.legalDocuments}
@@ -592,7 +574,7 @@ export default function ShopDetails({ shop, categories, setupData }) {
                           </Button>
                         </CardFooter>
                       </Card>
-                      
+
                       {/* DTI Registration */}
                       <Card>
                         <CardHeader>
@@ -602,9 +584,9 @@ export default function ShopDetails({ shop, categories, setupData }) {
                           <div className="flex justify-center mb-4">
                             {shop.legalDocuments.dti_registration_url ? (
                               <div className="relative h-40 w-full rounded overflow-hidden">
-                                <img 
+                                <img
                                   src={`/storage/${shop.legalDocuments.dti_registration_url}`}
-                                  alt="DTI Registration" 
+                                  alt="DTI Registration"
                                   className="h-full w-full object-contain"
                                   onError={(e) => {
                                     e.target.onerror = null;
@@ -631,16 +613,16 @@ export default function ShopDetails({ shop, categories, setupData }) {
                           </div>
                         </CardContent>
                         <CardFooter className="flex gap-2">
-                          <Button 
-                            variant="outline" 
+                          <Button
+                            variant="outline"
                             className="flex-1"
                             onClick={() => window.open(`/storage/${shop.legalDocuments.dti_registration_url}`, '_blank')}
                             disabled={!shop.legalDocuments.dti_registration_url}
                           >
                             <Eye className="mr-2 h-4 w-4" /> View
                           </Button>
-                          <Button 
-                            variant="outline" 
+                          <Button
+                            variant="outline"
                             className="flex-1"
                             onClick={() => downloadDocument('dti-registration')}
                             disabled={!shop.legalDocuments}
@@ -649,7 +631,7 @@ export default function ShopDetails({ shop, categories, setupData }) {
                           </Button>
                         </CardFooter>
                       </Card>
-                      
+
                       {/* Valid ID */}
                       <Card>
                         <CardHeader>
@@ -659,9 +641,9 @@ export default function ShopDetails({ shop, categories, setupData }) {
                           <div className="flex justify-center mb-4">
                             {shop.legalDocuments.valid_id_url ? (
                               <div className="relative h-40 w-full rounded overflow-hidden">
-                                <img 
+                                <img
                                   src={`/storage/${shop.legalDocuments.valid_id_url}`}
-                                  alt="Valid ID" 
+                                  alt="Valid ID"
                                   className="h-full w-full object-contain"
                                   onError={(e) => {
                                     e.target.onerror = null;
@@ -688,16 +670,16 @@ export default function ShopDetails({ shop, categories, setupData }) {
                           </div>
                         </CardContent>
                         <CardFooter className="flex gap-2">
-                          <Button 
-                            variant="outline" 
+                          <Button
+                            variant="outline"
                             className="flex-1"
                             onClick={() => window.open(`/storage/${shop.legalDocuments.valid_id_url}`, '_blank')}
                             disabled={!shop.legalDocuments.valid_id_url}
                           >
                             <Eye className="mr-2 h-4 w-4" /> View
                           </Button>
-                          <Button 
-                            variant="outline" 
+                          <Button
+                            variant="outline"
                             className="flex-1"
                             onClick={() => downloadDocument('valid-id')}
                             disabled={!shop.legalDocuments}
@@ -715,7 +697,7 @@ export default function ShopDetails({ shop, categories, setupData }) {
                   )}
                 </div>
               </TabsContent>
-              
+
               <TabsContent value="staff">
                 <div className="space-y-4">
                   <h3 className="text-lg font-bold">Staff & Management</h3>
@@ -726,8 +708,8 @@ export default function ShopDetails({ shop, categories, setupData }) {
                         <CardHeader>
                           <div className="flex items-center gap-3">
                             <Avatar>
-                              <AvatarImage 
-                                src={shop.user.profile_photo_path ? `/storage/${shop.user.profile_photo_path}` : null} 
+                              <AvatarImage
+                                src={shop.user.profile_photo_path ? `/storage/${shop.user.profile_photo_path}` : null}
                                 alt={shop.user.username}
                               />
                               <AvatarFallback>
@@ -758,17 +740,17 @@ export default function ShopDetails({ shop, categories, setupData }) {
                         </CardContent>
                       </Card>
                     )}
-                    
+
                     {/* Show other staff members */}
                     {shop.shopStaffs?.filter(staff => staff.staff_id !== shop.user.id).map((staffMember) => (
                       <Card key={staffMember.id} className={staffMember.role === 'Shop Owner' ? 'border-blue-200' : ''}>
                         <CardHeader className={staffMember.role === 'Shop Owner' ? 'bg-blue-50' : ''}>
                           <div className="flex items-center gap-3">
                             <Avatar>
-                              <AvatarImage 
-                                src={staffMember.staff?.profile_photo_path 
-                                  ? `/storage/${staffMember.staff.profile_photo_path}` 
-                                  : null} 
+                              <AvatarImage
+                                src={staffMember.staff?.profile_photo_path
+                                  ? `/storage/${staffMember.staff.profile_photo_path}`
+                                  : null}
                                 alt={staffMember.staff?.username || 'Staff Member'}
                               />
                               <AvatarFallback>
@@ -778,8 +760,8 @@ export default function ShopDetails({ shop, categories, setupData }) {
                             </Avatar>
                             <div>
                               <CardTitle className="text-base">
-                                {staffMember.staff ? 
-                                  `${staffMember.staff.first_name || ''} ${staffMember.staff.last_name || ''}` : 
+                                {staffMember.staff ?
+                                  `${staffMember.staff.first_name || ''} ${staffMember.staff.last_name || ''}` :
                                   'Staff Member'
                                 }
                               </CardTitle>
