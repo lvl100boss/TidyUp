@@ -25,6 +25,7 @@ Route::middleware(['auth', \App\Http\Middleware\AdminMiddleware::class])->prefix
         return Inertia::render('Admin/Dashboard');
     })->name('dashboard');
 
+
     // Shop management routes with verification
     Route::get('/shops', [AdminShopController::class, 'index'])->name('shops');
     Route::get('/shops/{shop}', [ShopController::class, 'show'])->name('shops.show');
@@ -34,8 +35,12 @@ Route::middleware(['auth', \App\Http\Middleware\AdminMiddleware::class])->prefix
     // Dashboard
     Route::redirect('/', '/admin/dashboard');
 
+
+
+
     // Static pages
     Route::get('/analytics', function () {
+
         return Inertia::render('Admin/Analytics');
     })->name('analytics');
 
@@ -68,6 +73,7 @@ Route::delete('/admin/subscriptions/{subscription}', [SubscriptionController::cl
     Route::delete('/platform-staff/{id}', [PlatformStaffController::class, 'destroy'])->name('platform-staff.destroy');
     Route::post('/platform-staff/{id}/avatar', [PlatformStaffController::class, 'updateAvatar'])->name('platform-staff.avatar');
 
+
     // User management
     Route::get('/users', [UserController::class, 'index'])
         ->name('users');
@@ -81,5 +87,28 @@ Route::delete('/admin/subscriptions/{subscription}', [SubscriptionController::cl
 
     Route::post('/restrictions/lift', [UserRestrictionController::class, 'lift'])
         ->name('restrictions.lift');
+
+// Subscription routes
+Route::get('/subscription', [SubscriptionController::class, 'index'])
+->name('subscriptions.index');
+
+Route::post('/subscriptions', [SubscriptionController::class, 'store'])
+->name('subscriptions.store');
+
+Route::put('/subscriptions/{subscription}', [SubscriptionController::class, 'update'])
+->name('subscriptions.update');
+
+Route::delete('/subscriptions/{subscription}', [SubscriptionController::class, 'destroy'])
+->name('subscriptions.destroy');
+
+
+     //  Platform Staff Routes
+    // Route::get('/staff', [PlatformStaffController::class, 'index'])->name('staff.index');
+    // Route::post('/staff', [PlatformStaffController::class, 'store'])->name('staff.store');
+    // Route::put('/staff/{staff}', [PlatformStaffController::class, 'update'])->name('staff.update');
+    // Route::post('/staff/{staff}/avatar', [PlatformStaffController::class, 'updateAvatar'])->name('staff.avatar');
+    
+    // Route::delete('/staff/{staff}', [PlatformStaffController::class, 'destroy'])->name('staff.destroy');
+
 
 });
