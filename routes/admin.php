@@ -21,16 +21,14 @@ Route::get('/admin/test', function () {
 
 // Use the middleware class name, not a string
 Route::middleware(['auth', \App\Http\Middleware\AdminMiddleware::class])->prefix('admin')->name('admin.')->group(function () {
-    Route::get('/dashboard', function(){
-        return Inertia::render('Admin/Dashboard');  
+    Route::get('/dashboard', function () {
+        return Inertia::render('Admin/Dashboard');
     })->name('dashboard');
 
     // Shop management routes with verification
     Route::get('/shops', [AdminShopController::class, 'index'])->name('shops');
     Route::get('/shops/{shop}', [ShopController::class, 'show'])->name('shops.show');
-    Route::post('/shops/{shop}/verify', [ShopController::class, 'verify'])->name('shops.verify');
-    Route::post('/shops/{shop}/reject', [ShopController::class, 'reject'])->name('shops.reject');
-    Route::post('/shops/{shop}/update-status', [ShopController::class, 'updateStatus'])->name('shops.update-status');
+    Route::patch('/shops/{shop}/update-status', [ShopManagementController::class, 'updateStatus'])->name('shops.update-status');
     Route::get('/shops/{shop}/documents/{type}', [ShopManagementController::class, 'downloadDocument'])->name('shops.download-document');
 
     // Dashboard

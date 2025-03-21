@@ -247,6 +247,7 @@ class ManageStaffController extends Controller
         }
     }
 
+
     public function destroy(Request $request, $id)
     {
         // Validate that the password field is provided

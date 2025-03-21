@@ -14,7 +14,8 @@ class PopularShopsController extends Controller
         $shops = Shop::with(['shopGallery', 'shopCategories.categories'])
             ->where('status', 'verified') // Only show verified shops
             ->inRandomOrder()
-            ->paginate(12);
+            ->limit(20)
+            ->get();
         return Inertia::render('Users/Popular', [
             'shops' => $shops,
         ]);

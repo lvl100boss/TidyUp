@@ -74,10 +74,7 @@ export default function BusinessPermit({
         };
     }, [expandedImage]);
 
-    /**
-     * Reset verification status for a specific document type or all types
-     * @param {string|null} documentType - Document type to reset, or null to reset all
-     */
+
     const resetVerification = (documentType = null) => {
         if (documentType) {
             // Reset only specific document type
@@ -104,13 +101,6 @@ export default function BusinessPermit({
     const verifyDocument = async (documentType, file) => {
         if (!file) return;
 
-        // Set loading state
-        setVerificationStatus(prev => ({
-            ...prev,
-            [documentType]: { ...prev[documentType], loading: true }
-        }));
-
-        try {
             // Use the hybrid verification approach
             const result = await verifyDocumentUpload(file, documentType);
             

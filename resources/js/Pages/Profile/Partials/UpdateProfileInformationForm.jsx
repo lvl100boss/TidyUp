@@ -72,6 +72,92 @@ export default function UpdateProfileInformation({
                 encType="multipart/form-data"
             >
                 <div>
+                    <Label htmlFor="profile_photo_path">Profile Picture</Label>
+                    <Input
+                        id="profile_photo_path"
+                        type="file"
+                        onChange={(e) => {
+                            if (e.target.files?.[0]) {
+                                setData(
+                                    "profile_photo_path",
+                                    e.target.files[0]
+                                );
+                            }
+                        }}
+                        className="pt-2 mb-5"
+                    />
+                    <InputError
+                        className="mt-2"
+                        message={errors.profile_photo_path}
+                    />
+                    {user.profile_photo_path && !data.profile_photo_path && (
+                        <div className="flex items-center gap-5 mb-3">
+                            <img
+                                src={`/storage/${user.profile_photo_path}`}
+                                alt="Current Profile Picture"
+                                className="mt-2 size-32 mb-3 rounded-full object-cover"
+                            />
+                            <img
+                                src={`/storage/${user.profile_photo_path}`}
+                                alt="Current Profile Picture"
+                                className="mt-2 size-20 mb-3 rounded-full object-cover"
+                            />
+                            <img
+                                src={`/storage/${user.profile_photo_path}`}
+                                alt="Current Profile Picture"
+                                className="mt-2 size-14 mb-3 rounded-full object-cover"
+                            />
+                        </div>
+                    )}
+                    {data.profile_photo_path && (
+                        <div className="flex items-center gap-5 mb-3">
+                            <img
+                                src={URL.createObjectURL(
+                                    data.profile_photo_path
+                                )}
+                                alt="New Profile Picture"
+                                className="mt-2 size-32 mb-3 rounded-full object-cover"
+                            />
+                            <img
+                                src={URL.createObjectURL(
+                                    data.profile_photo_path
+                                )}
+                                alt="New Profile Picture"
+                                className="mt-2 size-20 mb-3 rounded-full object-cover"
+                            />
+                            <img
+                                src={URL.createObjectURL(
+                                    data.profile_photo_path
+                                )}
+                                alt="New Profile Picture"
+                                className="mt-2 size-14 mb-3 rounded-full object-cover"
+                            />
+                        </div>
+                    )}
+                    {!user.profile_photo_path && !data.profile_photo_path && (
+                        <div className="flex items-center gap-5 mb-3">
+                            <div className="mt-2 size-32  rounded-full bg-muted-foreground/10 border grid place-items-center">
+                                <User
+                                    size={70}
+                                    className="stroke-muted-foreground stroke-1"
+                                />
+                            </div>
+                            <div className="mt-2 size-20 rounded-full bg-muted-foreground/10 border grid place-items-center">
+                                <User
+                                    size={50}
+                                    className="stroke-muted-foreground stroke-1"
+                                />
+                            </div>
+                            <div className="mt-2 size-14 rounded-full bg-muted-foreground/10 border grid place-items-center">
+                                <User
+                                    size={30}
+                                    className="stroke-muted-foreground stroke-1"
+                                />
+                            </div>
+                        </div>
+                    )}
+                </div>
+                <div>
                     <Label htmlFor="first_name">First Name</Label>
 
                     <Input
@@ -169,92 +255,7 @@ export default function UpdateProfileInformation({
                     <InputError className="mt-2" message={errors.gender} />
                 </div>
 
-                <div>
-                    <Label htmlFor="profile_photo_path">Profile Picture</Label>
-                    <Input
-                        id="profile_photo_path"
-                        type="file"
-                        onChange={(e) => {
-                            if (e.target.files?.[0]) {
-                                setData(
-                                    "profile_photo_path",
-                                    e.target.files[0]
-                                );
-                            }
-                        }}
-                        className="pt-2 mb-5"
-                    />
-                    <InputError
-                        className="mt-2"
-                        message={errors.profile_photo_path}
-                    />
-                    {user.profile_photo_path && !data.profile_photo_path && (
-                        <div className="flex items-center gap-5 mb-3">
-                            <img
-                                src={`/storage/${user.profile_photo_path}`}
-                                alt="Current Profile Picture"
-                                className="mt-2 size-32 mb-3 rounded-full object-cover"
-                            />
-                            <img
-                                src={`/storage/${user.profile_photo_path}`}
-                                alt="Current Profile Picture"
-                                className="mt-2 size-20 mb-3 rounded-full object-cover"
-                            />
-                            <img
-                                src={`/storage/${user.profile_photo_path}`}
-                                alt="Current Profile Picture"
-                                className="mt-2 size-14 mb-3 rounded-full object-cover"
-                            />
-                        </div>
-                    )}
-                    {data.profile_photo_path && (
-                        <div className="flex items-center gap-5 mb-3">
-                            <img
-                                src={URL.createObjectURL(
-                                    data.profile_photo_path
-                                )}
-                                alt="New Profile Picture"
-                                className="mt-2 size-32 mb-3 rounded-full object-cover"
-                            />
-                            <img
-                                src={URL.createObjectURL(
-                                    data.profile_photo_path
-                                )}
-                                alt="New Profile Picture"
-                                className="mt-2 size-20 mb-3 rounded-full object-cover"
-                            />
-                            <img
-                                src={URL.createObjectURL(
-                                    data.profile_photo_path
-                                )}
-                                alt="New Profile Picture"
-                                className="mt-2 size-14 mb-3 rounded-full object-cover"
-                            />
-                        </div>
-                    )}
-                    {!user.profile_photo_path && !data.profile_photo_path && (
-                        <div className="flex items-center gap-5 mb-3">
-                            <div className="mt-2 size-32  rounded-full bg-muted-foreground/10 border grid place-items-center">
-                                <User
-                                    size={70}
-                                    className="stroke-muted-foreground stroke-1"
-                                />
-                            </div>
-                            <div className="mt-2 size-20 rounded-full bg-muted-foreground/10 border grid place-items-center">
-                                <User
-                                    size={50}
-                                    className="stroke-muted-foreground stroke-1"
-                                />
-                            </div>
-                            <div className="mt-2 size-14 rounded-full bg-muted-foreground/10 border grid place-items-center">
-                                <User
-                                    size={30}
-                                    className="stroke-muted-foreground stroke-1"
-                                />
-                            </div>
-                        </div>
-                    )}
-                </div>
+
 
                 {mustVerifyEmail && user.email_verified_at === null && (
                     <div>

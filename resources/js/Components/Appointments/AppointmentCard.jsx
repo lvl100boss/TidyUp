@@ -65,15 +65,25 @@ export default function AppointmentCard({ appointment, upcomingSchedules, shopBu
                                 </CardDescription>
                             </div>
                         </div>
-                        <Badge
-                            variant="outline"
-                            className={cn(
-                                "rounded-lg capitalize border-2 px-2.5 py-1 font-medium",
-                                statusVariants[appointment.status]
+                        <div className="flex items-center gap-2">
+                            {appointment.resched_data && (
+                                <Badge
+                                    variant="secondary"
+                                    className="rounded-lg border-2 px-2.5 py-1 font-medium "
+                                >
+                                    Pending Reschedule
+                                </Badge>
                             )}
-                        >
-                            {appointment.status === "declined" ? "Rejected" : appointment.status.replace('-', ' ')}
-                        </Badge>
+                            <Badge
+                                variant="outline"
+                                className={cn(
+                                    "rounded-lg capitalize border-2 px-2.5 py-1 font-medium",
+                                    statusVariants[appointment.status]
+                                )}
+                            >
+                                {appointment.status === "declined" ? "Rejected" : appointment.status.replace('-', ' ')}
+                            </Badge>
+                        </div>
                     </div>
                 </CardHeader>
 

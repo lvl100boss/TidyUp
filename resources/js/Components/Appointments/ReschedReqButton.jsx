@@ -249,6 +249,9 @@ export default function ReschedReqButton({ appointment, upcomingSchedules, shopB
                             )}
                         </SelectContent>
                     </Select>
+                    <div>
+                        {errors.time && <p className="text-red-500 text-xs mt-1">{errors.time}</p>}
+                    </div>
                 </div>
                 <div>
                     <Label htmlFor="reason">Reason for Reschedule</Label>
@@ -260,6 +263,9 @@ export default function ReschedReqButton({ appointment, upcomingSchedules, shopB
                         placeholder="Please provide a reason for rescheduling the appointment"
                         onChange={(e) => setData('reason', e.target.value)}
                     />
+                    <div>
+                        {errors.reason && <p className="text-red-500 text-xs mt-1">{errors.reason}</p>}
+                    </div>
                 </div>
                 <AlertDialogFooter>
                     <AlertDialogCancel>Cancel</AlertDialogCancel>

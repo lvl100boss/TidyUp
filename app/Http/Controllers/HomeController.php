@@ -21,11 +21,10 @@ class HomeController extends Controller
         //     ->limit(10)
         //     ->get();
         $randomShops = Shop::with(['shopGallery', 'shopCategories.categories'])
-            ->where('status', 'verified')
+            ->where('status', '=', 'verified')
             ->inRandomOrder()
             ->limit(10)
             ->get();
-
         return Inertia::render('Users/Home', [
             'randomShops' => $randomShops,
             'canLogin' => Route::has('login'),
