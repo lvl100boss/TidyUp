@@ -13,12 +13,12 @@ return new class extends Migration
     {
         Schema::create('subscriptions', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
-            $table->text('description')->nullable();
-            $table->decimal('price', 10, 2);
-            $table->integer('duration');
-            $table->enum('duration_unit', ['days', 'months', 'years'])->default('days');
-            $table->enum('status', ['active', 'inactive'])->default('active');
+            $table->string('tier'); // Tier name or identifier
+            $table->decimal('monthly_price', 10, 2); // Monthly price
+            $table->decimal('yearly_price', 10, 2); // Yearly price
+            $table->decimal('monthly_discount', 5, 2)->default(0); // Monthly discount percentage
+            $table->decimal('yearly_discount', 5, 2)->default(0); // Yearly discount percentage
+            $table->string('status')->default('active'); // Add status column
             $table->timestamps();
         });
     }
