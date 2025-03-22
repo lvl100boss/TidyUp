@@ -283,12 +283,12 @@ class ShopController extends Controller
                 }
             });
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Shop status has been updated to ' . $request->status,
-                'new_status' => $request->status,
-                'debug_shop_data' => $shop->toArray()
-            ]);
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Shop status has been updated to verified',
+                ]);
+            }
         } catch (\Exception $e) {
             Log::error("Failed to update shop status via updateStatus", [
                 'shop_id' => $shop->id,
@@ -300,6 +300,9 @@ class ShopController extends Controller
                 'success' => false,
                 'message' => 'Failed to update shop status: ' . $e->getMessage()
             ], 500);
+
+            return redirect()->route('admin.shops')
+    ->with('success', 'Shop status has been updated to verified');
         }
     }
 }
