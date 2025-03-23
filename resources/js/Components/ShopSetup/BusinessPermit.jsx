@@ -265,7 +265,42 @@ export default function BusinessPermit({
 
         if (status === null) return null;
 
-        // Date badge component to show expiration status
+        // Expiration badge component to show expiration status
+        const ExpirationBadge = () => {
+            if (!dateInfo || !dateInfo.status) return null;
+            
+            let color = "";
+            let icon = null;
+            let text = "";
+            
+            switch (dateInfo.status) {
+                case 'expired':
+                    color = "bg-amber-950 text-amber-100 dark:bg-amber-100 dark:text-amber-800";
+                    icon = <AlertTriangle className="h-3 w-3 mr-1" />;
+                    text = "Expired";
+                    break;
+                case 'expiring_soon':
+                    color = "bg-amber-950 text-amber-100 dark:bg-amber-100 dark:text-amber-800";
+                    icon = <AlertTriangle className="h-3 w-3 mr-1" />;
+                    text = "Expiring Soon";
+                    break;
+                case 'warning':
+                    color = "bg-blue-950 text-blue-100 dark:bg-blue-100 dark:text-blue-800";
+                    icon = <Info className="h-3 w-3 mr-1" />;
+                    text = "Expires Soon";
+                    break;
+                default:
+                    return null;
+            }
+            
+            return (
+                <span className={`text-xs font-medium px-2 py-1 rounded ${color} inline-flex items-center ml-2`}>
+                    {icon} {text}
+                </span>
+            );
+        };
+
+        // Date badge component to show expiration date
         const DateBadge = () => {
             if (!dateInfo) return null;
             
@@ -273,16 +308,16 @@ export default function BusinessPermit({
             let icon = <Calendar className="h-3 w-3 mr-1" />;
             let text = `Valid until ${dateInfo.formatted || dateInfo.date}`;
             
+            // Always show the date, even if expired or expiring soon
             if (dateInfo.status === 'expired') {
-                // Even if expired, we still accept but show the info
                 color = "bg-blue-950 text-blue-100 dark:bg-blue-100 dark:text-blue-800";
-                icon = <Calendar className="h-3 w-3 mr-1" />;
-                text = `Expiration: ${dateInfo.formatted || dateInfo.date}`;
-            } else if (dateInfo.status === 'expiring_soon') {
-                // Soften the warning for expiring documents
-                color = "bg-blue-950 text-blue-100 dark:bg-blue-100 dark:text-blue-800";
-                icon = <Calendar className="h-3 w-3 mr-1" />;
-                text = `Expiration: ${dateInfo.formatted || dateInfo.date}`;
+                text = `Expired on ${dateInfo.formatted || dateInfo.date}`;
+            } else if (dateInfo.daysUntilExpiry !== undefined) {
+                text = `Expires in ${dateInfo.daysUntilExpiry} days`;
+                if (dateInfo.daysUntilExpiry < 0) {
+                    text = `Expired ${Math.abs(dateInfo.daysUntilExpiry)} days ago`;
+                    color = "bg-blue-950 text-blue-100 dark:bg-blue-100 dark:text-blue-800";
+                }
             }
             
             return (
@@ -327,6 +362,7 @@ export default function BusinessPermit({
                     <AlertDescription className="flex items-center flex-wrap">
                         {message}
                         <AdminReviewBadge />
+                        <ExpirationBadge />
                         <DateBadge />
                     </AlertDescription>
                 </div>

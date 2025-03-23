@@ -527,16 +527,35 @@ export const verifyDocumentUpload = async (file, documentType) => {
             }
         }
         
-        // Always accept the document, just log details for admin review
+        // Always accept the document, but preserve expiration information
         if (!result.isValid) {
             console.log('Document would have been rejected, but accepting for admin review:', result);
+            const originalIssue = result.issue;
+            const isExpired = originalIssue === 'expired';
+            
+            // Create customized message based on issue
+            let message = `Document accepted (admin will verify details)`;
+            let suggestions = ['Your document will be verified during processing'];
+            
+            // If it's an expiration issue, keep that information but still accept
+            if (isExpired && result.dateInfo) {
+                message = `Document accepted (note: expired on ${result.dateInfo.formatted})`;
+                suggestions = [
+                    'Consider uploading a renewed document if available',
+                    'Admin will review your application',
+                    'You can continue the application process'
+                ];
+            }
+            
             result = {
                 ...result,
                 isValid: true,
-                message: `Document accepted (admin will verify details)`,
+                message: message,
                 status: 'success',
                 originalStatus: result.status, // Keep original status for admin reference
-                adminReviewRequired: true
+                originalIssue: originalIssue,  // Keep original issue for admin reference
+                adminReviewRequired: true,
+                suggestions: suggestions
             };
         }
 
