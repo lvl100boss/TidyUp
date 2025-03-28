@@ -57,6 +57,24 @@ import BusinessHoursContent from "@/Components/Shop/ShopPage/BusinessHoursConten
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
 export default function Shop({ shop, randomShops }) {
+    // Remove the verification check from useEffect
+    // and use conditional rendering instead
+    if (!shop) {
+        return null;
+    }
+
+    // Handle redirection for unverified shops after component mounts
+    useEffect(() => {
+        if (shop && shop.status !== 'verified') {
+            router.visit('/not-found');
+        }
+    }, [shop]);
+
+    // Early return if shop is not verified
+    if (shop && shop.status !== 'verified') {
+        return null;
+    }
+
     const categories = [
         ...new Set(
             shop?.shop_service_categories?.map(
@@ -115,7 +133,7 @@ export default function Shop({ shop, randomShops }) {
                 </div>
                 <div className="lg:w-[15rem] 2xl:w-[22rem] hidden lg:block">
                     <div className="border p-5 rounded-md sticky top-20">
-                        <div className="flex gap-3 items-center">
+                        <div className="flex gap-3">
                             <div>
                                 <Avatar className="size-14">
                                     <AvatarImage src={'/' + shop.shop_photo} className="" />
@@ -126,23 +144,24 @@ export default function Shop({ shop, randomShops }) {
                                 <h1 className="figtree-semibold text-2xl">
                                     {shop?.shop_name}
                                 </h1>
-                                <Badge
-                                    className={`${shop?.availability === 1
-                                        ? "bg-green-300"
-                                        : "bg-secondary text-foreground"
-                                        } pointer-events-none`}
-                                >
-                                    {shop?.availability === 1
-                                        ? "Available"
-                                        : "Unavailable"}
-                                </Badge>
+
+                                <p className="text-xs text-muted-foreground italic pointer-events-none">
+                                    {shop?.bio}
+                                </p>
                             </div>
                         </div>
-                        <div>
-                            <p className="text-xs text-muted-foreground italic pointer-events-none">
-                                {shop?.bio}
-                            </p>
-                        </div>
+                        {/* <div>
+                            <Badge
+                                className={`${shop?.availability === 1
+                                    ? "bg-green-300"
+                                    : "bg-secondary text-foreground"
+                                    } pointer-events-none`}
+                            >
+                                {shop?.availability === 1
+                                    ? "Available"
+                                    : "Unavailable"}
+                            </Badge>
+                        </div> */}
 
                         <BookNowButton shop_id={shop?.id} />
                         <Separator className="my-5" />

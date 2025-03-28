@@ -12,6 +12,7 @@ import {
     MailOpen,
     TriangleAlert,
     IdCard,
+    CreditCard,
 } from "lucide-react";
 
 export default function Sidebar() {
@@ -23,6 +24,8 @@ export default function Sidebar() {
         // { label: "Sales Report", href: "/admin/content", icon: Tag },
         // { label: "Invoice", href: "/admin/settings", icon: Receipt },
         { label: "Analytics", href: "/admin/analytics", icon: Users },
+        { label: "Subscription", href: "/admin/subscription", icon: CreditCard },
+        
         // {
         //     label: "Customer Service",
         //     href: "/admin/customer-service",
@@ -36,7 +39,7 @@ export default function Sidebar() {
         },
         {
             label: "Platform Staff",
-            href: "/admin/platform/staff",
+            href: "/admin/platform-staff",
             icon: IdCard,
         },
     ];

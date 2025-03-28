@@ -6,6 +6,8 @@ use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens;
+use App\Notifications\CustomVerifyEmail;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
@@ -27,7 +29,6 @@ class User extends Authenticatable implements MustVerifyEmail
         'profile_photo_path',
         'gender',
         'date_of_birth',
-        'is_service_provider',
         'email_verified_at'
     ];
 
@@ -52,6 +53,14 @@ class User extends Authenticatable implements MustVerifyEmail
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    /**
+     * Send the email verification notification.
+     */
+    public function sendEmailVerificationNotification()
+    {
+        $this->notify(new CustomVerifyEmail);
     }
 
     public function userRole()
@@ -83,4 +92,17 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->hasMany(AppointmentServices::class); // Each user has many appointment services
     }
+
+    public function platformStaff()
+    {
+        return $this->hasOne(PlatformStaff::class); // Each user has one platform staff
+    }
+
+    /**
+     * Check if the user has a specific role
+     *
+     * @param string $roleName
+     * @return bool
+     */
+
 }

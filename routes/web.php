@@ -10,6 +10,7 @@ use App\Http\Controllers\ShopController;
 use App\Http\Controllers\PopularShopsController;
 use Illuminate\Foundation\Application;
 
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -28,20 +29,21 @@ Route::middleware(EnsureVerifiedIfAuthenticated::class)->group(function () {
     Route::get('/aboutus', function () {
         return Inertia::render('AboutUs');
     })->name('AboutUs');
-    Route::get('{shop_id}/shop', [ShopController::class, 'show'])->name('shop.show');
 });
 
-
-
 Route::middleware(['auth', 'verified'])->group(function () {
-
-    Route::get('/shop/setup', [ShopController::class, 'create'])->name('shop.setup');
-    Route::post('/shop/setup', [ShopController::class, 'store'])->name('shop.setup.store');
-
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    Route::get('/profile/password', [ProfileController::class, 'passwordEdit'])->name('profile.password.edit');
+    Route::get('/theme', function () {
+        return Inertia::render('Theme/Theme');
+    })->name('theme');
+
     Route::get('/appointments', [AppointmentController::class, 'index'])->name('appointments');
+    Route::patch('/appointments/decline', [AppointmentController::class, 'declineAppointment'])->name('appointments.decline');
+    Route::patch('/appointments/accept', [AppointmentController::class, 'acceptAppointment'])->name('appointments.accept');
+    Route::patch('/appointments/cancel', [AppointmentController::class, 'cancelAppointment'])->name('appointments.cancel');
 
     Route::get('/send-feedback', function () {
         return Inertia::render('Users/SendFeedback');
@@ -50,8 +52,36 @@ Route::middleware(['auth', 'verified'])->group(function () {
         return Inertia::render('Users/ReportAnIssue');
     })->name('ReportAnIssue');
 
-    //
+    // Add a route for SetupShop with middleware
+    Route::get('/shop/setup', [ShopController::class, 'setup'])->name('shop.setup');
+    Route::post('/shop/setup', [ShopController::class, 'store'])->name('shop.store');
 });
+
+// Fix the shop detail route pattern to match the links being generated
+Route::get('/shop/{id}', [ShopController::class, 'show'])->where('id', '[0-9]+')->name('shop.show');
+// Add a compatibility route for links that might be using the /{id}/shop pattern
+Route::get('/{id}/shop', [ShopController::class, 'show'])->where('id', '[0-9]+');
+
+Route::get('/shop/setup', [ShopController::class, 'create'])->name('shop.setup');
+Route::post('/shop/setup', [ShopController::class, 'store'])->name('shop.store');
+
+// Debug route - kept for future potential issues
+Route::get('/debug/check-documents/{shopId}', function ($shopId) {
+    if (!Auth::check()) {
+        return redirect('/');
+    }
+
+    \App\Models\ShopLegalDocument::checkDocumentsExist($shopId);
+
+    return response()->json([
+        'message' => 'Document check completed - see logs',
+        'shop_id' => $shopId
+    ]);
+});
+
+Route::get('/not-found', function () {
+    return Inertia::render('NotFound');
+})->name('not-found');
 
 require __DIR__ . '/auth.php';
 require __DIR__ . '/booking.php';

@@ -36,7 +36,6 @@ export default function ManageStaff({ staffs, shop, isOwner }) {
                             href="/shop/manage/staff/create"
                             className={`flex items-center font-bold ${buttonVariants({ variant: "default" })}`}
                         >
-                            <Plus />
                             Add New Staff
                         </Link>
                     )}

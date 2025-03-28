@@ -10,10 +10,12 @@ use App\Http\Controllers\ShopAppointmentsController;
 use App\Http\Controllers\ShopGalleryController;
 use App\Http\Controllers\ShopCatalogController;
 use App\Http\Controllers\ShopSocialMediaController;
+use App\Http\Controllers\ShopSubscriptionController;
 use Inertia\Inertia;
 
 //Shop Owner and Shop Staff
 Route::middleware(['auth', 'verified'])->group(function () {
+    // Make sure the dashboard route is defined BEFORE any wildcard routes
     Route::get('/shop/dashboard', [ShopDashboardController::class, 'index'])->name('shop.dashboard');
     Route::redirect('/shop', '/shop/dashboard');
     Route::get('/shop/profile', [ShopProfileController::class, 'index'])->name('shop.profile');
@@ -49,4 +51,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('upload', [ShopGalleryController::class, 'upload'])->name('shop.gallery.upload');
     Route::delete('delete', [ShopGalleryController::class, 'delete'])->name('shop.gallery.delete');
     Route::post('reorder', [ShopGalleryController::class, 'reorder'])->name('reorder');
+    // Shop subscription route
+    Route::get('/shop/subscriptions', [ShopSubscriptionController::class, 'index'])->name('shop.subscriptions');
+    Route::post('/shop/subscriptions/subscribe', [ShopSubscriptionController::class, 'subscribe'])->name('shop.subscriptions.subscribe');
+    Route::post('/shop/subscriptions/cancel', [ShopSubscriptionController::class, 'cancel'])->name('shop.subscriptions.cancel');
 });

@@ -69,10 +69,7 @@ export default function Popular({ shops }) {
                 </Pagination>
             </div>
 
-            <div className="mb-5 grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-5">
-                {shops.map((shop) => (
-                    <ShopCard key={shop.id} shop={shop} isLoading={isLoading} />
-                ))}
+            <div className="mb-5 grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-2">
                 {shops.map((shop) => (
                     <ShopCard key={shop.id} shop={shop} isLoading={isLoading} />
                 ))}

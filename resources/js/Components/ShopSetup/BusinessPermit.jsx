@@ -2,10 +2,15 @@ import React, { useState, useEffect } from "react";
 import { Input } from "@/Components/ui/input";
 import { Label } from "@/Components/ui/label";
 import InputError from "@/Components/InputError";
-import { Info, CheckCircle, AlertTriangle, XCircle, Loader2, X } from "lucide-react";
+import { 
+    Info, CheckCircle, AlertTriangle, XCircle, Loader2, X, 
+    Server, Cpu, CheckCircle2, Calendar
+} from "lucide-react";
 import axios from "axios";
 import { Button } from "@/Components/ui/button";
 import { Alert, AlertDescription } from "@/Components/ui/alert";
+import { verifyDocumentUpload } from "@/Utils/documentVerification";
+import { Badge } from "@/Components/ui/badge";
 
 export default function BusinessPermit({
     data,
@@ -24,7 +29,7 @@ export default function BusinessPermit({
         dti_registration: { status: null, message: "", issue: null, statusType: null, loading: false },
         valid_id: { status: null, message: "", issue: null, statusType: null, loading: false },
     });
-    
+
     // State to track which image is being viewed in expanded mode
     const [expandedImage, setExpandedImage] = useState(null);
 
@@ -53,87 +58,109 @@ export default function BusinessPermit({
         } else {
             console.error('CSRF token not found');
         }
-        
+
         // Add event listener to close expanded image when clicking outside
         const handleClickOutside = (e) => {
             if (expandedImage && !e.target.closest('.expanded-image-content')) {
                 setExpandedImage(null);
             }
         };
-        
+
         document.addEventListener('mousedown', handleClickOutside);
-        
+
         // Clean up event listener
         return () => {
             document.removeEventListener('mousedown', handleClickOutside);
         };
     }, [expandedImage]);
 
+
+    const resetVerification = (documentType = null) => {
+        if (documentType) {
+            // Reset only specific document type
+            setVerificationStatus(prev => ({
+                ...prev,
+                [documentType]: { 
+                    status: null, 
+                    message: "", 
+                    issue: null, 
+                    statusType: null, 
+                    loading: false 
+                }
+            }));
+        } else {
+            // Reset all document types
+            setVerificationStatus({
+                business_permit: { status: null, message: "", issue: null, statusType: null, loading: false },
+                dti_registration: { status: null, message: "", issue: null, statusType: null, loading: false },
+                valid_id: { status: null, message: "", issue: null, statusType: null, loading: false },
+            });
+        }
+    };
+
     const verifyDocument = async (documentType, file) => {
         if (!file) return;
 
-        // Set loading state
-        setVerificationStatus(prev => ({
-            ...prev,
-            [documentType]: { ...prev[documentType], loading: true }
-        }));
-
-        const formData = new FormData();
-        formData.append('image', file);
-
-        try {
-            let endpoint = '';
-            switch (documentType) {
-                case 'business_permit':
-                    endpoint = 'api/verify/business-permit';
-                    break;
-                case 'dti_registration':
-                    endpoint = 'api/verify/dti-registration';
-                    break;
-                case 'valid_id':
-                    endpoint = 'api/verify/valid-id';
-                    break;
-            }            
-
-            // Use relative URL for better compatibility
-            const response = await axios.post(`/${endpoint}`, formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                    'Accept': 'application/json'
-                }
-            });
-
+            // Use the hybrid verification approach
+            const result = await verifyDocumentUpload(file, documentType);
+            
+            // Don't show engine display info to the user
+            let messageDisplay = result.message;
+            
             setVerificationStatus(prev => ({
                 ...prev,
-                [documentType]: { 
-                    status: response.data.is_valid,
-                    message: response.data.message,
-                    issue: response.data.issue || null,
-                    statusType: response.data.status || (response.data.is_valid ? 'success' : 'error'),
-                    loading: false
+                [documentType]: {
+                    status: result.isValid,
+                    message: messageDisplay,
+                    issue: result.issue || null,
+                    statusType: result.status || (result.isValid ? 'success' : 'error'),
+                    loading: false,
+                    dateInfo: result.dateInfo || null,
+                    // The engine property is not included here
                 }
             }));
+            
+            // ...rest of function
         } catch (error) {
+            // Add more detailed error handling
+            console.error("Document verification error:", error);
+            let errorMessage = 'Verification failed';
+            
+            if (error.response?.data?.message) {
+                errorMessage = error.response.data.message;
+            } else if (error.message) {
+                errorMessage = error.message;
+            }
+            
             setVerificationStatus(prev => ({
                 ...prev,
-                [documentType]: { 
-                    status: false, 
-                    message: error.response?.data?.message || 'Verification failed', 
+                [documentType]: {
+                    status: false,
+                    message: errorMessage,
                     issue: 'server_error',
                     statusType: 'error',
-                    loading: false
+                    loading: false,
+                    engine: 'error'
                 }
             }));
         }
     };
 
     const handleFileChangeWithVerification = (e, originalHandler, documentType) => {
-        // Call the original handler first to update the preview
-        originalHandler(e);
-        
-        // Then verify the document if a file is selected
-        if (e.target.files && e.target.files[0]) {
+        // If user selects a new file
+        if (e.target.files && e.target.files.length > 0) {
+            // Reset the verification status before starting a new verification
+            resetVerification(documentType);
+            
+            // Call the original handler to update the preview
+            originalHandler(e);
+            
+            // Automatically verify the document when file is selected
             verifyDocument(documentType, e.target.files[0]);
+        } else {
+            // If the file selection was cancelled or cleared, reset verification
+            resetVerification(documentType);
+            originalHandler(e);
         }
     };
 
@@ -151,12 +178,12 @@ export default function BusinessPermit({
                 imageUrl = previewValidIdImage;
                 break;
         }
-        
+
         if (imageUrl) {
             setExpandedImage(expandedImage === imageType ? null : imageType);
         }
     };
-    
+
     // Get the appropriate image URL for expanded view
     const getExpandedImageUrl = () => {
         switch (expandedImage) {
@@ -170,7 +197,7 @@ export default function BusinessPermit({
                 return null;
         }
     };
-    
+
     // Get the title for expanded image modal
     const getExpandedImageTitle = () => {
         switch (expandedImage) {
@@ -186,8 +213,8 @@ export default function BusinessPermit({
     };
 
     const renderVerificationStatus = (documentType) => {
-        const { status, message, loading, statusType } = verificationStatus[documentType];
-        
+        const { status, message, loading, statusType, engine, confidence, dateInfo, suggestions } = verificationStatus[documentType];
+
         if (loading) {
             return (
                 <Alert className="bg-blue-50 border-blue-100 text-blue-700 mt-2">
@@ -198,17 +225,102 @@ export default function BusinessPermit({
                 </Alert>
             );
         }
-        
+
         if (status === null) return null;
-        
+
+        // Engine badge component
+        const EngineBadge = () => {
+            if (!engine) return null;
+            
+            let label = 'Unknown';
+            let icon = null;
+            
+            switch(engine) {
+                case 'tesseract-only':
+                    label = 'Client-side OCR';
+                    icon = <Cpu className="h-3 w-3 mr-1" />;
+                    break;
+                case 'vision-only':
+                    label = 'Cloud Vision';
+                    icon = <Server className="h-3 w-3 mr-1" />;
+                    break;
+                case 'hybrid':
+                case 'hybrid-client-priority':
+                    label = 'Hybrid Verification';
+                    icon = <CheckCircle2 className="h-3 w-3 mr-1" />;
+                    break;
+            }
+            
+            return (
+                <Badge variant="outline" className="ml-2 text-xs font-normal">
+                    {icon}{label}
+                </Badge>
+            );
+        };
+
+        // Date badge component to show expiration status
+        const DateBadge = () => {
+            if (!dateInfo) return null;
+            
+            let color = "bg-green-100 text-green-800";
+            let icon = <Calendar className="h-3 w-3 mr-1" />;
+            let text = `Valid until ${dateInfo.formatted || dateInfo.date}`;
+            
+            if (dateInfo.status === 'expired') {
+                color = "bg-red-100 text-red-800";
+                icon = <XCircle className="h-3 w-3 mr-1" />;
+                text = `Expired on ${dateInfo.formatted || dateInfo.date}`;
+            } else if (dateInfo.status === 'expiring_soon') {
+                color = "bg-yellow-100 text-yellow-800";
+                icon = <AlertTriangle className="h-3 w-3 mr-1" />;
+                text = `Expires soon (${dateInfo.formatted || dateInfo.date})`;
+            }
+            
+            return (
+                <span className={`text-xs font-medium px-2 py-1 rounded ${color} inline-flex items-center ml-2`}>
+                    {icon} {text}
+                </span>
+            );
+        };
+
+        // Render suggestions if available
+        const SuggestionsList = () => {
+            if (!suggestions || suggestions.length === 0) return null;
+            
+            return (
+                <div className="mt-2 text-sm">
+                    <p className="font-medium">Suggestions:</p>
+                    <ul className="list-disc pl-5 mt-1 space-y-1">
+                        {suggestions.map((suggestion, index) => (
+                            <li key={index}>{suggestion}</li>
+                        ))}
+                    </ul>
+                </div>
+            );
+        };
+
         if (status) {
             // Success case
             return (
                 <Alert className="bg-green-50 border-green-100 text-green-700 mt-2">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
                         <CheckCircle className="h-4 w-4" />
-                        <AlertDescription>{message}</AlertDescription>
+                        <AlertDescription className="flex items-center flex-wrap">
+                            {message}
+                            <EngineBadge />
+                            <DateBadge />
+                        </AlertDescription>
                     </div>
+                    {confidence && (
+                        <div className="text-xs mt-1 pl-6">
+                            {confidence.server && 
+                                <div>Server confidence: {confidence.server.toFixed(1)}%</div>
+                            }
+                            {confidence.client && 
+                                <div>Client confidence: {confidence.client.toFixed(1)}%</div>
+                            }
+                        </div>
+                    )}
                 </Alert>
             );
         } else {
@@ -216,19 +328,29 @@ export default function BusinessPermit({
             if (statusType === 'warning') {
                 return (
                     <Alert className="bg-yellow-50 border-yellow-100 text-yellow-700 mt-2">
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 flex-wrap">
                             <AlertTriangle className="h-4 w-4" />
-                            <AlertDescription>{message}</AlertDescription>
+                            <AlertDescription className="flex items-center flex-wrap">
+                                {message}
+                                <EngineBadge />
+                                <DateBadge />
+                            </AlertDescription>
                         </div>
+                        <SuggestionsList />
                     </Alert>
                 );
             } else {
                 return (
                     <Alert className="bg-red-50 border-red-100 text-red-700 mt-2">
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 flex-wrap">
                             <XCircle className="h-4 w-4" />
-                            <AlertDescription>{message}</AlertDescription>
+                            <AlertDescription className="flex items-center flex-wrap">
+                                {message}
+                                <EngineBadge />
+                                <DateBadge />
+                            </AlertDescription>
                         </div>
+                        <SuggestionsList />
                     </Alert>
                 );
             }
@@ -255,17 +377,17 @@ export default function BusinessPermit({
                             <img
                                 src={previewPermitImage}
                                 alt="Business permit preview"
-                                className="w-full h-48 object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
+                                className="w-full object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
                                 onClick={() => toggleImageExpand('business_permit')}
                             />
-                            <div className="text-xs text-center mt-1 text-gray-500">Click to enlarge</div>
+                            <div className="text-xs text-center mt-1 text-muted-foreground">Click to enlarge</div>
                         </div>
                     )}
                     {renderVerificationStatus('business_permit')}
                     <InputError field="business_permit" errors={errors} />
                 </div>
             </div>
-            
+
             <div className="space-y-4">
                 <h2 className="text-lg font-semibold">DTI Registration</h2>
                 <Label htmlFor="dti_registration">
@@ -283,16 +405,16 @@ export default function BusinessPermit({
                         <img
                             src={previewDtiRegistrationImage}
                             alt="DTI registration preview"
-                            className="w-full h-48 object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
+                            className="w-full object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
                             onClick={() => toggleImageExpand('dti_registration')}
                         />
-                        <div className="text-xs text-center mt-1 text-gray-500">Click to enlarge</div>
+                        <div className="text-xs text-center mt-1 text-muted-foreground">Click to enlarge</div>
                     </div>
                 )}
                 {renderVerificationStatus('dti_registration')}
                 <InputError field="dti_registration" errors={errors} />
             </div>
-            
+
             <div className="space-y-4">
                 <h2 className="text-lg font-semibold">Valid ID</h2>
                 <Label htmlFor="valid_id">Upload Valid ID</Label>
@@ -308,10 +430,10 @@ export default function BusinessPermit({
                         <img
                             src={previewValidIdImage}
                             alt="Valid ID preview"
-                            className="w-full h-48 object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
+                            className="w-full object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
                             onClick={() => toggleImageExpand('valid_id')}
                         />
-                        <div className="text-xs text-center mt-1 text-gray-500">Click to enlarge</div>
+                        <div className="text-xs text-center mt-1 text-muted-foreground">Click to enlarge</div>
                     </div>
                 )}
                 {renderVerificationStatus('valid_id')}
@@ -328,7 +450,7 @@ export default function BusinessPermit({
                     </p>
                 </div>
             </div>
-            
+
             {/* Expanded Image Modal */}
             {expandedImage && (
                 <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">

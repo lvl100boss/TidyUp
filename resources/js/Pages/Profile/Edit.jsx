@@ -2,14 +2,14 @@ import { Head } from "@inertiajs/react";
 import DeleteUserForm from "./Partials/DeleteUserForm";
 import UpdatePasswordForm from "./Partials/UpdatePasswordForm";
 import UpdateProfileInformationForm from "./Partials/UpdateProfileInformationForm";
-import UserLayout from "@/Layouts/UserLayout";
+import UserSettingsLayout from "@/Layouts/UserSettingsLayout";
 
 export default function Edit({ mustVerifyEmail, status }) {
     return (
-        <UserLayout>
+        <UserSettingsLayout>
             <Head title="Profile" />
 
-            <div className="py-12">
+            <div className="">
                 <div className=" max-w-7xl space-y-6">
                     <div className="p-4">
                         <UpdateProfileInformationForm
@@ -20,14 +20,10 @@ export default function Edit({ mustVerifyEmail, status }) {
                     </div>
 
                     <div className="p-4">
-                        <UpdatePasswordForm className="max-w-xl" />
-                    </div>
-
-                    <div className="p-4">
                         <DeleteUserForm className="max-w-xl" />
                     </div>
                 </div>
             </div>
-        </UserLayout>
+        </UserSettingsLayout>
     );
 }

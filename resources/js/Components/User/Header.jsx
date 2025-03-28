@@ -153,12 +153,16 @@ const Header = ({ onClick, isDarkTheme, setIsDarkTheme }) => {
                                 Set Theme to{" "}
                                 {isDarkTheme ? "Light Mode" : "Dark Mode"}
                             </DropdownMenuItem>
-                            <DropdownMenuItem disabled>
-                                Settings
-                            </DropdownMenuItem>
-                            <DropdownMenuItem disabled>
-                                Support
-                            </DropdownMenuItem>
+                            <Link href="/profile">
+                                <DropdownMenuItem >
+                                    Settings
+                                </DropdownMenuItem>
+                            </Link>
+                            <Link href="/report-issue">
+                                <DropdownMenuItem >
+                                    Support
+                                </DropdownMenuItem>
+                            </Link>
                             <DropdownMenuSeparator />
                             <Link
                                 method="post"

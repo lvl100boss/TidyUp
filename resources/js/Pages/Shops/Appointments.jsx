@@ -7,7 +7,8 @@ import { Toaster } from "@/Components/ui/sonner"
 import { toast } from "sonner"
 import { useEffect, useState } from "react";
 
-export default function Appointments({ myAppointments, upcomingSchedules, shopBusinessSchedules, shopAppointments }) {
+export default function Appointments({ myAppointments, upcomingSchedules, shopBusinessSchedules, shopAppointments, rescheduleRequests }) {
+
     const { flash } = usePage().props;
 
     // Initialize state with value from localStorage or default to "myAppointments"
@@ -53,6 +54,7 @@ export default function Appointments({ myAppointments, upcomingSchedules, shopBu
                         appointments={myAppointments}
                         upcomingSchedules={upcomingSchedules}
                         shopBusinessSchedules={shopBusinessSchedules}
+                        rescheduleRequests={rescheduleRequests}
                     />
                 </TabsContent>
                 <TabsContent value="allAppointments">

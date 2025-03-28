@@ -1,7 +1,8 @@
 import React from "react";
 import { Badge } from "../ui/badge";
+import { Button } from "../ui/button";
 
-const Summary = ({ data, categories }) => {
+const Summary = ({ data, categories, onSubmit, isSubmitting }) => {
     const formatOperationHours = (hours) => {
         return Object.entries(hours)
             .filter(([_, value]) => value.isOpen)
