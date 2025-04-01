@@ -164,8 +164,12 @@ export default function Appointments({
                                             </div>
                                         </ScrollArea>
                                         <Separator />
-                                        <Button variant="secondary">Request Reschedule</Button>
-                                        <Button variant="destructive">Cancel Appointment</Button>
+                                        {!["completed", "cancelled", "declined", "no-show"].includes(appointment.status) && (
+                                            <>
+                                                <Button variant="secondary">Request Reschedule</Button>
+                                                <Button variant="destructive">Cancel Appointment</Button>
+                                            </>
+                                        )}
                                     </DialogHeader>
                                 </DialogContent>
                             </Dialog>
@@ -234,7 +238,7 @@ export default function Appointments({
                                             {appointmentData[type]?.length}
                                         </div>
                                     )}
-                                </div >
+                                </div>
                             </TabsTrigger>
                         ))}
                     </TabsList>
@@ -267,6 +271,6 @@ export default function Appointments({
                     )}
                 </div>
             </div>
-        </UserLayout >
+        </UserLayout>
     );
 }

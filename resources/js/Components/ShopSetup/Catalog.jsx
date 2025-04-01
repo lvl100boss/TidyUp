@@ -36,6 +36,9 @@ const Catalog = ({
         category_name: "",
     });
     const [alertAnimate, setAlertAnimate] = useState(false);
+    const [alertMessage, setAlertMessage] = useState(
+        "Please fill in all required fields (Service Name, Cost, and Category)."
+    );
 
     // Handle input changes
     const handleChange = (e) => {
@@ -55,7 +58,8 @@ const Catalog = ({
     };
 
     // Show alert with auto-hide
-    const showAlert = () => {
+    const showAlert = (message) => {
+        setAlertMessage(message);
         setAlertAnimate(true);
         setTimeout(() => {
             setAlertAnimate(false);
@@ -64,8 +68,21 @@ const Catalog = ({
 
     // Add service to catalog
     const addService = () => {
+        // Check for required fields
         if (!service.service_name || !service.cost || !service.category_id) {
-            showAlert();
+            showAlert("Please fill in all required fields (Service Name, Cost, and Category).");
+            return;
+        }
+
+        // Check for positive cost
+        if (parseFloat(service.cost) <= 0) {
+            showAlert("Cost must be a positive number greater than zero.");
+            return;
+        }
+
+        // Check for non-zero duration
+        if (parseInt(service.duration_hour) === 0 && parseInt(service.duration_minute) === 0) {
+            showAlert("Service duration cannot be zero. Please specify a valid duration.");
             return;
         }
 
@@ -140,6 +157,8 @@ const Catalog = ({
                             placeholder="Cost *"
                             value={service.cost}
                             onChange={handleChange}
+                            min="0.01"
+                            step="0.01"
                         />
                     </div>
                     <div>
@@ -272,8 +291,7 @@ const Catalog = ({
                 <Terminal className="h-4 w-4 stroke-yellow-700" />
                 <AlertTitle>Heads up!</AlertTitle>
                 <AlertDescription>
-                    Please fill in all required fields (Service Name, Cost, and
-                    Category).
+                    {alertMessage}
                 </AlertDescription>
             </Alert>
         </div>

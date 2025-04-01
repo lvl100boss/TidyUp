@@ -22,6 +22,37 @@ export default function Appointments({ myAppointments, upcomingSchedules, shopBu
         localStorage.setItem("appointmentsActiveTab", value);
     };
 
+    // Function to determine if action modals should be hidden
+    const shouldHideActionModals = (appointment) => {
+        // 1. Check status conditions
+        const hideForStatuses = ['completed', 'cancelled', 'declined', 'no-show'];
+        if (hideForStatuses.includes(appointment.status)) {
+            return true;
+        }
+
+        // 2. Check if appointment is in the past
+        const appointmentDateTime = new Date(`${appointment.date}T${appointment.time}`);
+        const currentDateTime = new Date();
+        if (appointmentDateTime < currentDateTime) {
+            return true;
+        }
+
+        // 3. Check if appointment is marked as successful
+        if (appointment.is_successful) {
+            return true;
+        }
+
+        // 4. Check if appointment is archived (older than 7 days)
+        const sevenDaysInMs = 7 * 24 * 60 * 60 * 1000;
+        const sevenDaysAgo = new Date(currentDateTime - sevenDaysInMs);
+        if (appointmentDateTime < sevenDaysAgo) {
+            return true;
+        }
+
+        // If none of the conditions are met, show the action modals
+        return false;
+    };
+
     useEffect(() => {
         if (flash.message) {
             if (flash.success) {
@@ -55,12 +86,17 @@ export default function Appointments({ myAppointments, upcomingSchedules, shopBu
                         upcomingSchedules={upcomingSchedules}
                         shopBusinessSchedules={shopBusinessSchedules}
                         rescheduleRequests={rescheduleRequests}
+                        shouldHideActionModals={shouldHideActionModals}
                     />
                 </TabsContent>
                 <TabsContent value="allAppointments">
-                    <AllAppointments appointments={shopAppointments} />
+                    <AllAppointments 
+                        appointments={shopAppointments} 
+                        shouldHideActionModals={shouldHideActionModals} 
+                    />
                 </TabsContent>
             </Tabs>
+            <Toaster />
         </ShopsLayout>
     );
 }
