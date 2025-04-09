@@ -2,8 +2,8 @@ import React, { useState, useEffect } from "react";
 import { Input } from "@/Components/ui/input";
 import { Label } from "@/Components/ui/label";
 import InputError from "@/Components/InputError";
-import { 
-    Info, CheckCircle, AlertTriangle, XCircle, Loader2, X, 
+import {
+    Info, CheckCircle, AlertTriangle, XCircle, Loader2, X,
     Server, Cpu, CheckCircle2, Calendar
 } from "lucide-react";
 import axios from "axios";
@@ -80,12 +80,12 @@ export default function BusinessPermit({
             // Reset only specific document type
             setVerificationStatus(prev => ({
                 ...prev,
-                [documentType]: { 
-                    status: null, 
-                    message: "", 
-                    issue: null, 
-                    statusType: null, 
-                    loading: false 
+                [documentType]: {
+                    status: null,
+                    message: "",
+                    issue: null,
+                    statusType: null,
+                    loading: false
                 }
             }));
         } else {
@@ -101,12 +101,13 @@ export default function BusinessPermit({
     const verifyDocument = async (documentType, file) => {
         if (!file) return;
 
+        try {
             // Use the hybrid verification approach
             const result = await verifyDocumentUpload(file, documentType);
-            
+
             // Don't show engine display info to the user
             let messageDisplay = result.message;
-            
+
             setVerificationStatus(prev => ({
                 ...prev,
                 [documentType]: {
@@ -119,19 +120,19 @@ export default function BusinessPermit({
                     // The engine property is not included here
                 }
             }));
-            
+
             // ...rest of function
         } catch (error) {
             // Add more detailed error handling
             console.error("Document verification error:", error);
             let errorMessage = 'Verification failed';
-            
+
             if (error.response?.data?.message) {
                 errorMessage = error.response.data.message;
             } else if (error.message) {
                 errorMessage = error.message;
             }
-            
+
             setVerificationStatus(prev => ({
                 ...prev,
                 [documentType]: {
@@ -151,10 +152,10 @@ export default function BusinessPermit({
         if (e.target.files && e.target.files.length > 0) {
             // Reset the verification status before starting a new verification
             resetVerification(documentType);
-            
+
             // Call the original handler to update the preview
             originalHandler(e);
-            
+
             // Automatically verify the document when file is selected
             verifyDocument(documentType, e.target.files[0]);
         } else {
@@ -231,11 +232,11 @@ export default function BusinessPermit({
         // Engine badge component
         const EngineBadge = () => {
             if (!engine) return null;
-            
+
             let label = 'Unknown';
             let icon = null;
-            
-            switch(engine) {
+
+            switch (engine) {
                 case 'tesseract-only':
                     label = 'Client-side OCR';
                     icon = <Cpu className="h-3 w-3 mr-1" />;
@@ -250,7 +251,7 @@ export default function BusinessPermit({
                     icon = <CheckCircle2 className="h-3 w-3 mr-1" />;
                     break;
             }
-            
+
             return (
                 <Badge variant="outline" className="ml-2 text-xs font-normal">
                     {icon}{label}
@@ -261,11 +262,11 @@ export default function BusinessPermit({
         // Date badge component to show expiration status
         const DateBadge = () => {
             if (!dateInfo) return null;
-            
+
             let color = "bg-green-100 text-green-800";
             let icon = <Calendar className="h-3 w-3 mr-1" />;
             let text = `Valid until ${dateInfo.formatted || dateInfo.date}`;
-            
+
             if (dateInfo.status === 'expired') {
                 color = "bg-red-100 text-red-800";
                 icon = <XCircle className="h-3 w-3 mr-1" />;
@@ -275,7 +276,7 @@ export default function BusinessPermit({
                 icon = <AlertTriangle className="h-3 w-3 mr-1" />;
                 text = `Expires soon (${dateInfo.formatted || dateInfo.date})`;
             }
-            
+
             return (
                 <span className={`text-xs font-medium px-2 py-1 rounded ${color} inline-flex items-center ml-2`}>
                     {icon} {text}
@@ -286,7 +287,7 @@ export default function BusinessPermit({
         // Render suggestions if available
         const SuggestionsList = () => {
             if (!suggestions || suggestions.length === 0) return null;
-            
+
             return (
                 <div className="mt-2 text-sm">
                     <p className="font-medium">Suggestions:</p>
@@ -313,10 +314,10 @@ export default function BusinessPermit({
                     </div>
                     {confidence && (
                         <div className="text-xs mt-1 pl-6">
-                            {confidence.server && 
+                            {confidence.server &&
                                 <div>Server confidence: {confidence.server.toFixed(1)}%</div>
                             }
-                            {confidence.client && 
+                            {confidence.client &&
                                 <div>Client confidence: {confidence.client.toFixed(1)}%</div>
                             }
                         </div>
@@ -360,7 +361,7 @@ export default function BusinessPermit({
     return (
         <div className="space-y-6">
             <h1 className="text-xl font-semibold">Legal Documents</h1>
-            
+
             <div className="space-y-4">
                 <h2 className="text-lg font-semibold">Business Permit</h2>
                 <Label htmlFor="business_permit">Upload Business Permit</Label>
