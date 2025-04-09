@@ -117,12 +117,12 @@ export default function Register() {
     };
 
     return (
-        <div className="flex min-h-screen flex-col items-center pt-6 sm:justify-center sm:pt-0 px-5">
+        <div className="flex min-h-screen flex-col items-center pt-5 sm:pt-16 sm:justify-center px-6 md:px-8">
             <Head title="Register" />
-            <Link href="/">
-                <ApplicationLogo className="size-28 md:size-32 dark:invert" />
-            </Link>
-            <div className="my-2 space-y-4">
+                <Link href="/">
+                    <ApplicationLogo className="size-28 md:size-32 dark:invert" />
+                </Link>
+            <div className="my-4 space-y-4">
                 <h4 className="text-center text-4xl font-medium">
                     Join us today
                 </h4>
@@ -133,7 +133,7 @@ export default function Register() {
 
             <form
                 onSubmit={submit}
-                className="w-full max-w-screen-sm sm:max-w-md md:px-6 md:py-4 rounded-lg space-y-4"
+                className="w-full max-w-screen-sm sm:max-w-md md:px-8 md:py-6 rounded-lg space-y-5 mx-auto"
             >
                 <div className="space-y-2">
                     <Label htmlFor="first_name">First Name</Label>
@@ -239,12 +239,12 @@ export default function Register() {
                             placeholder="Enter your new password"
                             value={data.password}
                             autoComplete="new-password"
-                            className="pr-10"
+                            className="pr-12 py-2" // Added more right padding and vertical padding
                             onChange={(e) => setData("password", e.target.value)}
                         />
                         <button
                             type="button"
-                            className="absolute inset-y-0 right-0 flex items-center pr-3"
+                            className="absolute inset-y-0 right-0 flex items-center px-3" // Changed from pr-3 to px-3 for better spacing
                             onClick={() => setShowPassword(!showPassword)}
                         >
                             {showPassword ? (
@@ -301,14 +301,14 @@ export default function Register() {
                             placeholder="Confirm your password"
                             value={data.password_confirmation}
                             autoComplete="new-password"
-                            className="pr-10"
+                            className="pr-12 py-2"
                             onChange={(e) =>
                                 setData("password_confirmation", e.target.value)
                             }
                         />
                         <button
                             type="button"
-                            className="absolute inset-y-0 right-0 flex items-center pr-3"
+                            className="absolute inset-y-0 right-0 flex items-center px-3"
                             onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                         >
                             {showConfirmPassword ? (
@@ -326,13 +326,13 @@ export default function Register() {
 
                 <Button 
                     type="submit" 
-                    className="w-full mt-8" 
+                    className="w-full mt-8 py-6" 
                     disabled={processing}
                 >
                     Register
                 </Button>
                 
-                <div className="mt-4 flex items-center justify-center text-sm gap-1">
+                <div className="mt-6 flex items-center justify-center text-sm gap-1">
                     <span className="text-muted-foreground">Already have an Account? </span>
                     <Link
                         href={route("login")}

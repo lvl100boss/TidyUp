@@ -31,10 +31,17 @@ class ShopCatalogController extends Controller
         $validator = Validator::make($request->all(), [
             'service_name' => 'required|string|max:255',
             'service_category_id' => 'required|exists:service_categories,id',
-            'cost' => 'required|numeric|min:0',
+            'cost' => 'required|numeric|min:0.01',
             'duration_hour' => 'required|integer|min:0|max:23',
             'duration_minute' => 'required|integer|min:0|max:59',
         ]);
+
+        // Custom validation to ensure duration is not zero
+        $validator->after(function ($validator) use ($request) {
+            if ($request->duration_hour == 0 && $request->duration_minute == 0) {
+                $validator->errors()->add('duration', 'Service duration cannot be zero. Please specify a valid duration.');
+            }
+        });
 
         if ($validator->fails()) {
             return redirect()->back()->with('message', $validator->errors()->first())->with('success', false);
@@ -64,10 +71,17 @@ class ShopCatalogController extends Controller
         $validator = Validator::make($request->all(), [
             'service_name' => 'required|string|max:255',
             'service_category_id' => 'required|exists:service_categories,id',
-            'cost' => 'required|numeric|min:0',
+            'cost' => 'required|numeric|min:0.01',
             'duration_hour' => 'required|integer|min:0|max:23',
             'duration_minute' => 'required|integer|min:0|max:59',
         ]);
+
+        // Custom validation to ensure duration is not zero
+        $validator->after(function ($validator) use ($request) {
+            if ($request->duration_hour == 0 && $request->duration_minute == 0) {
+                $validator->errors()->add('duration', 'Service duration cannot be zero. Please specify a valid duration.');
+            }
+        });
 
         if ($validator->fails()) {
             return redirect()->back()->with('message', $validator->errors()->first())->with('success', false);
