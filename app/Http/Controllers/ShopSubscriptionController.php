@@ -3,9 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\Shop;
+use App\Models\ShopStaffs;
 use App\Models\ShopSubscription;
 use App\Models\Subscription;
 use Illuminate\Http\Request;
+use App\Models\User;
 use Carbon\Carbon;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
@@ -18,10 +20,11 @@ class ShopSubscriptionController extends Controller
     public function index(Request $request)
     {
         // Fetch the shop associated with the logged-in user
-        $shop = Shop::where('user_id', Auth::id())->first();
-
+        $user = User::find(auth()->id());
+        $currentStaff = ShopStaffs::where('staff_id', $user->id)->first();
+        $shop = $currentStaff->shop;
         if (!$shop) {
-            return redirect()->route('dashboard')->with('error', 'Shop not found');
+            return redirect()->route('shop.dashboard')->with('error', 'Shop not found');
         }
 
         // Fetch all active subscription plans
@@ -62,30 +65,30 @@ class ShopSubscriptionController extends Controller
             'subscription_id' => 'required|exists:subscriptions,id',
             'billing_cycle' => 'required|in:monthly,yearly',
         ]);
-    
+
         $shop = Shop::where('user_id', Auth::id())->first();
-    
+
         if (!$shop) {
             return redirect()->back()->with('error', 'Shop not found');
         }
-    
+
         $subscription = Subscription::findOrFail($request->subscription_id);
-    
+
         $startDate = Carbon::now();
         $endDate = Carbon::now();
-    
+
         // Calculate the end date based on the billing cycle
         if ($request->billing_cycle === 'monthly') {
             $endDate->addMonth();
         } elseif ($request->billing_cycle === 'yearly') {
             $endDate->addYear();
         }
-    
+
         // Cancel any active subscriptions
         ShopSubscription::where('shop_id', $shop->id)
             ->where('status', 'active')
             ->update(['status' => 'canceled']);
-    
+
         // Create a new subscription
         $newSubscription = ShopSubscription::create([
             'shop_id' => $shop->id,
@@ -95,7 +98,7 @@ class ShopSubscriptionController extends Controller
             'status' => 'active',
             'billing_cycle' => $request->billing_cycle,
         ]);
-        
+
         // For Inertia requests with XHR, return a redirect with flash data
         if ($request->wantsJson()) {
             return response()->json([
@@ -112,7 +115,7 @@ class ShopSubscriptionController extends Controller
                 'status' => $newSubscription->status,
             ]);
         }
-        
+
         // Return to the subscription page with the new subscription data
         return redirect()->route('shop.subscriptions')->with([
             'success' => "Successfully subscribed to {$subscription->tier} ({$request->billing_cycle})",

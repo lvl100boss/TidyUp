@@ -3,7 +3,7 @@ import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, Dialog
 import { Calendar, Clock } from "lucide-react";
 import { Button } from "@/Components/ui/Button";
 import AppointmentCard from "@/Components/User/AppointmentCard";
-import DeclineButton from './DeclineButton';
+import DeclineButton from '@/Pages/Users/AppointmentPartial/DeclineButton';
 import AcceptButton from './AcceptButton';
 
 
@@ -69,7 +69,7 @@ export default function ResceduleAppointmentCard(props) {
 
                     <div className="rounded-lg border p-4">
                         <h3 className="mb-2 font-semibold">Reason</h3>
-                        <p className="text-sm text-muted-foreground">{props.reschedData.reason}</p>
+                        <p className="text-sm text-muted-foreground">{props.reschedData.resched_reason}</p>
                     </div>
 
                     <div className="flex justify-end space-x-2">
