@@ -34,7 +34,8 @@ import {
     Instagram,
     Twitter,
     Youtube,
-    Globe
+    Globe,
+    Star
 } from "lucide-react";
 import CopyButton from "@/Components/CopyButton";
 import { Separator } from "@/Components/ui/separator";
@@ -54,9 +55,10 @@ import ShopDetailsCard from "@/Components/Shop/ShopPage/ShopDetailsCard";
 import BookNowButton from "@/Components/Shop/ShopPage/BookNowButton";
 import ServiceTabs from "@/Components/Shop/ShopPage/ServiceTabs";
 import BusinessHoursContent from "@/Components/Shop/ShopPage/BusinessHoursContent";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import ReviewsSection from "@/Components/Shop/ShopPage/ReviewsSection";
 
-export default function Shop({ shop, randomShops }) {
+export default function Shop({ shop, randomShops, reviews }) {
     // Remove the verification check from useEffect
     // and use conditional rendering instead
     if (!shop) {
@@ -128,6 +130,9 @@ export default function Shop({ shop, randomShops }) {
                         categories={categories}
                         groupedServices={groupedServices}
                     />
+
+                    {/* Reviews Section */}
+                    <ReviewsSection reviews={reviews} />
 
                     <ShopDetailsCard shop={shop} />
                 </div>

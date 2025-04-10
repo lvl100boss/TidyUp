@@ -8,6 +8,7 @@ use App\Http\Controllers\DiscoverController;
 use App\Http\Controllers\HairSalonShopsController;
 use App\Http\Controllers\ShopController;
 use App\Http\Controllers\PopularShopsController;
+use App\Http\Controllers\ReviewController;
 use Illuminate\Foundation\Application;
 
 use Illuminate\Support\Facades\Auth;
@@ -61,6 +62,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
 Route::get('/shop/{id}', [ShopController::class, 'show'])->where('id', '[0-9]+')->name('shop.show');
 // Add a compatibility route for links that might be using the /{id}/shop pattern
 Route::get('/{id}/shop', [ShopController::class, 'show'])->where('id', '[0-9]+');
+
+// Review routes
+Route::post('/reviews', [ReviewController::class, 'store'])->name('reviews.store');
 
 Route::get('/shop/setup', [ShopController::class, 'create'])->name('shop.setup');
 Route::post('/shop/setup', [ShopController::class, 'store'])->name('shop.store');
