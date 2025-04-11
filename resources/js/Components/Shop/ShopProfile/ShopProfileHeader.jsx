@@ -54,6 +54,7 @@ export default function ShopProfileHeader({ shop }) {
                         <p className="text-muted-foreground">
                             {shop.bio}
                         </p>
+
                     </div>
                     <Dialog open={open} onOpenChange={setOpen}>
                         <DialogTrigger asChild>

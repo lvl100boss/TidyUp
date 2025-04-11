@@ -25,7 +25,7 @@ class ShopProfileController extends Controller
             'staffs.staff',
             'socialMedia'
         ]);
-
+        // dd($shop);
 
         return Inertia::render('Shops/ShopProfile', [
             'shop' => $shop,

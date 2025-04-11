@@ -114,9 +114,10 @@ const Header = ({ onClick, isDarkTheme, setIsDarkTheme }) => {
                                 </Avatar>
                                 <div>
                                     <h6>
-                                        {user.first_name
-                                            ? `${user.first_name} ${user.last_name}`
-                                            : user.username}
+                                        {user.first_name +
+                                            (user.middle_name ? ` ${user.middle_name[0]}. ` : " ") +
+                                            " " +
+                                            user.last_name}
                                     </h6>
                                     <p className="font-normal">
                                         @{user.username}
