@@ -162,6 +162,10 @@ export default function Appointments({
                                                 </div>
                                             </div>
                                         </ScrollArea>
+<<<<<<< Updated upstream
+=======
+
+>>>>>>> Stashed changes
                                         {type === "pending" || type === "upcoming" ? (
                                             <>
                                                 <Separator />
@@ -169,6 +173,10 @@ export default function Appointments({
                                                 <Button variant="destructive">Cancel Appointment</Button>
                                             </>
                                         ) : null}
+<<<<<<< Updated upstream
+=======
+
+>>>>>>> Stashed changes
                                     </DialogHeader>
                                 </DialogContent>
                             </Dialog>
