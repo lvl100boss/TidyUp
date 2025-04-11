@@ -162,8 +162,6 @@ export default function Appointments({
                                                 </div>
                                             </div>
                                         </ScrollArea>
-
-
                                         {type === "pending" || type === "upcoming" ? (
                                             <>
                                                 <Separator />
@@ -171,7 +169,6 @@ export default function Appointments({
                                                 <Button variant="destructive">Cancel Appointment</Button>
                                             </>
                                         ) : null}
-
                                     </DialogHeader>
                                 </DialogContent>
                             </Dialog>
