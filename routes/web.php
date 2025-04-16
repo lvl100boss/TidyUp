@@ -7,6 +7,7 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\DiscoverController;
 use App\Http\Controllers\HairSalonShopsController;
 use App\Http\Controllers\ShopController;
+use App\Http\Controllers\ShopResubmissionController;
 use App\Http\Controllers\PopularShopsController;
 use App\Http\Controllers\ReviewController;
 use Illuminate\Foundation\Application;

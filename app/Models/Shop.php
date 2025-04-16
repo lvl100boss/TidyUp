@@ -25,6 +25,7 @@ class Shop extends Model
         'bio',
         'status',
         'rejection_reason',
+        'resubmit_count'
     ];
 
     // Add appends to ensure status is always included
@@ -62,6 +63,11 @@ class Shop extends Model
     {
         return $this->hasMany(ShopServiceCategories::class);
     }
+    // This is the same as shopServiceCategories
+    public function services()
+    {
+        return $this->hasMany(ShopServiceCategories::class);
+    }
 
     public function shopCategories()
     {
@@ -69,6 +75,11 @@ class Shop extends Model
     }
 
     public function shopOperationHours()
+    {
+        return $this->hasMany(OperationHours::class, 'shop_id');
+    }
+    // shopOperationHours and businessHours are the same, but don't remove both of them
+    public function businessHours()
     {
         return $this->hasMany(OperationHours::class, 'shop_id');
     }
@@ -134,10 +145,8 @@ class Shop extends Model
 
     public function subscriptions()
     {
-    return $this->belongsToMany(Subscription::class, 'shop_subscriptions')
-                ->withPivot('start_date', 'end_date', 'status')
-                ->withTimestamps();
+        return $this->belongsToMany(Subscription::class, 'shop_subscriptions')
+            ->withPivot('start_date', 'end_date', 'status')
+            ->withTimestamps();
     }
-
-
 }

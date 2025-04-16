@@ -26,6 +26,7 @@ export default function UpdateProfileInformation({
     const { data, setData, post, errors, processing, recentlySuccessful } =
         useForm({
             first_name: user.first_name,
+            middle_name: user.middle_name,
             last_name: user.last_name,
             email: user.email,
             contact_number: user.contact_number,
@@ -41,6 +42,7 @@ export default function UpdateProfileInformation({
         const formData = new FormData();
         formData.append("_method", "PATCH");
         formData.append("first_name", data.first_name);
+        formData.append("middle_name", data.middle_name);
         formData.append("last_name", data.last_name);
         formData.append("email", data.email);
         formData.append("contact_number", data.contact_number);
@@ -170,6 +172,17 @@ export default function UpdateProfileInformation({
                     />
 
                     <InputError className="mt-2" message={errors.first_name} />
+                </div>
+                <div>
+                    <Label htmlFor="middle_name">Middle Name</Label>
+                    <Input
+                        id="middle_name"
+                        type="text"
+                        value={data.middle_name}
+                        onChange={(e) => setData("middle_name", e.target.value)}
+                        autoComplete="middle_name"
+                    />
+                    <InputError className="mt-2" message={errors.middle_name} />
                 </div>
                 <div>
                     <Label htmlFor="last_name">Last Name</Label>

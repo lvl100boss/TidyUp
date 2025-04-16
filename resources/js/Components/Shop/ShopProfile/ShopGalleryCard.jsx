@@ -113,14 +113,13 @@ const ShopGalleryCard = ({ shop_gallery }) => {
                             <Dialog>
                                 <DialogTrigger asChild>
                                     <div
-                                        className={`aspect-square cursor-pointer relative group overflow-hidden rounded-lg ${
-                                            isEditing &&
+                                        className={`aspect-square cursor-pointer relative group overflow-hidden rounded-lg ${isEditing &&
                                             selectedImages.includes(
                                                 galleryImage.id
                                             )
-                                                ? "ring-2 ring-red-500"
-                                                : ""
-                                        }`}
+                                            ? "ring-2 ring-red-500"
+                                            : ""
+                                            }`}
                                         onClick={(e) => {
                                             if (isEditing) {
                                                 e.preventDefault();

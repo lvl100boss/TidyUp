@@ -149,7 +149,7 @@ export default function Home({ randomShops }) {
                             className="hover:shadow-md transition-all ease-in-out border-0 hover:border-primary hover:bg-muted/30 border-l-4"
                         >
                             <CardHeader>
-                                <CardTitle className="text-xl font-semibold inline-flex gap-2 items-center">
+                                <CardTitle className="text-base inline-flex gap-2 items-center">
                                     <card.icon size={20} />
                                     <span>{card.title}</span>
                                 </CardTitle>

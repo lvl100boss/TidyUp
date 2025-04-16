@@ -5,7 +5,7 @@ import { Link } from "@inertiajs/react";
 import ApplicationLogo from "@/components/ApplicationLogo";
 export default function Footer() {
     return (
-        <footer className={cn("w-full bg-background text-foreground py-8")}>
+        <footer className={cn("w-[100%] bg-background/50 backdrop-blur-3xl text-foreground py-8")}>
             <div className={cn("container mx-auto")}>
                 {/* Main Content */}
                 <div

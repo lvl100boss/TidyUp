@@ -21,6 +21,7 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     protected $fillable = [
         'first_name',
+        'middle_name',
         'last_name',
         'username',
         'email',
@@ -104,5 +105,4 @@ class User extends Authenticatable implements MustVerifyEmail
      * @param string $roleName
      * @return bool
      */
-
 }

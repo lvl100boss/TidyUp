@@ -40,7 +40,6 @@ class ShopDashboardService
                 'shop_name' => $shop->shop_name,
                 'user_id' => $userId
             ]);
-
             return [
                 'shop' => $shop,
                 'user' => $user,
@@ -51,6 +50,7 @@ class ShopDashboardService
                 'completedBookingsChange' => $this->getCompletedBookingsChange($shop->id),
                 'totalRevenue' => $this->getTotalRevenue($shop->id),
                 'revenueChange' => $this->getRevenueChange($shop->id),
+                'shopActiveStaffCount' => $this->getShopActiveStaffCount($shop->id),
             ];
         } catch (\Exception $e) {
             Log::error('Error getting shop data', [
@@ -216,5 +216,12 @@ class ShopDashboardService
         }
 
         return $percentChange;
+    }
+
+    private function getShopActiveStaffCount($shopId)
+    {
+        return ShopStaffs::where('shop_id', $shopId)
+            ->where('is_active', 1)
+            ->count();
     }
 }

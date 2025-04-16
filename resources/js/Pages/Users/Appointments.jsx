@@ -179,37 +179,30 @@ export default function Appointments({
                                             </div>
                                             <div>
                                                 <h1 className="text-xl font-semibold mb-2">Services:</h1>
-                                                <ul className="space-y-2">
+                                                <ul className="space-y-2 bg-muted/30 p-4 rounded-lg">
                                                     {appointment.appointment_services.map((service) => (
                                                         <li key={service.shop_service.id}>
                                                             <div className="flex items-center justify-between gap-2 mb-2">
                                                                 <p>{service.shop_service.service_name} ({service.shop_service.duration_hour}h {service.shop_service.duration_minute}m)</p>
                                                                 <p>Php {service.shop_service.cost}</p>
                                                             </div>
-                                                            <Separator />
                                                         </li>
                                                     ))}
                                                 </ul>
-                                                <div className="flex items-center justify-between mt-2">
+                                                <div className="flex items-center justify-between mt-4">
                                                     <h1 className="text-xl font-semibold">Total:</h1>
                                                     <h1 className="text-xl font-semibold">Php {appointment.total_price}</h1>
                                                 </div>
                                             </div>
                                         </ScrollArea>
-                                        <Separator />
-                                        {type === "completed" && !appointment.has_review ? (
-                                            <Button 
-                                                onClick={() => handleReviewClick(appointment)} 
-                                                className="bg-primary"
-                                            >
-                                                Rate & Review
-                                            </Button>
-                                        ) : !["completed", "cancelled", "declined", "no-show"].includes(appointment.status) && (
+                                        {type === "pending" || type === "upcoming" ? (
+
                                             <>
+                                                <Separator />
                                                 <Button variant="secondary">Request Reschedule</Button>
                                                 <Button variant="destructive">Cancel Appointment</Button>
                                             </>
-                                        )}
+                                        ) : null}
                                     </DialogHeader>
                                 </DialogContent>
                             </Dialog>
