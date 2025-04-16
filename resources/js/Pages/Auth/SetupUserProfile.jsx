@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from 'react'
 import ApplicationLogo from '@/Components/ApplicationLogo';
-import { Head, useForm } from '@inertiajs/react';
+import { useForm } from '@inertiajs/react';
 import { Label } from "@/Components/ui/label";
 import { Input } from "@/Components/ui/input";
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/Components/ui/select";
 import { Button } from "@/Components/ui/button";
-import InputError from '@/Components/InputError';
+import { Alert, AlertDescription } from "@/Components/ui/alert";
 
 export default function SetupUserProfile() {
+
     const [isDarkTheme, setIsDarkTheme] = useState(false);
     useEffect(() => {
         // Retrieve the theme preference from local storage
@@ -36,20 +36,29 @@ export default function SetupUserProfile() {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        post(route('register.setupProfile.save'), {
-            data: {
-                ...data,
-            },
-        });
+        post(route('register.setupProfile.save'));
     }
+
     return (
-        <section className='grid place-items-center min-h-screen '>
-            <Head title="Setup User Profile" />
+        <section className='grid place-items-center min-h-screen'>
             <div className="max-w-xl mx-auto">
                 <ApplicationLogo className="size-28 mx-auto" />
                 <h1 className='text-center text-4xl font-medium mt-4'>Welcome!</h1>
                 <h1 className='text-center text-4xl font-medium mb-4'> Let's set up your profile.</h1>
                 <p className='text-sm text-muted-foreground text-center mb-4'>Tell us a bit about yourself to get started.</p>
+
+                {errors.first_name && (
+                    <Alert variant="destructive" className="mb-4">
+                        <AlertDescription>{errors.first_name}</AlertDescription>
+                    </Alert>
+                )}
+
+                {errors.last_name && (
+                    <Alert variant="destructive" className="mb-4">
+                        <AlertDescription>{errors.last_name}</AlertDescription>
+                    </Alert>
+                )}
+
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
                         <Label htmlFor="first_name">First Name</Label>
@@ -58,9 +67,8 @@ export default function SetupUserProfile() {
                             value={data.first_name}
                             onChange={(e) => setData("first_name", e.target.value)}
                             placeholder="Enter your first name"
+                            required
                         />
-                        {/* display errors.first_name if needed */}
-                        <InputError message={errors.first_name} className="mt-2" />
                     </div>
                     <div>
                         <Label htmlFor="middle_name">Middle Name (optional)</Label>
@@ -70,24 +78,20 @@ export default function SetupUserProfile() {
                             onChange={(e) => setData("middle_name", e.target.value)}
                             placeholder="Enter your middle name"
                         />
-                        <InputError message={errors.middle_name} className="mt-2" />
                     </div>
-                    <div >
+                    <div>
                         <Label htmlFor="last_name">Last Name</Label>
                         <Input
                             id="last_name"
                             value={data.last_name}
                             onChange={(e) => setData("last_name", e.target.value)}
                             placeholder="Enter your last name"
+                            required
                         />
-                        <InputError message={errors.last_name} className="mt-2" />
                     </div>
-
-                    <div>
-                        <Button type="submit" disabled={processing} className="w-full mt-4">
-                            Confirm
-                        </Button>
-                    </div>
+                    <Button type="submit" disabled={processing} className="w-full mt-4">
+                        {processing ? 'Processing...' : 'Confirm'}
+                    </Button>
                 </form>
             </div>
         </section>

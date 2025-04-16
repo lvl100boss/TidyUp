@@ -3,6 +3,7 @@ import Header from "@/Components/Shop/Header";
 import Sidebar from "@/Components/Shop/Sidebar";
 import ShopMobileNavButton from "@/Components/ShopMobileNavButton";
 import { Toaster } from 'sonner';
+import GradientBackground from "@/Components/GradientBackground";
 
 export default function ShopsLayout({ children }) {
     const [isDarkTheme, setIsDarkTheme] = useState(false);
@@ -28,6 +29,7 @@ export default function ShopsLayout({ children }) {
     };
     return (
         <div className="py-2 px-5 relative min-h-screen">
+            <GradientBackground />
             <Header onClick={toggleTheme} isDarkTheme={isDarkTheme} />
             <div className="flex gap-5 mt-[4.5rem]">
                 <Sidebar />

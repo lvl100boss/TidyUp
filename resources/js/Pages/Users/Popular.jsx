@@ -42,7 +42,7 @@ export default function Popular({ shops }) {
         <UserLayout>
             <Head title="Popular" />
             <div>
-                <h1 className="text-nowrap text-2xl font-semibold">
+                <h1 className="text-nowrap text-2xl">
                     Most Popular
                 </h1>
             </div>

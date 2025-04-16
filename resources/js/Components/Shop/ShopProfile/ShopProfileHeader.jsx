@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Pencil } from "lucide-react";
 import { EditShopProfileForm } from "./EditShopProfileForm";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
 
 export default function ShopProfileHeader({ shop }) {
     const [open, setOpen] = useState(false);
@@ -27,8 +28,10 @@ export default function ShopProfileHeader({ shop }) {
         }
     }, [shop.shop_photo]);
 
-
-
+    // Get the first category ID if available, otherwise use null
+    const defaultCategoryId = shop.shop_categories?.length > 0
+        ? shop.shop_categories[0].category_id
+        : null;
 
     return (
         <Card>
@@ -54,7 +57,16 @@ export default function ShopProfileHeader({ shop }) {
                         <p className="text-muted-foreground">
                             {shop.bio}
                         </p>
-
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                        {shop.shop_categories?.map((category) => (
+                            <Badge
+                                key={category.category_id}
+                                variant="secondary"
+                            >
+                                {category.categories?.name || 'Uncategorized'}
+                            </Badge>
+                        ))}
                     </div>
                     <Dialog open={open} onOpenChange={setOpen}>
                         <DialogTrigger asChild>

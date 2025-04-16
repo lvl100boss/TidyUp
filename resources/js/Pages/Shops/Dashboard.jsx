@@ -31,6 +31,7 @@ import { Head, Link } from "@inertiajs/react";
 import { ScrollArea } from "@/components/ui/scroll-area"
 import ShopStatusWarning from "@/Components/Shop/ShopStatusWarning";
 import { Button } from "@/components/ui/button";
+import { Toaster } from "sonner";
 
 const Dashboard = ({
     shop,
@@ -44,7 +45,8 @@ const Dashboard = ({
     revenueChange = 0,
     shopStatusMessage,
     error,
-    isOwner
+    isOwner,
+    shopActiveStaffCount
 }) => {
     // Handle any potential errors from the backend
     if (error) {
@@ -78,7 +80,7 @@ const Dashboard = ({
         },
         {
             title: "Active Employees",
-            value: "5",
+            value: shopActiveStaffCount,
             icon: <Users className="h-4 w-4 text-muted-foreground" />,
             change: "2 new employees",
             trend: "positive",
@@ -232,23 +234,15 @@ const Dashboard = ({
     return (
         <ShopsLayout>
             <Head title="Dashboard" />
+            <Toaster />
             <div className="flex-1 space-y-4">
                 {/* Show status warning if applicable */}
                 {shopStatusMessage && (
-                    <ShopStatusWarning statusMessage={shopStatusMessage} />
+                    <ShopStatusWarning statusMessage={shopStatusMessage} shop={shop} />
                 )}
-                
-                {isOwner && (
-                    <div className="flex justify-end">
-                        <Link href="/shop/profile">
-                            <Button variant="outline">
-                                <Settings className="w-4 h-4 mr-2" />
-                                Edit Shop Profile
-                            </Button>
-                        </Link>
-                    </div>
-                )}
-                
+
+
+
                 {/* Rest of the dashboard */}
                 <div className="flex items-center justify-between space-y-2">
                     <div>
@@ -259,6 +253,16 @@ const Dashboard = ({
                             Welcome back, {user.first_name}!
                         </p>
                     </div>
+                    {isOwner && (
+                        <div className="flex justify-end">
+                            <Link href="/shop/profile">
+                                <Button variant="outline">
+                                    <Settings className="w-4 h-4 mr-2" />
+                                    Edit Shop Profile
+                                </Button>
+                            </Link>
+                        </div>
+                    )}
                 </div>
 
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">

@@ -6,16 +6,18 @@ use App\Models\Shop;
 use App\Models\OperationHours;
 use App\Models\ShopStaffs;
 use App\Models\User;
+use App\Models\ShopCategory;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Auth;
 
 class ShopProfileController extends Controller
 {
     public function index()
     {
-        $user = User::find(auth()->id());
+        $user = Auth::user();
         $shopStaff = ShopStaffs::where('staff_id', $user->id)->first();
         $shop = $shopStaff->shop;
         $shop = $shop->load([
@@ -23,7 +25,8 @@ class ShopProfileController extends Controller
             'shopOperationHours',
             'shopServiceCategories.serviceCategories',
             'staffs.staff',
-            'socialMedia'
+            'socialMedia',
+            'shopCategories.categories',
         ]);
         // dd($shop);
 
@@ -133,10 +136,12 @@ class ShopProfileController extends Controller
                 'shop_name' => 'required|string|max:255',
                 'bio' => 'nullable|string|max:500',
                 'shop_photo' => 'nullable|image|mimes:jpeg,png,jpg,webp,gif|max:24048',
+                'shop_categories' => 'required|array',
+                'shop_categories.*' => 'exists:categories,id',
             ]);
 
-            $user_id = auth()->user()->id;
-            $shop = Shop::where('user_id', $user_id)->first();
+            $user = Auth::user();
+            $shop = Shop::where('user_id', $user->id)->first();
 
             if (!$shop) {
                 return redirect()->back()->with('message', 'Shop not found')->with('success', false);
@@ -164,6 +169,41 @@ class ShopProfileController extends Controller
                     Log::error('Error uploading photo: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
                     return redirect()->back()->with('message', 'Failed to upload photo: ' . $e->getMessage())->with('success', false);
                 }
+            }
+
+            // Handle shop categories update
+            try {
+                // Get current shop categories
+                $currentCategories = $shop->shopCategories()->pluck('category_id')->toArray();
+
+                // Categories to add (new ones)
+                $categoriesToAdd = array_diff($validated['shop_categories'], $currentCategories);
+
+                // Categories to remove (ones that are no longer selected)
+                $categoriesToRemove = array_diff($currentCategories, $validated['shop_categories']);
+
+                // Add new categories
+                foreach ($categoriesToAdd as $categoryId) {
+                    ShopCategory::create([
+                        'shop_id' => $shop->id,
+                        'category_id' => $categoryId,
+                    ]);
+                }
+
+                // Remove unselected categories
+                if (!empty($categoriesToRemove)) {
+                    ShopCategory::where('shop_id', $shop->id)
+                        ->whereIn('category_id', $categoriesToRemove)
+                        ->delete();
+                }
+
+                Log::info('Shop categories updated successfully', [
+                    'added' => $categoriesToAdd,
+                    'removed' => $categoriesToRemove
+                ]);
+            } catch (\Exception $e) {
+                Log::error('Error updating shop categories: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+                return redirect()->back()->with('message', 'Failed to update shop categories: ' . $e->getMessage())->with('success', false);
             }
 
             $shop->save();

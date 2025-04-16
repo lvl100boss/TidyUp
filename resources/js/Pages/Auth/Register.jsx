@@ -108,8 +108,7 @@ export default function Register() {
         e.preventDefault();
 
         post(route("register.save"), {
-            onFinish: () => reset("password", "password_confirmation"),
-            preserveScroll: true
+            onFinish: () => reset("password", "password_confirmation")
         });
     };
 
