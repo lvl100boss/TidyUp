@@ -156,9 +156,9 @@ export default function SetupShop({ categories, serviceCategories }) {
 
     const submitForm = (e) => {
         e.preventDefault();
-        
+
         const formData = new FormData();
-        
+
         // Append basic text fields
         formData.append('shop_name', data.shop_name);
         formData.append('shop_bio', data.bio);
@@ -354,12 +354,12 @@ export default function SetupShop({ categories, serviceCategories }) {
     return (
         <>
             <Head title="Shop Setup" />
-            <section className="py-2 px-5 relative min-h-screen pb-40">
+            <section className="py-24 px-5 relative min-h-screen pb-40">
                 <Header onClick={toggleTheme} isDarkTheme={isDarkTheme} />
                 <div className="max-w-screen-md mx-auto">
                     <div>
                         <div className="mb-5">
-                            <h1 className="figtree-semibold text-2xl">
+                            <h1 className="font-semibold text-2xl">
                                 Register your Shop
                             </h1>
                             <p className="text-muted-foreground">

@@ -11,6 +11,7 @@ use App\Http\Controllers\ShopGalleryController;
 use App\Http\Controllers\ShopCatalogController;
 use App\Http\Controllers\ShopSocialMediaController;
 use App\Http\Controllers\ShopSubscriptionController;
+use App\Http\Controllers\ShopResubmissionController;
 use Inertia\Inertia;
 
 //Shop Owner and Shop Staff
@@ -37,6 +38,35 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
 //Shop Owner and Manager
 Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('/shop/resubmission', [ShopResubmissionController::class, 'edit'])->name('shop.resubmission');
+    Route::patch('/shop/resubmit/basicDetails', [ShopResubmissionController::class, 'updateBasicDetails'])->name('shop.resubmission.basicDetails');
+    Route::patch('/shop/resubmit/locationDetails', [ShopResubmissionController::class, 'updateLocationDetails'])->name('shop.resubmission.locationDetails');
+    Route::patch('/shops/resubmission/business-hours', [ShopResubmissionController::class, 'updateBusinessHours'])
+        ->name('shop.resubmission.businessHours');
+    Route::patch('/shop/resubmission/shop-services', [ShopResubmissionController::class, 'updateShopServices'])
+        ->name('shop.resubmission.shopServices');
+
+    // Routes for managing services during resubmission
+    Route::post('/shop/{shop}/resubmission/services', [ShopResubmissionController::class, 'storeService'])
+        ->name('shop.resubmission.services.store');
+    Route::patch('/shop/{shop}/resubmission/services/{service}', [ShopResubmissionController::class, 'updateService'])
+        ->name('shop.resubmission.services.update');
+    Route::delete('/shop/{shop}/resubmission/services/{service}', [ShopResubmissionController::class, 'destroyService'])
+        ->name('shop.resubmission.services.destroy');
+
+    // Route for updating legal documents during resubmission
+    Route::post('/shop/resubmission/legal-documents/{documentType}', [ShopResubmissionController::class, 'updateLegalDocument'])
+        ->name('shop.resubmission.legalDocument.update');
+
+    // Routes for managing gallery photos during resubmission
+    Route::post('/shop/resubmission/gallery/{type}', [ShopResubmissionController::class, 'updateGalleryPhoto'])
+        ->name('shop.resubmission.gallery.update');
+    Route::delete('/shop/resubmission/gallery/{photoId}', [ShopResubmissionController::class, 'deleteGalleryPhoto'])
+        ->name('shop.resubmission.gallery.delete');
+
+    Route::post('/shop/resubmission/submit', [ShopResubmissionController::class, 'resubmitShop'])
+        ->name('shop.resubmission.submit');
+
     Route::get('/shop/manage/staff', [ManageStaffController::class, 'index'])->name('shop.manage.staff');
     Route::controller(ManageStaffController::class)
         ->prefix('/shop/manage/staff')

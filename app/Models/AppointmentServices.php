@@ -2,11 +2,13 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class AppointmentServices extends Model
 {
-    //
+    use HasFactory;
+
     protected $table = 'appointment_services';
 
     protected $fillable = [
@@ -22,7 +24,11 @@ class AppointmentServices extends Model
         return $this->belongsTo(Appointments::class, 'appointment_id');
     }
 
-    public function shopService()
+    /**
+     * Get the shop service associated with this appointment service.
+     * This relates to the service_id column which references shop_service_categories.id
+     */
+    public function shop_service()
     {
         return $this->belongsTo(ShopServiceCategories::class, 'service_id');
     }

@@ -18,6 +18,17 @@ import {
     DropdownMenuSubTrigger,
     DropdownMenuTrigger,
 } from "@/Components/ui/dropdown-menu";
+import {
+    Drawer,
+    DrawerClose,
+    DrawerContent,
+    DrawerDescription,
+    DrawerFooter,
+    DrawerHeader,
+    DrawerTitle,
+    DrawerTrigger,
+} from "@/components/ui/drawerRight"
+import { Separator } from "@/components/ui/separator"
 
 import { Bell, Menu, Search } from "lucide-react";
 import ThemeButton from "@/Components/ThemeButton";
@@ -60,8 +71,12 @@ const Header = ({ onClick, isDarkTheme, setIsDarkTheme }) => {
 
                     </div>
                     <SearchShop />
-                    <DropdownMenu>
-                        <DropdownMenuTrigger>
+                    {/* Notification Button */}
+                    <Drawer
+                        direction="right"
+                        size="sm"
+                    >
+                        <DrawerTrigger>
                             <Button
                                 variant="outline"
                                 radius="round"
@@ -69,11 +84,26 @@ const Header = ({ onClick, isDarkTheme, setIsDarkTheme }) => {
                             >
                                 <Bell className="stroke-2" />
                             </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent className="mr-16 p-0 border-0">
-                            <Notification />
-                        </DropdownMenuContent>
-                    </DropdownMenu>
+                        </DrawerTrigger>
+                        <DrawerContent>
+                            <DrawerHeader>
+                                <div className="flex items-center gap-2">
+                                    <DrawerTitle className='text-left'>Notification</DrawerTitle><Bell size={18} />
+                                </div>
+                                <DrawerDescription className='text-left'>Stay up to date with the latest activity.</DrawerDescription>
+                            </DrawerHeader>
+                            <Separator />
+                            {/* <DrawerFooter>
+                                <Button>Submit</Button>
+                                <DrawerClose>
+                                    <Button variant="outline">Cancel</Button>
+                                </DrawerClose>
+                            </DrawerFooter> */}
+                        </DrawerContent>
+                    </Drawer>
+
+
+
 
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
@@ -114,9 +144,10 @@ const Header = ({ onClick, isDarkTheme, setIsDarkTheme }) => {
                                 </Avatar>
                                 <div>
                                     <h6>
-                                        {user.first_name
-                                            ? `${user.first_name} ${user.last_name}`
-                                            : user.username}
+                                        {user.first_name +
+                                            (user.middle_name ? ` ${user.middle_name[0]}. ` : " ") +
+                                            " " +
+                                            user.last_name}
                                     </h6>
                                     <p className="font-normal">
                                         @{user.username}

@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { Check } from "lucide-react";
 import { toast } from "sonner";
 
 export function EditShopProfileForm({ shop, setOpen }) {
@@ -21,6 +23,7 @@ export function EditShopProfileForm({ shop, setOpen }) {
         shop_name: shop.shop_name || "",
         bio: shop.bio || "",
         shop_photo: null,
+        shop_categories: shop.shop_categories?.map(category => category.category_id.toString()) || [],
     });
 
     useEffect(() => {
@@ -137,6 +140,35 @@ export function EditShopProfileForm({ shop, setOpen }) {
                         {form.errors.bio && (
                             <p className="text-sm font-medium text-red-500">
                                 {form.errors.bio}
+                            </p>
+                        )}
+                    </div>
+
+                    <div className="space-y-2">
+                        <label className="text-sm font-medium leading-none">
+                            Shop Categories
+                        </label>
+                        <ToggleGroup
+                            type="multiple"
+                            variant="outline"
+                            className="w-fit"
+                            onValueChange={(value) => {
+                                form.setData("shop_categories", value);
+                            }}
+                            value={form.data.shop_categories}
+                        >
+                            <ToggleGroupItem value="1" className="flex items-center gap-2">
+                                {form.data.shop_categories.includes("1") && <Check size={16} />}
+                                <span>Barbershop</span>
+                            </ToggleGroupItem>
+                            <ToggleGroupItem value="2" className="flex items-center gap-2">
+                                {form.data.shop_categories.includes("2") && <Check size={16} />}
+                                <span>Hair Salon</span>
+                            </ToggleGroupItem>
+                        </ToggleGroup>
+                        {form.errors.shop_categories && (
+                            <p className="text-sm font-medium text-red-500">
+                                {form.errors.shop_categories}
                             </p>
                         )}
                     </div>

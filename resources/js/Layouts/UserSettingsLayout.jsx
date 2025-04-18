@@ -5,6 +5,7 @@ import Footer from "@/Components/User/Footer";
 import MobileNavButton from "@/Components/MobileNavButton";
 import React, { useState, useEffect } from "react";
 import { usePage } from "@inertiajs/react";
+import GradientBackground from "@/Components/GradientBackground";
 
 export default function UserSettingsLayout({ children }) {
     const user = usePage().props.auth.user;
@@ -32,6 +33,7 @@ export default function UserSettingsLayout({ children }) {
 
     return (
         <div className="py-2 px-5 relative min-h-screen">
+            <GradientBackground />
             <Header
                 onClick={toggleTheme}
                 isDarkTheme={isDarkTheme}

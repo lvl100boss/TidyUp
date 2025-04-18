@@ -8,7 +8,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/Components/ui/select";
-import { Head, usePage } from "@inertiajs/react";
+import { Head, usePage, useForm } from "@inertiajs/react";
 import { useState, useEffect } from "react";
 import ApplicationLogo from "@/Components/ApplicationLogo";
 import { FlashMessage } from "@/Components/FlashMessage"
@@ -19,13 +19,14 @@ import {
     DialogHeader,
     DialogTitle,
     DialogTrigger,
+    DialogFooter,
 } from "@/components/ui/dialog"
 import ResceduleAppointmentCard from "@/Pages/Users/AppointmentPartial/RescheduleAppointmentCard";
 import { Separator } from "@/components/ui/separator"
-import { Calendar, Clock, Scissors } from "lucide-react";
+import { Calendar, Clock, Scissors, Star } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Button } from "@/components/ui/button"
-
+import { Textarea } from "@/components/ui/textarea"
 
 export default function Appointments({
     pendingAppointments,
@@ -40,6 +41,16 @@ export default function Appointments({
     const { flash } = usePage().props;
     const [flashState, setFlashState] = useState({ message: flash.message, success: flash.success });
     const [activeTab, setActiveTab] = useState("upcoming");
+    const [isReviewDialogOpen, setIsReviewDialogOpen] = useState(false);
+    const [appointmentToReview, setAppointmentToReview] = useState(null);
+    const [rating, setRating] = useState(0);
+
+    const { data, setData, post, processing, errors, reset } = useForm({
+        appointment_id: '',
+        user_id: '',
+        rating: 0,
+        comment: ''
+    });
 
     // Handle flash message display
     useEffect(() => {
@@ -77,7 +88,29 @@ export default function Appointments({
         started: startedAppointments,
     };
 
+    const handleReviewClick = (appointment) => {
+        setAppointmentToReview(appointment);
+        setIsReviewDialogOpen(true);
+        setData({
+            appointment_id: appointment.id,
+            user_id: appointment.user_id,
+            rating: 0,
+            comment: ''
+        });
+        setRating(0);
+    };
 
+    const submitReview = (e) => {
+        e.preventDefault();
+        post(route('reviews.store'), {
+            preserveScroll: true,
+            onSuccess: () => {
+                setIsReviewDialogOpen(false);
+                reset();
+                setRating(0);
+            }
+        });
+    };
 
     const getAppointmentContent = (type) => {
         const appointments = appointmentData[type];
@@ -91,7 +124,7 @@ export default function Appointments({
                                 new Date(appointment.created_at) <= new Date()
                         )
                         .map((appointment) => (
-                            <Dialog>
+                            <Dialog key={appointment.id}>
                                 <DialogTrigger className="w-full">
                                     <AppointmentCard
                                         key={appointment.id}
@@ -146,26 +179,30 @@ export default function Appointments({
                                             </div>
                                             <div>
                                                 <h1 className="text-xl font-semibold mb-2">Services:</h1>
-                                                <ul className="space-y-2">
+                                                <ul className="space-y-2 bg-muted/30 p-4 rounded-lg">
                                                     {appointment.appointment_services.map((service) => (
                                                         <li key={service.shop_service.id}>
                                                             <div className="flex items-center justify-between gap-2 mb-2">
                                                                 <p>{service.shop_service.service_name} ({service.shop_service.duration_hour}h {service.shop_service.duration_minute}m)</p>
                                                                 <p>Php {service.shop_service.cost}</p>
                                                             </div>
-                                                            <Separator />
                                                         </li>
                                                     ))}
                                                 </ul>
-                                                <div className="flex items-center justify-between mt-2">
+                                                <div className="flex items-center justify-between mt-4">
                                                     <h1 className="text-xl font-semibold">Total:</h1>
                                                     <h1 className="text-xl font-semibold">Php {appointment.total_price}</h1>
                                                 </div>
                                             </div>
                                         </ScrollArea>
-                                        <Separator />
-                                        <Button variant="secondary">Request Reschedule</Button>
-                                        <Button variant="destructive">Cancel Appointment</Button>
+                                        {type === "pending" || type === "upcoming" ? (
+
+                                            <>
+                                                <Separator />
+                                                <Button variant="secondary">Request Reschedule</Button>
+                                                <Button variant="destructive">Cancel Appointment</Button>
+                                            </>
+                                        ) : null}
                                     </DialogHeader>
                                 </DialogContent>
                             </Dialog>
@@ -234,7 +271,7 @@ export default function Appointments({
                                             {appointmentData[type]?.length}
                                         </div>
                                     )}
-                                </div >
+                                </div>
                             </TabsTrigger>
                         ))}
                     </TabsList>
@@ -267,6 +304,60 @@ export default function Appointments({
                     )}
                 </div>
             </div>
-        </UserLayout >
+
+            {/* Review Dialog */}
+            <Dialog open={isReviewDialogOpen} onOpenChange={setIsReviewDialogOpen}>
+                <DialogContent className="sm:max-w-[425px]">
+                    <DialogHeader>
+                        <DialogTitle>Rate Your Experience</DialogTitle>
+                        <DialogDescription>
+                            Share your feedback about the service you received
+                        </DialogDescription>
+                    </DialogHeader>
+                    <form onSubmit={submitReview}>
+                        <div className="grid gap-4 py-4">
+                            <div className="flex items-center justify-center space-x-1 mb-2">
+                                {[1, 2, 3, 4, 5].map((star) => (
+                                    <Star
+                                        key={star}
+                                        className={`cursor-pointer h-8 w-8 ${star <= rating ? "fill-yellow-400 text-yellow-400" : "text-gray-300"}`}
+                                        onClick={() => {
+                                            setRating(star);
+                                            setData('rating', star);
+                                        }}
+                                    />
+                                ))}
+                            </div>
+                            {errors.rating && <p className="text-red-500 text-sm text-center">{errors.rating}</p>}
+                            
+                            <div className="space-y-2">
+                                <Textarea
+                                    placeholder="Share details of your experience with this service..."
+                                    value={data.comment}
+                                    onChange={(e) => setData('comment', e.target.value)}
+                                    rows={4}
+                                />
+                                {errors.comment && <p className="text-red-500 text-sm">{errors.comment}</p>}
+                            </div>
+                        </div>
+                        <DialogFooter>
+                            <Button 
+                                type="button" 
+                                variant="outline" 
+                                onClick={() => setIsReviewDialogOpen(false)}
+                            >
+                                Cancel
+                            </Button>
+                            <Button 
+                                type="submit" 
+                                disabled={processing || !rating}
+                            >
+                                Submit Review
+                            </Button>
+                        </DialogFooter>
+                    </form>
+                </DialogContent>
+            </Dialog>
+        </UserLayout>
     );
 }

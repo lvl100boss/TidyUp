@@ -38,7 +38,7 @@ export default function Discover({ shops, barberShops, salons }) {
             <div className="space-y-4 min-h-screen">
                 {/* Header */}
                 <div className="flex flex-col">
-                    <h1 className="text-2xl font-bold">Discover Services</h1>
+                    <h1 className="text-2xl ">Discover Services</h1>
                     <p className="text-muted-foreground text-xs">
                         Find and book the best services in your area
                     </p>
@@ -69,20 +69,11 @@ export default function Discover({ shops, barberShops, salons }) {
                     </div>
                 </div>
                 <div>
-                    <div className="relative w-full py-24 mt-20 rounded-md bg-gradient-to-r from-muted/30 via-muted/70 to-muted/30 overflow-hidden">
-                        {/* Light rays effect */}
-                        <div className="absolute inset-0 flex justify-center">
-                            <div className="w-1/2 h-full bg-gradient-to-b from-primary/10 via-primary/5 to-transparent blur-xl transform -translate-y-1/2"></div>
-                        </div>
-                        <div className="absolute inset-0 flex justify-center items-center">
-                            <div className="w-3/4 h-1 bg-gradient-to-r from-transparent via-primary/20 to-transparent"></div>
-                        </div>
-
-                        {/* Category heading with improved styling */}
+                    <div className="relative w-full py-24 mt-20 rounded-md overflow-hidden bg-[url(https://images.unsplash.com/photo-1588345921523-c2dcdb7f1dcd?w=800&dpr=2&q=80)]  bg-cover bg-center dark:invert ">
                         <div className="relative z-10">
                             <h1 className="text-center text-xl sm:text-3xl font-semibold tracking-wider">
                                 <span className="relative inline-block px-2">
-                                    <span className="relative z-10 py-1 px-4 border-primary/70 hover:border-primary transition-colors duration-300">
+                                    <span className="relative z-10 py-1 px-4 border-primary/70 hover:border-primary transition-colors duration-300 dark:text-black">
                                         EXPLORE BY CATEGORIES
                                     </span>
 
@@ -91,9 +82,7 @@ export default function Discover({ shops, barberShops, salons }) {
                             <p className="mt-3 text-center text-sm sm:text-base text-muted-foreground">
                                 Discover specialized services tailored to your specific needs and preferences
                             </p>
-                            <div className="mt-4 flex justify-center">
-                                <div className="h-1 w-16 bg-gradient-to-r from-transparent via-primary/50 to-transparent rounded-full"></div>
-                            </div>
+
                         </div>
                     </div>
                 </div>

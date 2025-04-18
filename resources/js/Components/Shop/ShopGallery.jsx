@@ -87,8 +87,8 @@ export default function ShopGallery({ shop }) {
         </CardContent>
       </Card>
 
-      <Dialog 
-        open={!!selectedImage} 
+      <Dialog
+        open={!!selectedImage}
         onOpenChange={() => setSelectedImage(null)}
       >
         <DialogContent className="max-w-4xl p-0 overflow-hidden bg-black/90">
@@ -101,7 +101,7 @@ export default function ShopGallery({ shop }) {
             >
               <X className="h-5 w-5" />
             </Button>
-            
+
             {shop.shop_gallery.length > 1 && (
               <>
                 <Button

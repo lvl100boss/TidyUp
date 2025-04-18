@@ -17,8 +17,11 @@ class OperationHours extends Model
         'close_time'
     ];
 
-    public function branch()
+    /**
+     * Get the shop that owns the operation hours.
+     */
+    public function shop()
     {
-        return $this->belongsTo(ShopBranch::class, 'branch_id');
+        return $this->belongsTo(Shop::class, 'shop_id');
     }
 }
