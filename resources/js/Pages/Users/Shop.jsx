@@ -131,10 +131,11 @@ export default function Shop({ shop, randomShops, reviews }) {
                         groupedServices={groupedServices}
                     />
 
+                    <ShopDetailsCard shop={shop} />
+
                     {/* Reviews Section */}
                     <ReviewsSection reviews={reviews} />
 
-                    <ShopDetailsCard shop={shop} />
                 </div>
                 <div className="lg:w-[15rem] 2xl:w-[22rem] hidden lg:block">
                     <div className="border p-5 rounded-md sticky top-20">
