@@ -55,8 +55,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     })->name('ReportAnIssue');
 
     // Add a route for SetupShop with middleware
-    Route::get('/shop/setup', [ShopController::class, 'setup'])->name('shop.setup');
-    Route::post('/shop/setup', [ShopController::class, 'store'])->name('shop.store');
+    Route::middleware(['auth', 'verified', 'shop.creation'])->group(function () {
+        Route::get('/shop/setup', [ShopController::class, 'create'])->name('shop.setup');
+        Route::post('/shop/setup', [ShopController::class, 'store'])->name('shop.store');
+    });
 });
 
 // Fix the shop detail route pattern to match the links being generated
@@ -64,11 +66,8 @@ Route::get('/shop/{id}', [ShopController::class, 'show'])->where('id', '[0-9]+')
 // Add a compatibility route for links that might be using the /{id}/shop pattern
 Route::get('/{id}/shop', [ShopController::class, 'show'])->where('id', '[0-9]+');
 
-// Review routes
 Route::post('/reviews', [ReviewController::class, 'store'])->name('reviews.store');
 
-Route::get('/shop/setup', [ShopController::class, 'create'])->name('shop.setup');
-Route::post('/shop/setup', [ShopController::class, 'store'])->name('shop.store');
 
 // Debug route - kept for future potential issues
 Route::get('/debug/check-documents/{shopId}', function ($shopId) {
