@@ -54,7 +54,21 @@ class Appointments extends Model
         return $this->hasMany(UserAppointments::class, 'appointment_id');
     }
 
+    /**
+     * Get the review for the appointment.
+     */
+    public function review()
+    {
+        return $this->hasOne(Review::class, 'appointment_id');
+    }
 
+    /**
+     * Get the services associated with the appointment.
+     */
+    public function services()
+    {
+        return $this->hasMany(AppointmentServices::class, 'appointment_id');
+    }
 
     // Helper scope for filtering by status
     public function scopeWithStatus($query, $status)

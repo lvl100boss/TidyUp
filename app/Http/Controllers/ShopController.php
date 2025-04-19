@@ -19,6 +19,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Notifications\NewShopRegistrationNotification;
+use App\Models\Review;
 
 class ShopController extends Controller
 {
@@ -222,7 +223,7 @@ class ShopController extends Controller
         }
     }
 
-    public function show($id)
+    public function show(Request $request, $id)
     {
         // Make sure $id is numeric before processing
         if (!is_numeric($id)) {
@@ -254,9 +255,23 @@ class ShopController extends Controller
             ->inRandomOrder()
             ->limit(10)
             ->get();
+
+        // Get reviews for this shop with all necessary relationships
+        $reviews = Review::with([
+            'user',
+            'appointment.services.shop_service'
+        ])
+            ->whereHas('appointment', function ($query) use ($id) {
+                $query->where('shop_id', $id)
+                    ->where('status', 'completed');
+            })
+            ->latest()
+            ->get();
+
         return Inertia::render('Users/Shop', [
             'shop' => $shop,
-            'randomShops' => $randomShops
+            'randomShops' => $randomShops,
+            'reviews' => $reviews
         ]);
     }
 
