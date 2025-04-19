@@ -34,7 +34,7 @@ const Header = ({ onClick, isDarkTheme }) => {
     }, []);
     return (
         <header
-            className={`flex justify-between items-center mb-3 fixed top-0 left-0 right-0 z-50 px-5 py-3 bg-background/90 backdrop-blur border-dashed ${isScrolled ? "border-b" : ""
+            className={`flex justify-between items-center mb-3 fixed top-0 left-0 right-0 z-50 px-5 py-3 bg-background/50 backdrop-blur-2xl border-dashed ${isScrolled ? "border-b" : ""
                 }`}
         >
             <div>

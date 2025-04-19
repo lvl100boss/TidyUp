@@ -206,7 +206,6 @@ class ShopController extends Controller
                 'success' => true,
                 'message' => 'Shop registration submitted successfully and is awaiting verification'
             ]);
-
         } catch (\Exception $e) {
             DB::rollBack();
 
