@@ -2,8 +2,9 @@ import React, { useState, useEffect } from "react";
 import { Input } from "@/Components/ui/input";
 import { Label } from "@/Components/ui/label";
 import InputError from "@/Components/InputError";
-import { 
-    Info, CheckCircle, AlertTriangle, XCircle, Loader2, X, Calendar
+import {
+    Info, CheckCircle, AlertTriangle, XCircle, Loader2, X,
+    Server, Cpu, CheckCircle2, Calendar
 } from "lucide-react";
 import axios from "axios";
 import { Button } from "@/Components/ui/button";
@@ -79,12 +80,12 @@ export default function BusinessPermit({
             // Reset only specific document type
             setVerificationStatus(prev => ({
                 ...prev,
-                [documentType]: { 
-                    status: null, 
-                    message: "", 
-                    issue: null, 
-                    statusType: null, 
-                    loading: false 
+                [documentType]: {
+                    status: null,
+                    message: "",
+                    issue: null,
+                    statusType: null,
+                    loading: false
                 }
             }));
         } else {
@@ -163,10 +164,10 @@ export default function BusinessPermit({
                     adminReview: result.adminReview || false
                 }
             }));
+
         } catch (error) {
             console.error("Document verification error, accepting document:", error);
             
-            // Always accept the document, with a simplified message
             setVerificationStatus(prev => ({
                 ...prev,
                 [documentType]: {
@@ -188,10 +189,10 @@ export default function BusinessPermit({
         if (e.target.files && e.target.files.length > 0) {
             // Reset the verification status before starting a new verification
             resetVerification(documentType);
-            
+
             // Call the original handler to update the preview
             originalHandler(e);
-            
+
             // Automatically verify the document when file is selected
             verifyDocument(documentType, e.target.files[0]);
         } else {
@@ -265,7 +266,7 @@ export default function BusinessPermit({
 
         if (status === null) return null;
 
-        // Expiration badge component to show expiration status
+
         const ExpirationBadge = () => {
             if (!dateInfo || !dateInfo.status) return null;
             
@@ -292,7 +293,7 @@ export default function BusinessPermit({
                 default:
                     return null;
             }
-            
+
             return (
                 <span className={`text-xs font-medium px-2 py-1 rounded ${color} inline-flex items-center ml-2`}>
                     {icon} {text}
@@ -303,6 +304,7 @@ export default function BusinessPermit({
         // Date badge component to show expiration date
         const DateBadge = () => {
             if (!dateInfo) return null;
+
             
             let color = "bg-green-950 text-green-100 dark:bg-green-100 dark:text-green-800";
             let icon = <Calendar className="h-3 w-3 mr-1" />;
@@ -319,7 +321,7 @@ export default function BusinessPermit({
                     color = "bg-blue-950 text-blue-100 dark:bg-blue-100 dark:text-blue-800";
                 }
             }
-            
+
             return (
                 <span className={`text-xs font-medium px-2 py-1 rounded ${color} inline-flex items-center ml-2`}>
                     {icon} {text}
@@ -330,7 +332,7 @@ export default function BusinessPermit({
         // Render suggestions if available
         const SuggestionsList = () => {
             if (!suggestions || suggestions.length === 0) return null;
-            
+
             return (
                 <div className="mt-2 text-sm">
                     <p className="font-medium">Information:</p>
@@ -348,6 +350,7 @@ export default function BusinessPermit({
             if (!adminReview && !fallback) return null;
             
             return (
+
                 <Badge variant="outline" className="ml-2 text-xs font-normal bg-blue-100 text-blue-800 border-blue-300">
                     Admin Review
                 </Badge>
@@ -374,7 +377,7 @@ export default function BusinessPermit({
     return (
         <div className="space-y-6">
             <h1 className="text-xl font-semibold">Legal Documents</h1>
-            
+
             <div className="space-y-4">
                 <h2 className="text-lg font-semibold">Business Permit</h2>
                 <Label htmlFor="business_permit">Upload Business Permit</Label>

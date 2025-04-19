@@ -13,8 +13,8 @@ export default function Subscription({ subscriptions: initialSubscriptions }) {
     const [formData, setFormData] = useState({
         id: null,
         tier: "",
-        monthly_price: "",
-        yearly_price: "",
+        monthly_price: 0 || "",
+        yearly_price: 0 || "",
         monthly_discount: "",
         yearly_discount: "",
         status: "active", // Add status field with default value
@@ -24,8 +24,8 @@ export default function Subscription({ subscriptions: initialSubscriptions }) {
         setFormData({
             id: null,
             tier: "",
-            monthly_price: "",
-            yearly_price: "",
+            monthly_price: 0 || "",
+            yearly_price: 0 || "",
             monthly_discount: "",
             yearly_discount: "",
             status: "active", // Reset status to 'active' by default
