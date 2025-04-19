@@ -11,7 +11,7 @@ use App\Http\Controllers\ShopResubmissionController;
 use App\Http\Controllers\PopularShopsController;
 use App\Http\Controllers\ReviewController;
 use Illuminate\Foundation\Application;
-
+use App\Http\Controllers\NewsletterSubscriptionController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -31,6 +31,7 @@ Route::middleware(EnsureVerifiedIfAuthenticated::class)->group(function () {
     Route::get('/aboutus', function () {
         return Inertia::render('AboutUs');
     })->name('AboutUs');
+    Route::post('/newsletter', [NewsletterSubscriptionController::class, 'store'])->name('newsletter.subscribe');
 });
 
 Route::middleware(['auth', 'verified'])->group(function () {

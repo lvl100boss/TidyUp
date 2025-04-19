@@ -38,9 +38,9 @@ export default function Discover({ shops, barberShops, salons }) {
             <div className="space-y-4 min-h-screen">
                 {/* Header */}
                 <div className="flex flex-col">
-                    <h1 className="text-2xl ">Discover Services</h1>
+                    <h1 className="text-2xl ">Discover Shops</h1>
                     <p className="text-muted-foreground text-xs">
-                        Find and book the best services in your area
+                        Find and book the best shops in your area
                     </p>
                 </div>
                 <div>

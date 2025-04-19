@@ -24,6 +24,7 @@ import {
 import ShopCard from "@/Components/User/ShopCard";
 import { useEffect, useState } from "react";
 import HeroSection from "@/Components/User/Home/HeroSection";
+import { Toaster } from "sonner";
 
 export default function Home({ randomShops }) {
 
@@ -105,7 +106,7 @@ export default function Home({ randomShops }) {
     return (
         <UserLayout>
             <Head title="Home" />
-
+            <Toaster richColors />
             <HeroSection />
             <div className="flex items-end justify-between mb-5">
                 <h4 className="text-lg font-medium p-2 border-b border-foreground">

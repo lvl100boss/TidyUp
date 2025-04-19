@@ -107,7 +107,7 @@ export default function HeroSection() {
                     </div>
                 </div>
 
-                <div className="w-full md:w-1/2 md:pl-8">
+                <div className="hidden md:block w-full md:w-1/2 md:pl-8">
                     <img
                         src="https://illustrations.popsy.co/amber/studying.svg"
                         alt="Beauty Services Illustration"
