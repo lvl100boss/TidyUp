@@ -2,11 +2,38 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Link } from "@inertiajs/react";
+import { useForm } from "@inertiajs/react";
+import { toast } from "sonner";
 import ApplicationLogo from "@/components/ApplicationLogo";
 export default function Footer() {
+    const { data, setData, post, processing, errors, reset } = useForm({
+        email: '',
+    });
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+
+
+        post(route('newsletter.subscribe'), {
+            preserveScroll: true,
+            preserveState: true,
+            data: {
+                email: data.email,
+            },
+            onSuccess: () => {
+                reset();
+                toast.success('You have been subscribed to the newsletter');
+            },
+            onError: () => {
+                toast.error('Failed to subscribe to the newsletter');
+            },
+        });
+    };
+
     return (
         <footer className={cn("w-[100%] bg-background/50 backdrop-blur-3xl text-foreground py-8")}>
-            <div className={cn("container mx-auto")}>
+
+            <div className={cn("container mx-auto px-2")}>
                 {/* Main Content */}
                 <div
                     className={cn(
@@ -169,12 +196,16 @@ export default function Footer() {
                             <h3 className={cn("text-lg font-semibold")}>
                                 Newsletter
                             </h3>
-                            <form className={cn("mt-2 flex flex-col gap-2")}>
+                            <form className={cn("mt-2 flex flex-col gap-2")} onSubmit={handleSubmit}>
                                 <Input
                                     type="email"
                                     placeholder="Enter your email"
+                                    value={data.email}
+                                    onChange={(e) => setData('email', e.target.value)}
                                 />
-                                <Button type="submit">Subscribe</Button>
+                                <Button type="submit" disabled={processing}>
+                                    {processing ? 'Subscribing...' : 'Subscribe'}
+                                </Button>
                             </form>
                         </div>
                     </div>
