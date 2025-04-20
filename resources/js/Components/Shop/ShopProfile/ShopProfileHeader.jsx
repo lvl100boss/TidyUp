@@ -13,7 +13,7 @@ import { EditShopProfileForm } from "./EditShopProfileForm";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 
-export default function ShopProfileHeader({ shop }) {
+export default function ShopProfileHeader({ shop, isOwnerOrManager }) {
     const [open, setOpen] = useState(false);
     const [shopPhotoUrl, setShopPhotoUrl] = useState('');
 
@@ -69,21 +69,23 @@ export default function ShopProfileHeader({ shop }) {
                             ))}
                         </div>
                     </div>
-                    <Dialog open={open} onOpenChange={setOpen}>
-                        <DialogTrigger asChild>
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                className="gap-2 w-full sm:w-auto mt-4 sm:mt-0"
-                            >
-                                <Pencil className="h-4 w-4" />
-                                Edit Profile
-                            </Button>
-                        </DialogTrigger>
-                        <DialogContent className="sm:max-w-[425px]">
-                            <EditShopProfileForm shop={shop} setOpen={setOpen} />
-                        </DialogContent>
-                    </Dialog>
+                    {isOwnerOrManager && (
+                        <Dialog open={open} onOpenChange={setOpen}>
+                            <DialogTrigger asChild>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="gap-2 w-full sm:w-auto mt-4 sm:mt-0"
+                                >
+                                    <Pencil className="h-4 w-4" />
+                                    Edit Profile
+                                </Button>
+                            </DialogTrigger>
+                            <DialogContent className="sm:max-w-[425px]">
+                                <EditShopProfileForm shop={shop} setOpen={setOpen} />
+                            </DialogContent>
+                        </Dialog>
+                    )}
                 </div>
             </CardContent>
         </Card>

@@ -12,6 +12,10 @@ class NewsletterSubscriptionController extends Controller
     {
         $request->validate([
             'email' => 'required|email|unique:newsletter_subscription,email',
+        ], [
+            'email.required' => 'Email is required',
+            'email.email' => 'Invalid email address',
+            'email.unique' => 'You are already subscribed',
         ]);
 
         NewsletterSubscription::create([

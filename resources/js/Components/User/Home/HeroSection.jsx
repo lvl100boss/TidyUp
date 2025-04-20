@@ -5,78 +5,49 @@ import { Calendar, Clock, Star } from "lucide-react";
 import { useEffect, useState } from "react";
 
 export default function HeroSection() {
-    // Add state for the animated background
     const [mounted, setMounted] = useState(false);
 
-    // Ensure the animation runs only after component mounts
     useEffect(() => {
         setMounted(true);
     }, []);
 
+    // Removed two-column animation variants
+
     return (
-        // Hero Section with animated radial gradient
-        <div className={` relative p-8 rounded-lg mb-8 shadow-md border overflow-hidden ${mounted ? 'animate-radial-gradient' : 'bg-gradient-to-r from-blue-50 to-indigo-50'}`}
-            style={{
-                backgroundSize: '300% 300%',
-                backgroundImage: 'radial-gradient(circle at center,  #ede9fe 0%, #e0f2fe 20%,  #fafafa 60%, #ede9fe 75%, #e0f2fe 100%)', // blue-50, indigo-50, neutral-50, purple-50
-                backgroundPosition: 'center',
-            }}>
+        // Kept padding adjustments
+        <div className="relative w-full py-20 sm:py-28 flex items-center justify-center">
+            {/* Adjusted max-width, added text-center */}
+            <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                {/* Removed grid layout */}
+                <motion.div
+                    // Main content animation
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.8 }}
+                    // Added text-center, adjusted spacing
+                    className="space-y-8"
+                >
+                    {/* Kept heading size, but added class to span for emphasis */}
+                    <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-primary via-primary/80 to-primary/60">
+                        Your Next Look
+                        {/* Removed text-primary from span as gradient is applied to parent */}
+                        <span className="block mt-2 lg:text-7xl">Is Just a Click Away</span>
+                    </h1>
 
-            <style jsx global>{`
-                @keyframes radial-gradient {
-                    0% {
-                        background-position: 0% 0%;
-                    }
-                    25% {
-                        background-position: 75% 25%;
-                    }
-                    50% {
-                        background-position: 100% 100%;
-                    }
-                    75% {
-                        background-position: 25% 75%;
-                    }
-                    100% {
-                        background-position: 0% 0%;
-                    }
-                }
-                .animate-radial-gradient {
-                    animation: radial-gradient 12s ease infinite;
-                }
-            `}</style>
+                    {/* Kept paragraph centered */}
+                    <p className="text-lg text-muted-foreground/90 max-w-2xl mx-auto">
+                        Discover and book appointments with top barbershops and salons in your area. Quick, easy, and stylish.
+                    </p>
 
-            <div className="flex flex-col md:flex-row items-center max-w-6xl mx-auto">
-                <div className="md:w-1/2 mb-6 md:mb-0">
-                    <motion.h1
-                        initial={{ opacity: 0, y: -20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.8 }}
-                        className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-800 mb-4 figtree-light"
-                    >
-                        Transformation in a <br />
-                        <span>Click of a Button</span>
-                    </motion.h1>
-
-                    <motion.p
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.3, duration: 0.8 }}
-                        className=" text-gray-600 mb-6 font-light"
-                    >
-                        A comprehensive booking platform for beauty-related
-                        services, offering users ease and comfort.
-                    </motion.p>
-
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ delay: 0.6, duration: 0.5 }}
-                        className="flex flex-wrap gap-3"
-                    >
+                    {/* Centered buttons */}
+                    <div className="flex flex-wrap gap-4 justify-center pt-4">
                         <Link
                             href="/discover"
                             className={buttonVariants({
                                 variant: "default",
+                                size: "lg",
+                                // Added hover effect
+                                className: "px-8 transition-transform duration-200 ease-in-out hover:scale-105"
                             })}
                         >
                             Get Started
@@ -85,34 +56,41 @@ export default function HeroSection() {
                             href="/popular"
                             className={buttonVariants({
                                 variant: "outline",
+                                size: "lg",
+                                className: "px-8"
                             })}
                         >
                             Popular Services
                         </Link>
-                    </motion.div>
-
-                    <div className="mt-8 flex items-center gap-x-8 gap-y-2 flex-wrap">
-                        {[
-                            { icon: Calendar, text: "Easy Booking" },
-                            { icon: Clock, text: "Flexible Hours" },
-                            { icon: Star, text: "Quality Services" }
-                        ].map((item, i) => (
-                            <div key={i} className="flex items-center space-x-2">
-                                <div className="bg-white p-2 rounded-full border dark:border-neutral-200">
-                                    <item.icon className="h-4 w-4 stroke-black" />
-                                </div>
-                                <span className="text-sm text-black font-medium">{item.text}</span>
-                            </div>
-                        ))}
                     </div>
-                </div>
+                </motion.div>
 
-                <div className="hidden md:block w-full md:w-1/2 md:pl-8">
-                    <img
-                        src="https://illustrations.popsy.co/amber/studying.svg"
-                        alt="Beauty Services Illustration"
-                        className="w-full max-w-md mx-auto"
-                    />
+                {/* Features Section - Centered Row below */}
+                {/* Using simple icon + text like original, but with animation */}
+                <div className="flex flex-wrap justify-center sm:grid sm:grid-cols-3 gap-x-10 gap-y-8 pt-16 max-w-4xl mx-auto">
+                    {[
+                        { icon: Calendar, text: "Easy Booking" },
+                        { icon: Clock, text: "Flexible Hours" },
+                        { icon: Star, text: "Quality Services" }
+                    ].map((item, i) => (
+                        <motion.div
+                            key={i}
+                            initial={{ opacity: 0, y: 20 }}
+                            // Use mounted state for client-side animation
+                            animate={mounted ? { opacity: 1, y: 0 } : {}}
+                            // Delay based on index, starting after main content animation
+                            transition={{ delay: mounted ? 0.8 + (i * 0.1) : 0, duration: 0.5 }}
+                            // Reverted to simpler flex layout for each item
+                            className="flex items-center justify-center space-x-3"
+                        >
+                            {/* Increased icon size and padding */}
+                            <div className="p-3 rounded-full bg-primary/10">
+                                <item.icon className="h-6 w-6 text-primary" />
+                            </div>
+                            {/* Increased text size */}
+                            <span className="text-base font-medium text-foreground/90">{item.text}</span>
+                        </motion.div>
+                    ))}
                 </div>
             </div>
         </div>

@@ -17,12 +17,14 @@ class ShopCatalogController extends Controller
     {
         $user = auth()->user();
         $shopStaff = ShopStaffs::where('staff_id', $user->id)->first();
+        $isOwnerOrManager = $shopStaff->isOwnerOrManager();
         $shop = $shopStaff->shop;
         $shopServices = $shop->load('shopServiceCategories.serviceCategories')->shopServiceCategories;
         $serviceCategories = ServiceCategories::all();
         return Inertia::render('Shops/ShopCatalog', [
             'shopServices' => $shopServices,
-            'serviceCategories' => $serviceCategories
+            'serviceCategories' => $serviceCategories,
+            'isOwnerOrManager' => $isOwnerOrManager
         ]);
     }
 

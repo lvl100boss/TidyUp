@@ -12,7 +12,7 @@ import { Dialog, DialogTrigger, DialogContent } from "@/Components/ui/dialog";
 import { Button } from "@/Components/ui/button";
 import { router } from "@inertiajs/react";
 
-const ShopGalleryCard = ({ shop_gallery }) => {
+const ShopGalleryCard = ({ shop_gallery, isOwnerOrManager }) => {
     const [isEditing, setIsEditing] = useState(false);
     const [selectedImages, setSelectedImages] = useState([]);
     const [previewImages, setPreviewImages] = useState([]);
@@ -87,20 +87,22 @@ const ShopGalleryCard = ({ shop_gallery }) => {
                         <Camera className="h-5 w-5" />
                         Gallery
                     </CardTitle>
-                    <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => {
-                            setIsEditing(!isEditing);
-                            setSelectedImages([]);
-                        }}
-                    >
-                        {isEditing ? (
-                            <X className="h-4 w-4" />
-                        ) : (
-                            <Pencil className="h-4 w-4" />
-                        )}
-                    </Button>
+                    {isOwnerOrManager && (
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                                setIsEditing(!isEditing);
+                                setSelectedImages([]);
+                            }}
+                        >
+                            {isEditing ? (
+                                <X className="h-4 w-4" />
+                            ) : (
+                                <Pencil className="h-4 w-4" />
+                            )}
+                        </Button>
+                    )}
                 </div>
                 <CardDescription>
                     Browse our salon's portfolio and facilities

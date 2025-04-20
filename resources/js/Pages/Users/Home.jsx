@@ -120,7 +120,7 @@ export default function Home({ randomShops }) {
                     <span>See More</span>
                 </Link>
             </div>
-            <div className="mb-5 grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-2">
+            <div className="mb-5 grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-2">
 
                 {randomShops && randomShops.length > 0 ? (
                     randomShops.map((shop) => (
@@ -147,7 +147,7 @@ export default function Home({ randomShops }) {
                     {cardData.map((card, index) => (
                         <Card
                             key={index}
-                            className="hover:shadow-md transition-all ease-in-out border-0 hover:border-primary hover:bg-muted/30 border-l-4"
+                            className="bg-background/50 hover:shadow-md transition-all ease-in-out border-0 hover:border-primary hover:bg-muted/30 border-l-4"
                         >
                             <CardHeader>
                                 <CardTitle className="text-base inline-flex gap-2 items-center">

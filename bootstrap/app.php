@@ -20,6 +20,8 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'check.restriction' => \App\Http\Middleware\CheckUserRestriction::class,
             'shop.creation' => \App\Http\Middleware\EnsureShopCreationAccess::class,
+            'shop.owner.staff' => \App\Http\Middleware\CheckShopAccess::class,
+            'shop.owner.manager' => \App\Http\Middleware\CheckShopOwnerOrManager::class
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
