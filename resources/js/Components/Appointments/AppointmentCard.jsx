@@ -34,6 +34,8 @@ export default function AppointmentCard({ appointment, upcomingSchedules, shopBu
         (sum, service) => sum + parseFloat(service.cost), 0
     );
 
+    console.log(appointment);
+
     return (
         <>
             <Card className="group relative overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
@@ -238,7 +240,7 @@ export default function AppointmentCard({ appointment, upcomingSchedules, shopBu
                                     <CancelButtonModal appointment={appointment} />
                                 </>
                             )}
-                            
+
                             {appointment.status === "started" && (
                                 <>
                                     <CompleteButtonModal appointment={appointment} />
