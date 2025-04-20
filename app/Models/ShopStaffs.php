@@ -11,12 +11,12 @@ class ShopStaffs extends Model
 
     protected $fillable = [
         'shop_id',
-        'staff_id',
-        'role',
-        'position',
-        'is_active',
-        'started_at',
-        'ended_at',
+        'staff_id', // User ID
+        'role', // this just identify what role the staff is in the shop
+        'position', // this is the position of the staff in the shop like {Owner, Manager, Staff}
+        'is_active', // Active status of the staff
+        'started_at', // Start date of the staff
+        'ended_at', // End date of the staff
         'created_at',
         'updated_at'
     ];
@@ -34,5 +34,25 @@ class ShopStaffs extends Model
     public function appointments()
     {
         return $this->hasMany(UserAppointments::class, 'staff_id');
+    }
+    // see if the staff is a Manager of the shop
+    public function isManager()
+    {
+        return $this->position === 'manager';
+    }
+    // see if the staff is a Owner of the shop
+    public function isOwner()
+    {
+        return $this->position === 'owner';
+    }
+    // see if the staff is a Staff of the shop
+    public function isStaff()
+    {
+        return $this->position === 'staff';
+    }
+    // check if owner or manager of the shop
+    public function isOwnerOrManager()
+    {
+        return $this->isOwner() || $this->isManager();
     }
 }

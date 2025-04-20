@@ -11,7 +11,7 @@ import { Head, usePage } from "@inertiajs/react";
 import { useEffect } from "react";
 import { toast } from "sonner";
 
-const ShopProfile = ({ shop }) => {
+const ShopProfile = ({ shop, isOwnerOrManager }) => {
     // Sample shop data structure
     const sampleShop = {
         social: {
@@ -44,7 +44,7 @@ const ShopProfile = ({ shop }) => {
                 <div className="flex flex-col md:flex-row gap-5 items-start">
                     <div className="w-full md:w-2/3 space-y-5">
                         {/* Shop Profile Header */}
-                        <ShopProfileHeader shop={shop} />
+                        <ShopProfileHeader shop={shop} isOwnerOrManager={isOwnerOrManager} />
                         {/* Services Section */}
                         <ServiceSectionCard shop={shop} />
                         {/* Staff Section */}
@@ -52,15 +52,15 @@ const ShopProfile = ({ shop }) => {
                     </div>
                     <div className="w-full md:w-1/3 space-y-5">
                         {/* Business Hours */}
-                        <ShopBusinessHoursCard shop={shop} />
+                        <ShopBusinessHoursCard shop={shop} isOwnerOrManager={isOwnerOrManager} />
                         {/* Contact Information */}
-                        <ShopContactInfoCard shop={shop} />
+                        <ShopContactInfoCard shop={shop} isOwnerOrManager={isOwnerOrManager} />
                         {/* Social Media */}
-                        <ShopSocialMedia shop={shop} />
+                        <ShopSocialMedia shop={shop} isOwnerOrManager={isOwnerOrManager} />
                     </div>
                 </div>
                 {/* Shop Gallery */}
-                <ShopGalleryCard shop_gallery={shop.shop_gallery} />
+                <ShopGalleryCard shop_gallery={shop.shop_gallery} isOwnerOrManager={isOwnerOrManager} />
             </div>
         </ShopsLayout>
     );

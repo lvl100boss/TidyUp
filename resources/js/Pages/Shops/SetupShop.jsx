@@ -13,6 +13,7 @@ import BusinessPermit from "@/Components/ShopSetup/BusinessPermit";
 import Gallery from "@/Components/ShopSetup/Gallery";
 import Summary from "@/Components/ShopSetup/Summary";
 import Success from "@/Components/ShopSetup/Success";
+import GradientBackground from "@/Components/GradientBackground";
 
 const STEPS = {
     SHOP_INFO: 0,
@@ -353,6 +354,7 @@ export default function SetupShop({ categories, serviceCategories }) {
 
     return (
         <>
+            <GradientBackground />
             <Head title="Shop Setup" />
             <section className="py-24 px-5 relative min-h-screen pb-40">
                 <Header onClick={toggleTheme} isDarkTheme={isDarkTheme} />

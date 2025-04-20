@@ -18,10 +18,26 @@ import {
     DropdownMenuSubTrigger,
     DropdownMenuTrigger,
 } from "@/Components/ui/dropdown-menu";
-import { Bell } from "lucide-react";
+import {
+    Drawer,
+    DrawerClose,
+    DrawerContent,
+    DrawerDescription,
+    DrawerFooter,
+    DrawerHeader,
+    DrawerTitle,
+    DrawerTrigger,
+} from "@/components/ui/drawerRight"
+import { Separator } from "@/components/ui/separator"
 
-const Header = ({ onClick, isDarkTheme }) => {
+import { Bell, Menu, Search } from "lucide-react";
+import ThemeButton from "@/Components/ThemeButton";
+import SearchShop from "./Header/SearchShop";
+
+
+const Header = ({ onClick, isDarkTheme, setIsDarkTheme }) => {
     const user = usePage().props.auth.user;
+    const isLogged = user ? true : false;
     const role = usePage().props.auth.userRole || {};
     const [isScrolled, setIsScrolled] = useState(false);
     useEffect(() => {
@@ -32,14 +48,15 @@ const Header = ({ onClick, isDarkTheme }) => {
         window.addEventListener("scroll", handleScroll);
         return () => window.removeEventListener("scroll", handleScroll);
     }, []);
+
     return (
         <header
             className={`flex justify-between items-center mb-3 fixed top-0 left-0 right-0 z-50 px-5 py-3 bg-background/50 backdrop-blur-2xl border-dashed ${isScrolled ? "border-b" : ""
                 }`}
         >
-            <div>
+            <div className="">
                 <Link href="/" className="flex items-center gap-2">
-                    <ApplicationLogo className="size-16 dark:invert" />
+                    <ApplicationLogo className="size-14 lg:size-16 dark:invert" />
                     <h1 className="text-xl font-medium clash-display">
                         TidyUp
                     </h1>
@@ -47,8 +64,19 @@ const Header = ({ onClick, isDarkTheme }) => {
             </div>
             {user ? (
                 <div className="flex items-center gap-2">
-                    <DropdownMenu>
-                        <DropdownMenuTrigger>
+                    <div>
+                        {isLogged && (
+                            `Welcome, ${user.first_name}`
+                        )}
+
+                    </div>
+                    <SearchShop />
+                    {/* Notification Button */}
+                    <Drawer
+                        direction="right"
+                        size="sm"
+                    >
+                        <DrawerTrigger>
                             <Button
                                 variant="outline"
                                 radius="round"
@@ -56,11 +84,26 @@ const Header = ({ onClick, isDarkTheme }) => {
                             >
                                 <Bell className="stroke-2" />
                             </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent className="mr-16 p-0 border-0">
-                            <Notification />
-                        </DropdownMenuContent>
-                    </DropdownMenu>
+                        </DrawerTrigger>
+                        <DrawerContent>
+                            <DrawerHeader>
+                                <div className="flex items-center gap-2">
+                                    <DrawerTitle className='text-left'>Notification</DrawerTitle><Bell size={18} />
+                                </div>
+                                <DrawerDescription className='text-left'>Stay up to date with the latest activity.</DrawerDescription>
+                            </DrawerHeader>
+                            <Separator />
+                            {/* <DrawerFooter>
+                                <Button>Submit</Button>
+                                <DrawerClose>
+                                    <Button variant="outline">Cancel</Button>
+                                </DrawerClose>
+                            </DrawerFooter> */}
+                        </DrawerContent>
+                    </Drawer>
+
+
+
 
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
@@ -101,9 +144,10 @@ const Header = ({ onClick, isDarkTheme }) => {
                                 </Avatar>
                                 <div>
                                     <h6>
-                                        {user.first_name
-                                            ? `${user.first_name} ${user.last_name}`
-                                            : user.username}
+                                        {user.first_name +
+                                            (user.middle_name ? ` ${user.middle_name[0]}. ` : " ") +
+                                            " " +
+                                            user.last_name}
                                     </h6>
                                     <p className="font-normal">
                                         @{user.username}
@@ -115,17 +159,41 @@ const Header = ({ onClick, isDarkTheme }) => {
                                 <Link href="/profile">
                                     <DropdownMenuItem>Profile</DropdownMenuItem>
                                 </Link>
+                                {role.role_id === 3 ? (
+                                    <Link href={route("shop.dashboard")}>
+                                        <DropdownMenuItem>
+                                            Manage Shop
+                                        </DropdownMenuItem>
+                                    </Link>
+                                ) : role.role_id === 4 ? (
+                                    <Link href={route("shop.appointments")}>
+                                        <DropdownMenuItem>
+                                            Manage Appointments
+                                        </DropdownMenuItem>
+                                    </Link>
+                                ) : (
+                                    <Link href={`/shop/setup`}>
+                                        <DropdownMenuItem>
+                                            Setup Your Shop
+                                        </DropdownMenuItem>
+                                    </Link>
+                                )}
                             </DropdownMenuGroup>
+                            <DropdownMenuSeparator />
                             <DropdownMenuItem onClick={onClick}>
                                 Set Theme to{" "}
                                 {isDarkTheme ? "Light Mode" : "Dark Mode"}
                             </DropdownMenuItem>
-                            <DropdownMenuItem disabled>
-                                Settings
-                            </DropdownMenuItem>
-                            <DropdownMenuItem disabled>
-                                Support
-                            </DropdownMenuItem>
+                            <Link href="/profile">
+                                <DropdownMenuItem >
+                                    Settings
+                                </DropdownMenuItem>
+                            </Link>
+                            <Link href="/report-issue">
+                                <DropdownMenuItem >
+                                    Support
+                                </DropdownMenuItem>
+                            </Link>
                             <DropdownMenuSeparator />
                             <Link
                                 method="post"
@@ -141,22 +209,44 @@ const Header = ({ onClick, isDarkTheme }) => {
                     </DropdownMenu>
                 </div>
             ) : (
-                <div className="flex items-center gap-2">
-
-                    <Link
-                        href="/register"
-                        className={`${buttonVariants({
-                            variant: "outline",
-                        })}`}
-                    >
-                        Sign Up
-                    </Link>
-                    <Button asChild>
-                        <Link href="/login">Sign In</Link>
-                    </Button>
-                </div>
-            )}
-        </header>
+                <>
+                    <div className="lg:hidden">
+                        <DropdownMenu className="min-w-full">
+                            <DropdownMenuTrigger>
+                                <Button variant="outline">
+                                    <Menu size={30} />
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent className="mr-7 " inset>
+                                <Link href="/login">
+                                    <DropdownMenuItem>Sign In</DropdownMenuItem>
+                                </Link>
+                                <Link href="/register">
+                                    <DropdownMenuItem>Sign Up</DropdownMenuItem>
+                                </Link>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    </div>
+                    <div className="lg:flex items-center gap-2 hidden">
+                        {!user && (
+                            <ThemeButton
+                                onClick={onClick}
+                                isDarkTheme={isDarkTheme}
+                            />
+                        )}
+                        <Button asChild variant="outline">
+                            <Link href="/register" >
+                                Sign Up
+                            </Link>
+                        </Button>
+                        <Button asChild>
+                            <Link href="/login">Sign In</Link>
+                        </Button>
+                    </div>
+                </>
+            )
+            }
+        </header >
     );
 };
 

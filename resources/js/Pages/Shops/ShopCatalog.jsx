@@ -36,7 +36,7 @@ import { toast, Toaster } from 'sonner';
 import { Separator } from "@/components/ui/separator";
 
 // The error might be related to component imports, so let's start with a simpler version
-export default function ShopCatalog({ shopServices, serviceCategories }) {
+export default function ShopCatalog({ shopServices, serviceCategories, isOwnerOrManager }) {
     const { flash } = usePage().props;
 
     useEffect(() => {
@@ -191,9 +191,11 @@ export default function ShopCatalog({ shopServices, serviceCategories }) {
                 {/* Services Management Section */}
                 <div className="flex justify-between items-center">
                     <h2 className="text-xl font-semibold">Your Services</h2>
-                    <Button onClick={() => setIsAddDialogOpen(true)}>
-                        <Plus className="h-4 w-4 mr-2" /> Add New Service
-                    </Button>
+                    {isOwnerOrManager && (
+                        <Button onClick={() => setIsAddDialogOpen(true)}>
+                            <Plus className="h-4 w-4 mr-2" /> Add New Service
+                        </Button>
+                    )}
                 </div>
 
                 {/* Services Accordion */}
@@ -229,22 +231,24 @@ export default function ShopCatalog({ shopServices, serviceCategories }) {
                                                         ₱{parseFloat(service.cost).toFixed(2)}
                                                     </p>
                                                 </CardContent>
-                                                <CardFooter className="flex justify-end space-x-2">
-                                                    <Button
-                                                        variant="outline"
-                                                        size="sm"
-                                                        onClick={() => openEditDialog(service)}
-                                                    >
-                                                        <Pencil className="h-4 w-4 mr-1" /> Edit
-                                                    </Button>
-                                                    <Button
-                                                        variant="destructive"
-                                                        size="sm"
-                                                        onClick={() => openDeleteDialog(service)}
-                                                    >
-                                                        <Trash2 className="h-4 w-4 mr-1" /> Delete
-                                                    </Button>
-                                                </CardFooter>
+                                                {isOwnerOrManager && (
+                                                    <CardFooter className="flex justify-end space-x-2">
+                                                        <Button
+                                                            variant="outline"
+                                                            size="sm"
+                                                            onClick={() => openEditDialog(service)}
+                                                        >
+                                                            <Pencil className="h-4 w-4 mr-1" /> Edit
+                                                        </Button>
+                                                        <Button
+                                                            variant="destructive"
+                                                            size="sm"
+                                                            onClick={() => openDeleteDialog(service)}
+                                                        >
+                                                            <Trash2 className="h-4 w-4 mr-1" /> Delete
+                                                        </Button>
+                                                    </CardFooter>
+                                                )}
                                             </Card>
                                         ))}
                                     </div>

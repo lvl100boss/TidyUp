@@ -12,11 +12,11 @@ export default function MyAppointments({ appointments, upcomingSchedules, shopBu
     const statuses = [
         { value: "pending", label: "Pending" },
         { value: "upcoming", label: "Upcoming" },
+        { value: "started", label: "Started" },
         { value: "completed", label: "Completed" },
         { value: "cancelled", label: "Cancelled" },
         { value: "no-show", label: "No Show" },
         { value: "declined", label: "Rejected" },
-        { value: "started", label: "Started" },
     ];
 
     // Find the first status that has appointments and use it as default tab

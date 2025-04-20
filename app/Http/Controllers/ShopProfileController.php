@@ -19,6 +19,7 @@ class ShopProfileController extends Controller
     {
         $user = Auth::user();
         $shopStaff = ShopStaffs::where('staff_id', $user->id)->first();
+        $isOwnerOrManager = $shopStaff->isOwnerOrManager();
         $shop = $shopStaff->shop;
         $shop = $shop->load([
             'shopGallery',
@@ -32,6 +33,7 @@ class ShopProfileController extends Controller
 
         return Inertia::render('Shops/ShopProfile', [
             'shop' => $shop,
+            'isOwnerOrManager' => $isOwnerOrManager,
         ]);
     }
 
