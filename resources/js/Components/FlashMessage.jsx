@@ -1,4 +1,3 @@
-
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Terminal } from "lucide-react"
 
@@ -15,4 +14,6 @@ const FlashMessage = ({ message, success }) => {
     );
 }
 
+// Export as both named and default export for compatibility
 export { FlashMessage };
+export default FlashMessage;
