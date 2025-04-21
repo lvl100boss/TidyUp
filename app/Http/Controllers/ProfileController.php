@@ -37,6 +37,7 @@ class ProfileController extends Controller
         // dd($request->validated());
         $user = $request->user();
         $user->first_name = $request->validated()['first_name'];
+        $user->middle_name = $request->validated()['middle_name'];
         $user->last_name = $request->validated()['last_name'];
         $user->email = $request->validated()['email'];
         $user->contact_number = $request->validated()['contact_number'];

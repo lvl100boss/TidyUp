@@ -10,19 +10,22 @@ use App\Models\ShopServiceCategories;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Auth;
 
 class ShopCatalogController extends Controller
 {
     public function index()
     {
-        $user = auth()->user();
+        $user = Auth::user();
         $shopStaff = ShopStaffs::where('staff_id', $user->id)->first();
+        $isOwnerOrManager = $shopStaff->isOwnerOrManager();
         $shop = $shopStaff->shop;
         $shopServices = $shop->load('shopServiceCategories.serviceCategories')->shopServiceCategories;
         $serviceCategories = ServiceCategories::all();
         return Inertia::render('Shops/ShopCatalog', [
             'shopServices' => $shopServices,
-            'serviceCategories' => $serviceCategories
+            'serviceCategories' => $serviceCategories,
+            'isOwnerOrManager' => $isOwnerOrManager
         ]);
     }
 

@@ -38,7 +38,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-const ShopSocialMedia = ({ shop }) => {
+const ShopSocialMedia = ({ shop, isOwnerOrManager }) => {
     const [isAddOpen, setIsAddOpen] = useState(false);
     const [isEditOpen, setIsEditOpen] = useState(false);
     const [isDeleteOpen, setIsDeleteOpen] = useState(false);
@@ -140,15 +140,17 @@ const ShopSocialMedia = ({ shop }) => {
                 <CardHeader>
                     <div className="flex justify-between items-center">
                         <CardTitle>Social Media</CardTitle>
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setIsAddOpen(true)}
-                            className="h-9 w-9 p-0 rounded-full"
-                        >
-                            <Plus className="h-4 w-4" />
-                            <span className="sr-only">Add Social Media</span>
-                        </Button>
+                        {isOwnerOrManager && (
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setIsAddOpen(true)}
+                                className="h-9 w-9 p-0 rounded-full"
+                            >
+                                <Plus className="h-4 w-4" />
+                                <span className="sr-only">Add Social Media</span>
+                            </Button>
+                        )}
                     </div>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -169,26 +171,28 @@ const ShopSocialMedia = ({ shop }) => {
                                         </a>
                                     </div>
                                 </div>
-                                <div className="flex items-center gap-1">
-                                    <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        className="h-7 w-7 p-0"
-                                        onClick={() => handleEdit(social.id)}
-                                    >
-                                        <Pencil className="h-3.5 w-3.5" />
-                                        <span className="sr-only">Edit</span>
-                                    </Button>
-                                    <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        className="h-7 w-7 p-0 hover:text-red-500"
-                                        onClick={() => handleDelete(social.id)}
-                                    >
-                                        <Trash2 className="h-3.5 w-3.5" />
-                                        <span className="sr-only">Delete</span>
-                                    </Button>
-                                </div>
+                                {isOwnerOrManager && (
+                                    <div className="flex items-center gap-1">
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            className="h-7 w-7 p-0"
+                                            onClick={() => handleEdit(social.id)}
+                                        >
+                                            <Pencil className="h-3.5 w-3.5" />
+                                            <span className="sr-only">Edit</span>
+                                        </Button>
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            className="h-7 w-7 p-0 hover:text-red-500"
+                                            onClick={() => handleDelete(social.id)}
+                                        >
+                                            <Trash2 className="h-3.5 w-3.5" />
+                                            <span className="sr-only">Delete</span>
+                                        </Button>
+                                    </div>
+                                )}
                             </div>
                         ))
                     ) : (

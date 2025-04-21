@@ -18,7 +18,7 @@ import { MapPin, Phone, Mail, Pencil } from "lucide-react";
 import EditContactInfoForm from "./EditContactInfoForm";
 import { useState } from "react";
 
-export default function ShopContactInfoCard({ shop }) {
+export default function ShopContactInfoCard({ shop, isOwnerOrManager }) {
     const [open, setOpen] = useState(false);
 
     return (
@@ -26,22 +26,24 @@ export default function ShopContactInfoCard({ shop }) {
             <CardHeader>
                 <div className="flex justify-between items-center w-full">
                     <CardTitle>Contact Information</CardTitle>
-                    <Dialog open={open} onOpenChange={setOpen}>
-                        <DialogTrigger>
-                            <button type="button" className="focus:outline-none">
-                                <Pencil className="size-4 cursor-pointer hover:scale-125 transition-transform" />
-                            </button>
-                        </DialogTrigger>
-                        <DialogContent>
-                            <DialogHeader>
-                                <DialogTitle>Edit Contact Information</DialogTitle>
-                                <DialogDescription>
-                                    Update your shop's contact details such as address, phone number, and email.
-                                </DialogDescription>
-                            </DialogHeader>
-                            <EditContactInfoForm shop={shop} onClose={() => setOpen(false)} />
-                        </DialogContent>
-                    </Dialog>
+                    {isOwnerOrManager && (
+                        <Dialog open={open} onOpenChange={setOpen}>
+                            <DialogTrigger>
+                                <button type="button" className="focus:outline-none">
+                                    <Pencil className="size-4 cursor-pointer hover:scale-125 transition-transform" />
+                                </button>
+                            </DialogTrigger>
+                            <DialogContent>
+                                <DialogHeader>
+                                    <DialogTitle>Edit Contact Information</DialogTitle>
+                                    <DialogDescription>
+                                        Update your shop's contact details such as address, phone number, and email.
+                                    </DialogDescription>
+                                </DialogHeader>
+                                <EditContactInfoForm shop={shop} onClose={() => setOpen(false)} />
+                            </DialogContent>
+                        </Dialog>
+                    )}
                 </div>
 
             </CardHeader>

@@ -6,20 +6,17 @@ import { Button } from "@/Components/ui/button";
 import ApplicationLogo from "@/Components/ApplicationLogo";
 import { Progress } from "@/Components/ui/progress";
 import { Checkbox } from "@/Components/ui/checkbox";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, Check } from "lucide-react";
 import React, { useEffect, useState } from "react";
-
+import { Card } from "@/Components/ui/card";
 export default function Register() {
     const { data, setData, post, processing, errors, reset } = useForm({
-        first_name: "",
-        middle_name: "",
-        last_name: "",
         username: "",
         email: "",
         password: "",
         password_confirmation: "",
-        has_middle_name: false,
     });
+
 
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -59,7 +56,7 @@ export default function Register() {
                 break;
             case 100:
                 setPasswordStrengthString("Strong password");
-                setPasswordStrengthColor("-green-500");
+                setPasswordStrengthColor("-emerald-500");
                 break;
             default:
                 setPasswordStrengthString("");
@@ -110,19 +107,18 @@ export default function Register() {
     const submit = (e) => {
         e.preventDefault();
 
-        post(route("register"), {
-            onFinish: () => reset("password", "password_confirmation"),
-            preserveScroll: true
+        post(route("register.save"), {
+            onFinish: () => reset("password", "password_confirmation")
         });
     };
 
     return (
         <div className="flex min-h-screen flex-col items-center pt-5 sm:pt-16 sm:justify-center px-6 md:px-8">
             <Head title="Register" />
-                <Link href="/">
-                    <ApplicationLogo className="size-28 md:size-32 dark:invert" />
-                </Link>
-            <div className="my-4 space-y-4">
+            <Link href="/">
+                <ApplicationLogo className="size-28 md:size-32" />
+            </Link>
+            <div className="mt-4 space-y-4">
                 <h4 className="text-center text-4xl font-medium">
                     Join us today
                 </h4>
@@ -135,67 +131,7 @@ export default function Register() {
                 onSubmit={submit}
                 className="w-full max-w-screen-sm sm:max-w-md md:px-8 md:py-6 rounded-lg space-y-5 mx-auto"
             >
-                <div className="space-y-2">
-                    <Label htmlFor="first_name">First Name</Label>
-                    <Input
-                        id="first_name"
-                        type="text"
-                        name="first_name"
-                        placeholder="Enter your first name"
-                        value={data.first_name}
-                        autoComplete="given-name"
-                        onChange={(e) => setData("first_name", e.target.value)}
-                        className="w-full"
-                    />
-                    <InputError message={errors.first_name} className="mt-2" />
-                </div>
-                <div className="space-y-2">
-                    <Label htmlFor="middle_name">Middle Name</Label>
-                    <Input
-                        id="middle_name"
-                        type="text"
-                        name="middle_name"
-                        placeholder="Enter your middle name"
-                        value={data.middle_name}
-                        autoComplete="given-name"
-                        disabled={data.has_middle_name}
-                        className={data.has_middle_name ? "bg-muted text-muted-foreground" : ""}
-                        onChange={(e) => setData("middle_name", e.target.value)}
-                    />
-                    <InputError message={errors.middle_name} className="mt-2" />
-                    <div className="flex items-center space-x-2 mt-2">
-                        <Checkbox
-                            id="has_middle_name"
-                            checked={data.has_middle_name}
-                            onCheckedChange={(checked) => {
-                                setData("has_middle_name", checked);
-                                if (checked) {
-                                    setData("middle_name", "");
-                                }
-                            }}
-                        />
-                        <Label 
-                            htmlFor="has_middle_name" 
-                            className="text-sm font-normal cursor-pointer"
-                        >
-                            I don't have a middle name
-                        </Label>
-                    </div>
-                </div>
-                <div className="space-y-2">
-                    <Label htmlFor="last_name">Last Name</Label>
-                    <Input
-                        id="last_name"
-                        type="text"
-                        name="last_name"
-                        placeholder="Enter your last name"
-                        value={data.last_name}
-                        autoComplete="family-name"
-                        onChange={(e) => setData("last_name", e.target.value)}
-                    />
-                    <InputError message={errors.last_name} className="mt-2" />
-                </div>
-                <div className="space-y-2">
+                <div className="">
                     <Label htmlFor="username">Username</Label>
                     <Input
                         id="username"
@@ -209,7 +145,7 @@ export default function Register() {
                     <InputError message={errors.username} className="mt-2" />
                 </div>
 
-                <div className="space-y-2">
+                <div className="">
                     <Label htmlFor="email">Email</Label>
                     <Input
                         id="email"
@@ -224,9 +160,9 @@ export default function Register() {
                 </div>
 
                 <div className="space-y-2">
-                    <div className="flex items-end justify-between">
+                    <div className="flex items-end justify-between relative">
                         <Label htmlFor="password">Password</Label>
-                        <p className={`text-sm text${passwordStrengthColor}`}>
+                        <p className={`text-xs absolute right-0 text${passwordStrengthColor}`}>
                             {passwordStrengthString}
                         </p>
                     </div>
@@ -254,35 +190,56 @@ export default function Register() {
                             )}
                         </button>
                     </div>
-                    <Progress value={passwordStrength} className="h-1" />
-                    <div className="text-sm text-muted-foreground mt-2">
-                        Password must contain:
-                        <ul className="list-disc list-inside space-y-1 mt-1">
-                            <li className={data.password.length >= 8 ? "text-green-500" : ""}>
-                                At least 8 characters
-                            </li>
-                            <li className={/[A-Z]/.test(data.password) && /[a-z]/.test(data.password) ? "text-green-500" : ""}>
-                                Both uppercase and lowercase letters
-                            </li>
-                            <li className={/[!@#$%^&*(),.?":{}|<>_\-+=[\]/\\]/.test(data.password) ? "text-green-500" : ""}>
-                                At least one special character
-                            </li>
-                            <li className={/\d/.test(data.password) ? "text-green-500" : ""}>
-                                At least one number
-                            </li>
-                        </ul>
+                    <div className="pt-2">
+                        <Card className="p-4 bg-muted/20">
+                            Password must contain:
+                            <ul className="text-muted-foreground mt-2 space-y-1">
+                                <li className={data.password.length >= 8 ? "text-emerald-500" : ""}>
+                                    {
+                                        data.password.length >= 8
+                                            ? <span className="mr-2"><Check className="h-4 w-4 text-emerald-500 inline" /></span>
+                                            : <span className="mr-2">•</span>
+                                    }
+                                    At least 8 characters
+                                </li>
+                                <li className={/[A-Z]/.test(data.password) && /[a-z]/.test(data.password) ? "text-emerald-500" : ""}>
+                                    {
+                                        /[A-Z]/.test(data.password) && /[a-z]/.test(data.password)
+                                            ? <span className="mr-2"><Check className="h-4 w-4 text-emerald-500 inline" /></span>
+                                            : <span className="mr-2">•</span>
+                                    }
+                                    Both uppercase and lowercase letters
+                                </li>
+                                <li className={/[!@#$%^&*(),.?":{}|<>_\-+=[\]/\\]/.test(data.password) ? "text-emerald-500" : ""}>
+                                    {
+                                        /[!@#$%^&*(),.?":{}|<>_\-+=[\]/\\]/.test(data.password)
+                                            ? <span className="mr-2"><Check className="h-4 w-4 text-emerald-500 inline" /></span>
+                                            : <span className="mr-2">•</span>
+                                    }
+                                    At least one special character
+                                </li>
+                                <li className={/\d/.test(data.password) ? "text-emerald-500 " : ""}>
+                                    {
+                                        /\d/.test(data.password)
+                                            ? <span className="mr-2"><Check className="h-4 w-4 text-emerald-500 inline" /></span>
+                                            : <span className="mr-2">•</span>
+                                    }
+                                    At least one number
+                                </li>
+                            </ul>
+                        </Card>
                     </div>
                     <InputError message={errors.password} className="mt-2" />
                 </div>
 
                 <div className="space-y-2">
-                    <div className="flex items-end justify-between">
+                    <div className="flex items-end justify-between relative">
                         <Label htmlFor="password_confirmation">
                             Confirm Password
                         </Label>
                         <p
-                            className={`text-sm ${passwordsMatch && data.password_confirmation
-                                ? "text-green-500"
+                            className={`text-xs absolute right-0 ${passwordsMatch && data.password_confirmation
+                                ? "text-emerald-500"
                                 : data.password_confirmation ? "text-red-500" : ""
                                 }`}
                         >
@@ -324,14 +281,14 @@ export default function Register() {
                     />
                 </div>
 
-                <Button 
-                    type="submit" 
-                    className="w-full mt-8 py-6" 
+                <Button
+                    type="submit"
+                    className="w-full mt-8"
                     disabled={processing}
                 >
                     Register
                 </Button>
-                
+
                 <div className="mt-6 flex items-center justify-center text-sm gap-1">
                     <span className="text-muted-foreground">Already have an Account? </span>
                     <Link

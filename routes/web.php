@@ -7,10 +7,12 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\DiscoverController;
 use App\Http\Controllers\HairSalonShopsController;
 use App\Http\Controllers\ShopController;
+use App\Http\Controllers\ShopResubmissionController;
 use App\Http\Controllers\PopularShopsController;
 use App\Http\Controllers\ReviewController;
+use App\Http\Controllers\NewsletterSubscriptionController;
+use App\Http\Controllers\ShopAnalyticsController; // Make sure this is imported
 use Illuminate\Foundation\Application;
-
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -30,6 +32,7 @@ Route::middleware(EnsureVerifiedIfAuthenticated::class)->group(function () {
     Route::get('/aboutus', function () {
         return Inertia::render('AboutUs');
     })->name('AboutUs');
+    Route::post('/newsletter', [NewsletterSubscriptionController::class, 'store'])->name('newsletter.subscribe');
 });
 
 Route::middleware(['auth', 'verified'])->group(function () {
@@ -54,8 +57,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     })->name('ReportAnIssue');
 
     // Add a route for SetupShop with middleware
-    Route::get('/shop/setup', [ShopController::class, 'setup'])->name('shop.setup');
-    Route::post('/shop/setup', [ShopController::class, 'store'])->name('shop.store');
+    Route::middleware(['auth', 'verified', 'shop.creation'])->group(function () {
+        Route::get('/shop/setup', [ShopController::class, 'create'])->name('shop.setup');
+        Route::post('/shop/setup', [ShopController::class, 'store'])->name('shop.store');
+    });
 });
 
 // Fix the shop detail route pattern to match the links being generated
@@ -63,11 +68,14 @@ Route::get('/shop/{id}', [ShopController::class, 'show'])->where('id', '[0-9]+')
 // Add a compatibility route for links that might be using the /{id}/shop pattern
 Route::get('/{id}/shop', [ShopController::class, 'show'])->where('id', '[0-9]+');
 
-// Review routes
 Route::post('/reviews', [ReviewController::class, 'store'])->name('reviews.store');
 
-Route::get('/shop/setup', [ShopController::class, 'create'])->name('shop.setup');
-Route::post('/shop/setup', [ShopController::class, 'store'])->name('shop.store');
+Route::middleware(['auth', /* other shop middleware? */])->prefix('shops')->name('shop.')->group(function () {
+    // ... other shop routes
+    Route::get('/analytics', [ShopAnalyticsController::class, 'index'])->name('analytics');
+    Route::get('/analytics/download-pdf', [ShopAnalyticsController::class, 'downloadPdf'])->name('analytics.downloadPdf'); // Add this line
+    // ... other shop routes
+});
 
 // Debug route - kept for future potential issues
 Route::get('/debug/check-documents/{shopId}', function ($shopId) {
