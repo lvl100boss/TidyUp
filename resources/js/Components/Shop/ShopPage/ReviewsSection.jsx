@@ -22,8 +22,36 @@ const ReviewsSection = ({ reviews }) => {
         );
     }
 
-    // Calculate average rating
-    const averageRating = reviews.reduce((acc, review) => acc + review.rating, 0) / reviews.length;
+    // Calculate average ratings
+    const calculateAverageRating = (reviews) => {
+        if (reviews.length === 0) return 0;
+        
+        // Check if reviews use the new dual rating system or legacy single rating
+        if (reviews[0].service_rating !== undefined) {
+            // New dual rating system
+            const totalServiceRating = reviews.reduce((acc, review) => acc + review.service_rating, 0);
+            const totalStaffRating = reviews.reduce((acc, review) => acc + review.staff_rating, 0);
+            const serviceAvg = totalServiceRating / reviews.length;
+            const staffAvg = totalStaffRating / reviews.length;
+            
+            // Return combined average
+            return {
+                combined: (serviceAvg + staffAvg) / 2,
+                service: serviceAvg,
+                staff: staffAvg
+            };
+        } else {
+            // Legacy single rating system
+            const totalRating = reviews.reduce((acc, review) => acc + review.rating, 0);
+            return {
+                combined: totalRating / reviews.length,
+                service: null,
+                staff: null
+            };
+        }
+    };
+
+    const ratings = calculateAverageRating(reviews);
 
     return (
         <Card className="my-6">
@@ -36,7 +64,7 @@ const ReviewsSection = ({ reviews }) => {
                                 <Star
                                     key={star}
                                     className={`h-5 w-5 ${
-                                        star <= Math.round(averageRating)
+                                        star <= Math.round(ratings.combined)
                                             ? "fill-yellow-400 text-yellow-400"
                                             : "text-gray-300"
                                     }`}
@@ -44,10 +72,51 @@ const ReviewsSection = ({ reviews }) => {
                             ))}
                         </div>
                         <span className="font-medium">
-                            {averageRating.toFixed(1)} ({reviews.length} {reviews.length === 1 ? "review" : "reviews"})
+                            {ratings.combined.toFixed(1)} ({reviews.length} {reviews.length === 1 ? "review" : "reviews"})
                         </span>
                     </div>
                 </div>
+                
+                {ratings.service !== null && (
+                    <div className="grid grid-cols-2 gap-4 mt-4 text-sm">
+                        <div>
+                            <p className="text-muted-foreground mb-1">Service Quality</p>
+                            <div className="flex items-center">
+                                <div className="flex mr-2">
+                                    {[1, 2, 3, 4, 5].map((star) => (
+                                        <Star
+                                            key={star}
+                                            className={`h-4 w-4 ${
+                                                star <= Math.round(ratings.service)
+                                                    ? "fill-yellow-400 text-yellow-400"
+                                                    : "text-gray-300"
+                                            }`}
+                                        />
+                                    ))}
+                                </div>
+                                <span>{ratings.service.toFixed(1)}</span>
+                            </div>
+                        </div>
+                        <div>
+                            <p className="text-muted-foreground mb-1">Staff Performance</p>
+                            <div className="flex items-center">
+                                <div className="flex mr-2">
+                                    {[1, 2, 3, 4, 5].map((star) => (
+                                        <Star
+                                            key={star}
+                                            className={`h-4 w-4 ${
+                                                star <= Math.round(ratings.staff)
+                                                    ? "fill-yellow-400 text-yellow-400"
+                                                    : "text-gray-300"
+                                            }`}
+                                        />
+                                    ))}
+                                </div>
+                                <span>{ratings.staff.toFixed(1)}</span>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </CardHeader>
             <CardContent>
                 <div className="space-y-6">
@@ -70,18 +139,55 @@ const ReviewsSection = ({ reviews }) => {
                                         </p>
                                     </div>
                                 </div>
-                                <div className="flex">
-                                    {[1, 2, 3, 4, 5].map((star) => (
-                                        <Star
-                                            key={star}
-                                            className={`h-4 w-4 ${
-                                                star <= review.rating
-                                                    ? "fill-yellow-400 text-yellow-400"
-                                                    : "text-gray-300"
-                                            }`}
-                                        />
-                                    ))}
-                                </div>
+                                
+                                {/* Show appropriate rating based on review type */}
+                                {review.service_rating !== undefined ? (
+                                    <div className="flex flex-col items-end space-y-1">
+                                        <div className="flex items-center">
+                                            <span className="text-xs mr-1">Service:</span>
+                                            <div className="flex">
+                                                {[1, 2, 3, 4, 5].map((star) => (
+                                                    <Star
+                                                        key={star}
+                                                        className={`h-3 w-3 ${
+                                                            star <= review.service_rating
+                                                                ? "fill-yellow-400 text-yellow-400"
+                                                                : "text-gray-300"
+                                                        }`}
+                                                    />
+                                                ))}
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center">
+                                            <span className="text-xs mr-1">Staff:</span>
+                                            <div className="flex">
+                                                {[1, 2, 3, 4, 5].map((star) => (
+                                                    <Star
+                                                        key={star}
+                                                        className={`h-3 w-3 ${
+                                                            star <= review.staff_rating
+                                                                ? "fill-yellow-400 text-yellow-400"
+                                                                : "text-gray-300"
+                                                        }`}
+                                                    />
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="flex">
+                                        {[1, 2, 3, 4, 5].map((star) => (
+                                            <Star
+                                                key={star}
+                                                className={`h-4 w-4 ${
+                                                    star <= review.rating
+                                                        ? "fill-yellow-400 text-yellow-400"
+                                                        : "text-gray-300"
+                                                }`}
+                                            />
+                                        ))}
+                                    </div>
+                                )}
                             </div>
                             
                             <div className="mt-4">

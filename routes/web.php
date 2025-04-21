@@ -70,12 +70,11 @@ Route::get('/{id}/shop', [ShopController::class, 'show'])->where('id', '[0-9]+')
 
 Route::post('/reviews', [ReviewController::class, 'store'])->name('reviews.store');
 
-Route::middleware(['auth', /* other shop middleware? */])->prefix('shops')->name('shop.')->group(function () {
-    // ... other shop routes
-    Route::get('/analytics', [ShopAnalyticsController::class, 'index'])->name('analytics');
-    Route::get('/analytics/download-pdf', [ShopAnalyticsController::class, 'downloadPdf'])->name('analytics.downloadPdf'); // Add this line
-    // ... other shop routes
-});
+// User appointment routes
+Route::post('/appointments/confirm-completion', [AppointmentController::class, 'confirmCompletion'])->name('appointments.confirm-completion');
+
+Route::get('/shop/setup', [ShopController::class, 'create'])->name('shop.setup');
+Route::post('/shop/setup', [ShopController::class, 'store'])->name('shop.store');
 
 // Debug route - kept for future potential issues
 Route::get('/debug/check-documents/{shopId}', function ($shopId) {
