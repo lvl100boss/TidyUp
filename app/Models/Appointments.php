@@ -27,6 +27,8 @@ class Appointments extends Model
         'decline_reason',
         'cancel_reason',
         'resched_reason',
+        'has_review',
+        'user_confirmed',
     ];
 
     protected $casts = [

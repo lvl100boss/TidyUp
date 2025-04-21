@@ -33,6 +33,9 @@ class AppointmentServices extends Model
         return $this->belongsTo(ShopServiceCategories::class, 'service_id');
     }
     // don't remove both of these functions
+    /**
+     * Alias for shop_service to maintain backward compatibility
+     */
     public function shopService()
     {
         return $this->belongsTo(ShopServiceCategories::class, 'service_id');

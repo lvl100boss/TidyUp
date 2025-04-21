@@ -92,11 +92,19 @@ const ReviewsSection = ({ reviews }) => {
                                 <div className="mt-4">
                                     <p className="text-sm font-medium mb-2">Services Availed:</p>
                                     <div className="flex flex-wrap gap-2">
-                                        {review.appointment.services.map((service) => (
-                                            <Badge key={service.id} variant="outline">
-                                                {service.shop_service && service.shop_service.service_name}
-                                            </Badge>
-                                        ))}
+                                        {review.appointment.services.map((service) => {
+                                            // Handle both potential property names
+                                            const serviceName = 
+                                                (service.shop_service && service.shop_service.service_name) || 
+                                                (service.shopService && service.shopService.service_name) || 
+                                                "Service";
+                                            
+                                            return (
+                                                <Badge key={service.id} variant="outline">
+                                                    {serviceName}
+                                                </Badge>
+                                            );
+                                        })}
                                     </div>
                                 </div>
                             )}
