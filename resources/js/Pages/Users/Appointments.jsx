@@ -26,6 +26,24 @@ import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
+import { Head, useForm, usePage } from "@inertiajs/react"
+import { useEffect, useState } from "react"
+import UserLayout from "@/Layouts/UserLayout"
+import AppointmentCard from "@/Components/User/AppointmentCard"
+import {
+    Tabs,
+    TabsContent,
+    TabsList,
+    TabsTrigger,
+} from "@/components/ui/tabs"
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select"
+import FlashMessageWrapper from "@/Components/FlashMessageWrapper"
 
 export default function Appointments({
     pendingAppointments,
@@ -42,6 +60,16 @@ export default function Appointments({
     const [serviceRating, setServiceRating] = useState(0);
     const [staffRating, setStaffRating] = useState(0);
     const [showConfirmationDialog, setShowConfirmationDialog] = useState(false);
+    
+    const appointmentTypes = ["pending", "upcoming", "started", "completed", "reschedule"];
+    
+    const appointmentData = {
+        pending: pendingAppointments,
+        upcoming: upcomingAppointments,
+        completed: completedAppointments,
+        started: startedAppointments,
+        reschedule: requestRescheduleAppointments
+    };
 
     const { data, setData, post, processing, errors, reset } = useForm({
         appointment_id: '',
@@ -259,7 +287,7 @@ export default function Appointments({
 
     return (
         <UserLayout>
-            <FlashMessage message={flashState.message} success={flashState.success} />
+            <FlashMessageWrapper message={flashState.message} success={flashState.success} />
 
             <Head title="Appointments" />
             <h1 className="text-3xl font-semibold mt-2 lg:mb-3 lg:mt-0 uppercase">
@@ -273,7 +301,16 @@ export default function Appointments({
             >
                 <div className="sm:hidden w-full">
                     <Select value={activeTab} onValueChange={setActiveTab}>
-                        {/* Select Options... */}
+                        <SelectTrigger>
+                            <SelectValue placeholder="Select a tab" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {appointmentTypes.map((type) => (
+                                <SelectItem key={type} value={type}>
+                                    {type}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
                     </Select>
                 </div>
 
