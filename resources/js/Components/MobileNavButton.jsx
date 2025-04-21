@@ -86,50 +86,6 @@ const MobileNavButton = () => {
                                     <span>{link.label}</span>
                                 </Link>
                             ))}
-
-                            <hr className="my-5 h-0.5 border-t-0 bg-neutral-100 dark:bg-white/10" />
-                            <div>
-                                <h3 className="font-medium mb-2">
-                                    CATEGORIES
-                                </h3>
-                            </div>
-                            {categoryLinks.map((link) => (
-                                <Link
-                                    key={link.href}
-                                    href={link.href}
-                                    className={`w-full ${buttonVariants({
-                                        variant:
-                                            url === link.href
-                                                ? "secondary"
-                                                : "ghost",
-                                    })} !justify-start`}
-                                >
-                                    <link.icon />
-                                    <span>{link.label}</span>
-                                </Link>
-                            ))}
-
-                            <hr className="my-5 h-0.5 border-t-0 bg-neutral-100 dark:bg-white/10" />
-                            <div>
-                                <h3 className="font-medium mb-2">
-                                    HELP CENTER
-                                </h3>
-                            </div>
-                            {helpLinks.map((link) => (
-                                <Link
-                                    key={link.href}
-                                    href={link.href}
-                                    className={`w-full ${buttonVariants({
-                                        variant:
-                                            url === link.href
-                                                ? "secondary"
-                                                : "ghost",
-                                    })} !justify-start`}
-                                >
-                                    <link.icon />
-                                    <span>{link.label}</span>
-                                </Link>
-                            ))}
                         </div>
                     </div>
                     <DrawerFooter>

@@ -58,7 +58,7 @@
         "react-intersection-observer": "^9.16.0",
         "react-masonry-css": "^1.0.16",
         "react-responsive": "^10.0.0",
-        "recharts": "^2.15.1",
+        "recharts": "^2.15.3",
         "select-philippines-address": "^1.0.6",
         "shadcn": "^2.3.0",
         "sonner": "^2.0.1",

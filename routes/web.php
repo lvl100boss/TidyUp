@@ -10,8 +10,9 @@ use App\Http\Controllers\ShopController;
 use App\Http\Controllers\ShopResubmissionController;
 use App\Http\Controllers\PopularShopsController;
 use App\Http\Controllers\ReviewController;
-use Illuminate\Foundation\Application;
 use App\Http\Controllers\NewsletterSubscriptionController;
+use App\Http\Controllers\ShopAnalyticsController; // Make sure this is imported
+use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -69,6 +70,11 @@ Route::get('/{id}/shop', [ShopController::class, 'show'])->where('id', '[0-9]+')
 
 Route::post('/reviews', [ReviewController::class, 'store'])->name('reviews.store');
 
+// User appointment routes
+Route::post('/appointments/confirm-completion', [AppointmentController::class, 'confirmCompletion'])->name('appointments.confirm-completion');
+
+Route::get('/shop/setup', [ShopController::class, 'create'])->name('shop.setup');
+Route::post('/shop/setup', [ShopController::class, 'store'])->name('shop.store');
 
 // Debug route - kept for future potential issues
 Route::get('/debug/check-documents/{shopId}', function ($shopId) {

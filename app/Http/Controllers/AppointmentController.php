@@ -14,7 +14,7 @@ class AppointmentController extends Controller
     public function index()
     {
         $user = Auth::user();
-        $userAppointments = User::with(['appointments.shop.shopGallery', 'appointments.userAppointments.staff.staff', 'appointments.appointmentServices.shopService'])->find($user->id);
+        $userAppointments = User::with(['appointments.shop.shopGallery', 'appointments.userAppointments.staff.staff', 'appointments.appointmentServices.shopService', 'appointments.review'])->find($user->id);
         $statuses = ['pending', 'upcoming', 'completed', 'cancelled', 'no-show', 'declined', 'started'];
         $appointmentsByStatus = [];
 
@@ -33,7 +33,6 @@ class AppointmentController extends Controller
         }
 
         extract($appointmentsByStatus);
-
 
         $requestRescheduleAppointments = $userAppointments->appointments->where('status', 'pending')->where('is_successful', true)->where('resched_data', '!=', null)->values()->all();
 
@@ -80,6 +79,41 @@ class AppointmentController extends Controller
         } catch (\Exception $e) {
             DB::rollback();
             return redirect()->back()->with('error', 'An error occurred while accepting appointment');
+        }
+    }
+
+    /**
+     * User confirms that the appointment was completed successfully
+     */
+    public function confirmCompletion(Request $request)
+    {
+        $validated = $request->validate([
+            'appointment_id' => 'required|exists:appointments,id',
+        ]);
+
+        $appointment = Appointments::find($validated['appointment_id']);
+
+        // Verify the appointment belongs to the authenticated user
+        if ($appointment->user_id !== Auth::id()) {
+            return redirect()->back()->with('message', 'You are not authorized to confirm this appointment')->with('success', false);
+        }
+
+        DB::beginTransaction();
+        try {
+            // Update status only if it's not already completed
+            if ($appointment->status !== 'completed') {
+                $appointment->status = 'completed';
+            }
+
+            // Mark the appointment as confirmed by the user
+            $appointment->is_successful = true;
+            $appointment->save();
+
+            DB::commit();
+            return redirect()->back()->with('message', 'Thank you for confirming your appointment was completed successfully!')->with('success', true);
+        } catch (\Exception $e) {
+            DB::rollback();
+            return redirect()->back()->with('message', 'An error occurred while confirming appointment completion: ' . $e->getMessage())->with('success', false);
         }
     }
 }

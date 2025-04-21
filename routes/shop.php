@@ -12,7 +12,7 @@ use App\Http\Controllers\ShopCatalogController;
 use App\Http\Controllers\ShopSocialMediaController;
 use App\Http\Controllers\ShopSubscriptionController;
 use App\Http\Controllers\ShopResubmissionController;
-use Inertia\Inertia;
+use App\Http\Controllers\ShopAnalyticsController;
 
 //Shop Owner and Shop Staff
 Route::middleware(['auth', 'verified', 'shop.owner.staff'])->group(function () {
@@ -82,4 +82,6 @@ Route::middleware(['auth', 'verified', 'shop.owner.manager'])->group(function ()
     Route::get('/shop/subscriptions', [ShopSubscriptionController::class, 'index'])->name('shop.subscriptions');
     Route::post('/shop/subscriptions/subscribe', [ShopSubscriptionController::class, 'subscribe'])->name('shop.subscriptions.subscribe');
     Route::post('/shop/subscriptions/cancel', [ShopSubscriptionController::class, 'cancel'])->name('shop.subscriptions.cancel');
+
+    Route::get('/shop/analytics', [ShopAnalyticsController::class, 'index'])->name('shop.analytics');
 });

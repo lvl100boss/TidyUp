@@ -1,120 +1,140 @@
-import UserLayout from "@/Layouts/UserLayout";
-import AppointmentCard from "@/Components/User/AppointmentCard";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/Components/ui/tabs";
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/Components/ui/select";
-import { Head, usePage, useForm } from "@inertiajs/react";
-import { useState, useEffect } from "react";
-import ApplicationLogo from "@/Components/ApplicationLogo";
-import { FlashMessage } from "@/Components/FlashMessage"
 import {
     Dialog,
     DialogContent,
     DialogDescription,
+    DialogFooter,
     DialogHeader,
     DialogTitle,
     DialogTrigger,
-    DialogFooter,
 } from "@/components/ui/dialog"
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 import ResceduleAppointmentCard from "@/Pages/Users/AppointmentPartial/RescheduleAppointmentCard";
 import { Separator } from "@/components/ui/separator"
-import { Calendar, Clock, Scissors, Star } from "lucide-react";
+import { Calendar, CheckCircle, Clock, Scissors, Star } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Label } from "@/components/ui/label"
 
 export default function Appointments({
     pendingAppointments,
     upcomingAppointments,
     completedAppointments,
-    cancelledAppointments,
-    noShowAppointments,
-    declinedAppointments,
     startedAppointments,
     requestRescheduleAppointments
 }) {
-    const { flash } = usePage().props;
+    const { flash, auth } = usePage().props;
     const [flashState, setFlashState] = useState({ message: flash.message, success: flash.success });
     const [activeTab, setActiveTab] = useState("upcoming");
     const [isReviewDialogOpen, setIsReviewDialogOpen] = useState(false);
     const [appointmentToReview, setAppointmentToReview] = useState(null);
-    const [rating, setRating] = useState(0);
+    const [serviceRating, setServiceRating] = useState(0);
+    const [staffRating, setStaffRating] = useState(0);
+    const [showConfirmationDialog, setShowConfirmationDialog] = useState(false);
 
     const { data, setData, post, processing, errors, reset } = useForm({
         appointment_id: '',
         user_id: '',
-        rating: 0,
-        comment: ''
+        shop_id: '',
+        service_rating: 0,
+        staff_rating: 0,
+        comment: '',
+        confirm_completion: false
     });
 
-    // Handle flash message display
+    const confirmCompletionForm = useForm({
+        appointment_id: '',
+        _method: 'POST'
+    });
+
     useEffect(() => {
         if (flash.message) {
             setFlashState({ message: flash.message, success: flash.success });
-            const timer = setTimeout(() => setFlashState({ message: "", success: flash.success }), 4000);
-            return () => clearTimeout(timer);
         }
     }, [flash.message, flash.success]);
 
-    // Handle tab change on successful booking
     useEffect(() => {
         if (flash.message === "Appointment has been booked successfully") {
             setActiveTab("pending");
         }
     }, [flash.message]);
 
-    const appointmentTypes = [
-        "pending",
-        "upcoming",
-        "completed",
-        "cancelled",
-        "no-show",
-        "declined",
-        "started",
-    ];
-
-    const appointmentData = {
-        pending: pendingAppointments,
-        upcoming: upcomingAppointments,
-        completed: completedAppointments,
-        cancelled: cancelledAppointments,
-        "no-show": noShowAppointments,
-        declined: declinedAppointments,
-        started: startedAppointments,
-    };
-
     const handleReviewClick = (appointment) => {
         setAppointmentToReview(appointment);
         setIsReviewDialogOpen(true);
         setData({
             appointment_id: appointment.id,
-            user_id: appointment.user_id,
-            rating: 0,
-            comment: ''
+            user_id: auth.user.id,
+            shop_id: appointment.shop_id,
+            service_rating: 0,
+            staff_rating: 0,
+            comment: '',
+            confirm_completion: false
         });
-        setRating(0);
+        setServiceRating(0);
+        setStaffRating(0);
     };
 
     const submitReview = (e) => {
         e.preventDefault();
-        post(route('reviews.store'), {
+        post(route('appointments.review'), {
             preserveScroll: true,
             onSuccess: () => {
                 setIsReviewDialogOpen(false);
+                if (!data.confirm_completion) {
+                    setShowConfirmationDialog(true);
+                    confirmCompletionForm.setData('appointment_id', appointmentToReview.id);
+                }
                 reset();
-                setRating(0);
+                setServiceRating(0);
+                setStaffRating(0);
             }
         });
     };
 
+    const confirmCompletion = (e) => {
+        e.preventDefault();
+        confirmCompletionForm.post(route('appointments.confirm-completion'), {
+            preserveScroll: true,
+            onSuccess: () => {
+                setShowConfirmationDialog(false);
+                if (flash.message === "Appointment has been confirmed as completed") {
+                    setActiveTab("completed");
+                }
+            }
+        });
+    };
+
+    const viewReview = (appointment) => {
+        if (appointment.review) {
+            setAppointmentToReview(appointment);
+            setData({
+                appointment_id: appointment.id,
+                user_id: auth.user.id,
+                shop_id: appointment.shop_id,
+                service_rating: appointment.review.service_rating,
+                staff_rating: appointment.review.staff_rating,
+                comment: appointment.review.comment || '',
+            });
+            setServiceRating(appointment.review.service_rating);
+            setStaffRating(appointment.review.staff_rating);
+            setIsReviewDialogOpen(true);
+        }
+    };
+
     const getAppointmentContent = (type) => {
         const appointments = appointmentData[type];
-        console.log(appointments);
         return (
             <TabsContent value={type} className="grid gap-5 mt-0 w-full">
                 {appointments && appointments.length > 0 ? (
@@ -179,42 +199,59 @@ export default function Appointments({
                                             </div>
                                             <div>
                                                 <h1 className="text-xl font-semibold mb-2">Services:</h1>
-                                                <ul className="space-y-2 bg-muted/30 p-4 rounded-lg">
+                                                <ul className="space-y-2">
                                                     {appointment.appointment_services.map((service) => (
                                                         <li key={service.shop_service.id}>
                                                             <div className="flex items-center justify-between gap-2 mb-2">
                                                                 <p>{service.shop_service.service_name} ({service.shop_service.duration_hour}h {service.shop_service.duration_minute}m)</p>
                                                                 <p>Php {service.shop_service.cost}</p>
                                                             </div>
+                                                            <Separator />
                                                         </li>
                                                     ))}
                                                 </ul>
-                                                <div className="flex items-center justify-between mt-4">
+                                                <div className="flex items-center justify-between mt-2">
                                                     <h1 className="text-xl font-semibold">Total:</h1>
                                                     <h1 className="text-xl font-semibold">Php {appointment.total_price}</h1>
                                                 </div>
                                             </div>
                                         </ScrollArea>
-                                        {type === "pending" || type === "upcoming" ? (
-
+                                        <Separator />
+                                        {type === "started" && !appointment.has_review ? (
+                                            <Button 
+                                                onClick={() => handleReviewClick(appointment)} 
+                                                className="bg-primary"
+                                            >
+                                                Rate & Review
+                                            </Button>
+                                        ) : type === "completed" && appointment.has_review ? (
+                                            <Button 
+                                                onClick={() => viewReview(appointment)} 
+                                                variant="outline"
+                                                className="flex gap-2"
+                                            >
+                                                <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                                                View Your Review
+                                            </Button>
+                                        ) : type === "completed" && !appointment.has_review ? (
+                                            <Button 
+                                                onClick={() => handleReviewClick(appointment)} 
+                                                className="bg-primary"
+                                            >
+                                                Rate & Review
+                                            </Button>
+                                        ) : !["completed", "cancelled", "declined", "no-show"].includes(appointment.status) && (
                                             <>
-                                                <Separator />
                                                 <Button variant="secondary">Request Reschedule</Button>
                                                 <Button variant="destructive">Cancel Appointment</Button>
                                             </>
-                                        ) : null}
+                                        )}
                                     </DialogHeader>
                                 </DialogContent>
                             </Dialog>
                         ))
                 ) : (
-                    <div>
-                        <ApplicationLogo className="size-48 mx-auto mb-1 opacity-40 dark:invert" />
-                        <p className="text-center font-bold text-2xl opacity-40">
-                            No {type.charAt(0).toUpperCase() + type.slice(1)}{" "}
-                            appointments
-                        </p>
-                    </div>
+                    <p>No appointments available.</p>
                 )}
             </TabsContent>
         );
@@ -234,130 +271,154 @@ export default function Appointments({
                 onValueChange={setActiveTab}
                 className="overflow-x-auto whitespace-nowrap mb-20"
             >
-                {/* Mobile View - Select Dropdown */}
                 <div className="sm:hidden w-full">
-                    <Select
-                        value={activeTab}
-                        onValueChange={setActiveTab}
-                        className="w-full"
-                    >
-                        <SelectTrigger className="mb-5 mt-2">
-                            <SelectValue placeholder="Select status" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {appointmentTypes.map((type) => (
-                                <SelectItem key={type} value={type}>
-                                    {type.charAt(0).toUpperCase() + type.slice(1)}{" "}
-                                    {appointmentData[type]?.length > 0 && (
-                                        <span>
-                                            ({appointmentData[type]?.length})
-                                        </span>
-                                    )}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
+                    <Select value={activeTab} onValueChange={setActiveTab}>
+                        {/* Select Options... */}
                     </Select>
                 </div>
 
-                {/* Desktop View - Tabs */}
                 <div className="hidden sm:block">
                     <TabsList className="mb-5 block md:inline-flex w-min mx-auto lg:mx-0">
                         {appointmentTypes.map((type) => (
-                            <TabsTrigger key={type} value={type}>
-                                <div className="flex items-center gap-1">
-                                    <span>{type.charAt(0).toUpperCase() + type.slice(1)}{" "}</span>
-                                    {appointmentData[type]?.length > 0 && (
-                                        <div className="ml-1 bg-primary text-background font text-xs size-4 rounded-sm grid place-items-center">
-                                            {appointmentData[type]?.length}
-                                        </div>
-                                    )}
-                                </div>
-                            </TabsTrigger>
+                            <TabsTrigger key={type} value={type}>{type}</TabsTrigger>
                         ))}
                     </TabsList>
                 </div>
 
-                {appointmentTypes.map((type) => (
-                    <div key={type}>{getAppointmentContent(type)}</div>
-                ))}
+                <div className="tab-content-wrapper">
+                    {appointmentTypes.map((type) => getAppointmentContent(type))}
+                </div>
             </Tabs>
 
-            <div className="pb-20">
-                <h1 className="text-xl mt-2 lg:mb-3 lg:mt-0 ">
-                    Reschedule Requests
-                </h1>
-                <div>
-                    {requestRescheduleAppointments.length > 0 ? (
-                        requestRescheduleAppointments.map((appointment) => {
-                            const reschedData = JSON.parse(appointment.resched_data);
-                            return (
-                                <ResceduleAppointmentCard key={appointment.id} reschedData={reschedData} appointment={appointment}></ResceduleAppointmentCard>
-                            );
-                        })
-                    ) : (
-                        <div>
-                            <ApplicationLogo className="size-48 mx-auto mb-1 opacity-40 dark:invert" />
-                            <p className="text-center font-bold text-2xl opacity-40">
-                                No reschedule requests
-                            </p>
-                        </div>
-                    )}
-                </div>
-            </div>
-
-            {/* Review Dialog */}
-            <Dialog open={isReviewDialogOpen} onOpenChange={setIsReviewDialogOpen}>
+            <Dialog open={isReviewDialogOpen} onOpenChange={(open) => {
+                if (!open && appointmentToReview?.review) {
+                    setIsReviewDialogOpen(false);
+                }
+            }}>
                 <DialogContent className="sm:max-w-[425px]">
                     <DialogHeader>
                         <DialogTitle>Rate Your Experience</DialogTitle>
                         <DialogDescription>
-                            Share your feedback about the service you received
+                            {appointmentToReview?.review 
+                                ? "Your review for this appointment" 
+                                : "Share your feedback about the service you received"}
                         </DialogDescription>
                     </DialogHeader>
                     <form onSubmit={submitReview}>
                         <div className="grid gap-4 py-4">
-                            <div className="flex items-center justify-center space-x-1 mb-2">
-                                {[1, 2, 3, 4, 5].map((star) => (
-                                    <Star
-                                        key={star}
-                                        className={`cursor-pointer h-8 w-8 ${star <= rating ? "fill-yellow-400 text-yellow-400" : "text-gray-300"}`}
-                                        onClick={() => {
-                                            setRating(star);
-                                            setData('rating', star);
-                                        }}
-                                    />
-                                ))}
+                            <div className="space-y-4">
+                                <div>
+                                    <h3 className="text-sm font-medium mb-2">Service Quality</h3>
+                                    <div className="flex items-center justify-center space-x-1 mb-2">
+                                        {[1, 2, 3, 4, 5].map((star) => (
+                                            <Star
+                                                key={star}
+                                                className={`${appointmentToReview?.review ? "" : "cursor-pointer"} h-8 w-8 ${star <= serviceRating ? "fill-yellow-400 text-yellow-400" : "text-gray-300"}`}
+                                                onClick={() => {
+                                                    if (!appointmentToReview?.review) {
+                                                        setServiceRating(star);
+                                                        setData('service_rating', star);
+                                                    }
+                                                }}
+                                            />
+                                        ))}
+                                    </div>
+                                    {errors.service_rating && <p className="text-red-500 text-sm text-center">{errors.service_rating}</p>}
+                                </div>
+
+                                <div>
+                                    <h3 className="text-sm font-medium mb-2">Staff Performance</h3>
+                                    <div className="flex items-center justify-center space-x-1 mb-2">
+                                        {[1, 2, 3, 4, 5].map((star) => (
+                                            <Star
+                                                key={star}
+                                                className={`${appointmentToReview?.review ? "" : "cursor-pointer"} h-8 w-8 ${star <= staffRating ? "fill-yellow-400 text-yellow-400" : "text-gray-300"}`}
+                                                onClick={() => {
+                                                    if (!appointmentToReview?.review) {
+                                                        setStaffRating(star);
+                                                        setData('staff_rating', star);
+                                                    }
+                                                }}
+                                            />
+                                        ))}
+                                    </div>
+                                    {errors.staff_rating && <p className="text-red-500 text-sm text-center">{errors.staff_rating}</p>}
+                                </div>
                             </div>
-                            {errors.rating && <p className="text-red-500 text-sm text-center">{errors.rating}</p>}
-                            
-                            <div className="space-y-2">
+
+                            <div>
+                                <Label>Comment</Label>
                                 <Textarea
-                                    placeholder="Share details of your experience with this service..."
                                     value={data.comment}
                                     onChange={(e) => setData('comment', e.target.value)}
                                     rows={4}
+                                    disabled={appointmentToReview?.review}
                                 />
                                 {errors.comment && <p className="text-red-500 text-sm">{errors.comment}</p>}
                             </div>
+
+                            {!appointmentToReview?.review && appointmentToReview?.status === "started" && (
+                                <div className="flex items-center space-x-2">
+                                    <Checkbox 
+                                        id="confirm_completion" 
+                                        checked={data.confirm_completion}
+                                        onCheckedChange={(checked) => setData('confirm_completion', checked)}
+                                    />
+                                    <Label htmlFor="confirm_completion">
+                                        Confirm appointment was completed successfully
+                                    </Label>
+                                </div>
+                            )}
                         </div>
+
                         <DialogFooter>
-                            <Button 
-                                type="button" 
-                                variant="outline" 
-                                onClick={() => setIsReviewDialogOpen(false)}
-                            >
-                                Cancel
-                            </Button>
-                            <Button 
-                                type="submit" 
-                                disabled={processing || !rating}
-                            >
-                                Submit Review
-                            </Button>
+                            {appointmentToReview?.review ? (
+                                <Button 
+                                    type="button" 
+                                    onClick={() => setIsReviewDialogOpen(false)}
+                                >
+                                    Close
+                                </Button>
+                            ) : (
+                                <>
+                                    <Button 
+                                        type="button" 
+                                        variant="outline" 
+                                        onClick={() => setIsReviewDialogOpen(false)}
+                                    >
+                                        Cancel
+                                    </Button>
+                                    <Button 
+                                        type="submit" 
+                                        disabled={processing || !serviceRating || !staffRating}
+                                    >
+                                        Submit Review
+                                    </Button>
+                                </>
+                            )}
                         </DialogFooter>
                     </form>
                 </DialogContent>
             </Dialog>
+
+            <AlertDialog open={showConfirmationDialog} onOpenChange={setShowConfirmationDialog}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Confirm Appointment Completion</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Thank you for your review! Please confirm that your appointment was completed successfully.
+                            This helps us maintain accurate records of service delivery.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Not Now</AlertDialogCancel>
+                        <AlertDialogAction onClick={confirmCompletion} className="bg-primary">
+                            <CheckCircle className="mr-2 h-4 w-4" />
+                            Confirm Completion
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </UserLayout>
     );
 }
