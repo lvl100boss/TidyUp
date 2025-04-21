@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+
+
 class Review extends Model
 {
     use HasFactory;
@@ -13,7 +15,9 @@ class Review extends Model
     protected $fillable = [
         'appointment_id',
         'user_id',
-        'rating',
+        'shop_id',
+        'service_rating',
+        'staff_rating',
         'comment',
     ];
 
@@ -31,5 +35,13 @@ class Review extends Model
     public function appointment(): BelongsTo
     {
         return $this->belongsTo(Appointments::class, 'appointment_id');
+    }
+
+    /**
+     * Get the shop that was reviewed.
+     */
+    public function shop(): BelongsTo
+    {
+        return $this->belongsTo(Shop::class);
     }
 }
