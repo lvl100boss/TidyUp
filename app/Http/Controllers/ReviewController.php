@@ -24,14 +24,16 @@ class ReviewController extends Controller
                     return $query->where('user_id', Auth::id());
                 })
             ],
-            'rating' => 'required|integer|between:1,5',
+            'user_id' => 'required|exists:users,id',
+            'shop_id' => 'required|exists:shops,id',
+            'service_rating' => 'required|integer|between:1,5',
+            'staff_rating' => 'required|integer|between:1,5',
             'comment' => 'nullable|string|max:500',
         ], [
-            'appointment_id.unique' => 'You have already reviewed this appointment.'
+            'appointment_id.unique' => 'You have already reviewed this appointment.',
+            'service_rating.required' => 'Please rate the service quality.',
+            'staff_rating.required' => 'Please rate the staff performance.'
         ]);
-
-        // Add the authenticated user's ID
-        $validated['user_id'] = Auth::id();
 
         // Create the review
         $review = Review::create($validated);

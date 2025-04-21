@@ -43,12 +43,15 @@ export default function Appointments({
     const [activeTab, setActiveTab] = useState("upcoming");
     const [isReviewDialogOpen, setIsReviewDialogOpen] = useState(false);
     const [appointmentToReview, setAppointmentToReview] = useState(null);
-    const [rating, setRating] = useState(0);
+    const [serviceRating, setServiceRating] = useState(0);
+    const [staffRating, setStaffRating] = useState(0);
 
     const { data, setData, post, processing, errors, reset } = useForm({
         appointment_id: '',
         user_id: '',
-        rating: 0,
+        shop_id: '',
+        service_rating: 0,
+        staff_rating: 0,
         comment: ''
     });
 
@@ -94,10 +97,13 @@ export default function Appointments({
         setData({
             appointment_id: appointment.id,
             user_id: appointment.user_id,
-            rating: 0,
+            shop_id: appointment.shop_id,
+            service_rating: 0,
+            staff_rating: 0,
             comment: ''
         });
-        setRating(0);
+        setServiceRating(0);
+        setStaffRating(0);
     };
 
     const submitReview = (e) => {
@@ -107,7 +113,8 @@ export default function Appointments({
             onSuccess: () => {
                 setIsReviewDialogOpen(false);
                 reset();
-                setRating(0);
+                setServiceRating(0);
+                setStaffRating(0);
             }
         });
     };
@@ -323,19 +330,41 @@ export default function Appointments({
                     </DialogHeader>
                     <form onSubmit={submitReview}>
                         <div className="grid gap-4 py-4">
-                            <div className="flex items-center justify-center space-x-1 mb-2">
-                                {[1, 2, 3, 4, 5].map((star) => (
-                                    <Star
-                                        key={star}
-                                        className={`cursor-pointer h-8 w-8 ${star <= rating ? "fill-yellow-400 text-yellow-400" : "text-gray-300"}`}
-                                        onClick={() => {
-                                            setRating(star);
-                                            setData('rating', star);
-                                        }}
-                                    />
-                                ))}
+                            <div className="space-y-4">
+                                <div>
+                                    <h3 className="text-sm font-medium mb-2">Service Quality</h3>
+                                    <div className="flex items-center justify-center space-x-1 mb-2">
+                                        {[1, 2, 3, 4, 5].map((star) => (
+                                            <Star
+                                                key={star}
+                                                className={`cursor-pointer h-8 w-8 ${star <= serviceRating ? "fill-yellow-400 text-yellow-400" : "text-gray-300"}`}
+                                                onClick={() => {
+                                                    setServiceRating(star);
+                                                    setData('service_rating', star);
+                                                }}
+                                            />
+                                        ))}
+                                    </div>
+                                    {errors.service_rating && <p className="text-red-500 text-sm text-center">{errors.service_rating}</p>}
+                                </div>
+
+                                <div>
+                                    <h3 className="text-sm font-medium mb-2">Staff Performance</h3>
+                                    <div className="flex items-center justify-center space-x-1 mb-2">
+                                        {[1, 2, 3, 4, 5].map((star) => (
+                                            <Star
+                                                key={star}
+                                                className={`cursor-pointer h-8 w-8 ${star <= staffRating ? "fill-yellow-400 text-yellow-400" : "text-gray-300"}`}
+                                                onClick={() => {
+                                                    setStaffRating(star);
+                                                    setData('staff_rating', star);
+                                                }}
+                                            />
+                                        ))}
+                                    </div>
+                                    {errors.staff_rating && <p className="text-red-500 text-sm text-center">{errors.staff_rating}</p>}
+                                </div>
                             </div>
-                            {errors.rating && <p className="text-red-500 text-sm text-center">{errors.rating}</p>}
                             
                             <div className="space-y-2">
                                 <Textarea
@@ -357,7 +386,7 @@ export default function Appointments({
                             </Button>
                             <Button 
                                 type="submit" 
-                                disabled={processing || !rating}
+                                disabled={processing || !serviceRating || !staffRating}
                             >
                                 Submit Review
                             </Button>
