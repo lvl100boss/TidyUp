@@ -45,6 +45,10 @@ const ShopCardContent = ({ shop }) => {
                             onError={(e) => {
                                 e.target.src = "/placeholder-shop.jpg";
                             }}
+                            onLoad={(e) => {
+                                e.target.style.opacity = 1;
+                            }}
+                            loading="lazy"
                         />
                     </AspectRatio>
 
