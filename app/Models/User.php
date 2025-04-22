@@ -99,5 +99,8 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasOne(PlatformStaff::class); // Each user has one platform staff
     }
 
-
+    public function isAdmin()
+    {
+        return $this->userRole->role_id === 1; // Check if the user has the Admin role
+    }
 }

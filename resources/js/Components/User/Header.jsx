@@ -160,6 +160,12 @@ const Header = ({ onClick, isDarkTheme, setIsDarkTheme }) => {
                                                 Manage Appointments
                                             </DropdownMenuItem>
                                         </Link>
+                                    ) : role.role_id === 1 ? (
+                                        <Link href={route("admin.shops")}>
+                                            <DropdownMenuItem>
+                                                Admin Dashboard
+                                            </DropdownMenuItem>
+                                        </Link>
                                     ) : (
                                         <Link href={`/shop/setup`}>
                                             <DropdownMenuItem>
