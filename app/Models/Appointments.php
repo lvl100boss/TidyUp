@@ -14,6 +14,7 @@ class Appointments extends Model
     protected $fillable = [
         'user_id',
         'shop_id',
+        'staff_id',
         'date',
         'time',
         'total_price',
@@ -39,6 +40,11 @@ class Appointments extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function staff()
+    {
+        return $this->belongsTo(ShopStaffs::class, 'staff_id');
     }
 
     public function shop()

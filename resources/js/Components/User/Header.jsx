@@ -43,7 +43,7 @@ const Header = ({ onClick, isDarkTheme, setIsDarkTheme }) => {
     const { url } = usePage();
 
     const navLinks = [
-        { href: "/shop/setup", label: "Home" },
+        { href: "/", label: "Home" },
         { href: "/appointments", label: "Appointments" },
         { href: "/discover", label: "Discover" },
         { href: "/popular", label: "Popular" }
@@ -93,34 +93,7 @@ const Header = ({ onClick, isDarkTheme, setIsDarkTheme }) => {
                     <div className="flex items-center gap-2">
                         <SearchShop />
                         {/* Notification Button */}
-                        <Drawer
-                            direction="right"
-                            size="sm"
-                        >
-                            <DrawerTrigger>
-                                <Button
-                                    variant="outline"
-                                    radius="round"
-                                    size="icon"
-                                >
-                                    <Bell className="stroke-2" />
-                                </Button>
-                            </DrawerTrigger>
-                            <DrawerContent>
-                                <DrawerHeader>
-                                    <div className="flex items-center gap-2">
-                                        <DrawerTitle className='text-left'>Notification</DrawerTitle><Bell size={18} />
-                                    </div>
-                                    <DrawerDescription className='text-left'>Stay up to date with the latest activity.</DrawerDescription>
-                                </DrawerHeader>
-                                <Separator />
-
-                            </DrawerContent>
-                        </Drawer>
-
-
-
-
+                        <Notification />
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <Avatar className="cursor-pointer">

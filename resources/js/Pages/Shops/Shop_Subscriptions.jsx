@@ -9,6 +9,7 @@ import CancellationDialog from "@/Components/Shop/ShopsSubscription/Cancellation
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/Components/ui/tabs";
 
 export default function ShopSubscriptions({ shop, subscriptionPlans, currentSubscription: initialSubscription, subscriptionHistory }) {
+    console.log(shop)
     // State for managing the current subscription
     const [currentSubscription, setCurrentSubscription] = useState(initialSubscription);
     const [selectedPlan, setSelectedPlan] = useState(null);
@@ -32,13 +33,13 @@ export default function ShopSubscriptions({ shop, subscriptionPlans, currentSubs
         axios.post(route("shop.subscriptions.subscribe"), data)
             .then(response => {
                 console.log("Raw response:", response);
-                
+
                 // Close the dialog
                 setPaymentDialogOpen(false);
-                
+
                 // Get data from response
                 const responseData = response.data;
-                
+
                 // Update the subscription state
                 setCurrentSubscription({
                     subscription: responseData.subscription,
@@ -47,7 +48,7 @@ export default function ShopSubscriptions({ shop, subscriptionPlans, currentSubs
                     billing_cycle: responseData.billing_cycle,
                     status: responseData.status,
                 });
-                
+
                 // Show success message
                 toast.success(`Successfully subscribed to ${responseData.subscription.tier} (${responseData.billing_cycle})`);
             })
@@ -70,7 +71,7 @@ export default function ShopSubscriptions({ shop, subscriptionPlans, currentSubs
                 toast.error("Failed to cancel subscription. Please try again.");
             });
     };
-    
+
 
 
     return (

@@ -5,9 +5,11 @@ namespace App\Http\Controllers;
 use App\Models\Appointments;
 use App\Models\ShopStaffs;
 use App\Services\ShopAppointmentService;
+use App\Notifications\AppointmentAcceptedNotification;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
 class ShopAppointmentsController extends Controller
@@ -21,7 +23,7 @@ class ShopAppointmentsController extends Controller
     }
     public function index()
     {
-        $myAppointments = $this->appointmentService->getAppointmentsData(auth()->id());
+        $myAppointments = $this->appointmentService->getAppointmentsData(Auth::id());
         return Inertia::render('Shops/Appointments', [
             'staffData' => $myAppointments['currentStaff'],
             'myAppointments' => $myAppointments['appointments'],
@@ -34,14 +36,24 @@ class ShopAppointmentsController extends Controller
 
     public function approve(Request $request, $appointment)
     {
-        $targetAppointment = Appointments::find($appointment);
-        $currentStaff = ShopStaffs::where('staff_id', auth()->id())
-            ->first();
+        // Eager load the 'user' relationship for notification
+        $targetAppointment = Appointments::with('user')->find($appointment);
+
+        if (!$targetAppointment) {
+            return redirect()->back()->with('message', 'Appointment not found')->with('success', false);
+        }
+
+        $currentStaff = ShopStaffs::where('staff_id', Auth::id())->first();
+
         DB::beginTransaction();
         try {
             $targetAppointment->status = 'upcoming';
             $targetAppointment->approved_by = $currentStaff->id;
             $targetAppointment->save();
+            $user = $targetAppointment->user;
+            if ($user) {
+                $user->notify(new AppointmentAcceptedNotification($targetAppointment));
+            }
             DB::commit();
             return redirect()->back()->with('message', 'Appointment approved successfully')->with('success', true);
         } catch (\Exception $e) {
@@ -49,7 +61,6 @@ class ShopAppointmentsController extends Controller
             return redirect()->back()->with('message', 'Failed to approve appointment')->with('success', false);
         }
     }
-
 
     public function reject(Request $request, $appointment)
     {

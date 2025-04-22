@@ -26,7 +26,7 @@ import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
-import { Head, Link, useForm, usePage } from "@inertiajs/react"
+import { Head, useForm, usePage } from "@inertiajs/react"
 import { useEffect, useState } from "react"
 import UserLayout from "@/Layouts/UserLayout"
 import AppointmentCard from "@/Components/User/AppointmentCard"
@@ -174,11 +174,111 @@ export default function Appointments({
                                 new Date(appointment.created_at) <= new Date()
                         )
                         .map((appointment) => (
-                            <Link href={`/appointments/${appointment.id}`} key={appointment.id}>
-                                <AppointmentCard
-                                    appointment={appointment}
-                                />
-                            </Link>
+                            <Dialog key={appointment.id}>
+                                <DialogTrigger className="w-full">
+                                    <AppointmentCard
+                                        key={appointment.id}
+                                        appointment={appointment}
+                                    />
+                                </DialogTrigger>
+                                <DialogContent>
+                                    <DialogHeader>
+                                        <DialogTitle>Appointment Details</DialogTitle>
+                                        <div className="flex items-center gap-4 pt-8 pb-4">
+                                            <div className="size-20 overflow-hidden rounded-full">
+                                                <img className="size-full object-cover" src={`/${appointment.shop.shop_photo}`} />
+                                            </div>
+                                            <div>
+                                                <h1 className="text-xl font-semibold">
+                                                    {appointment.shop.shop_name}
+                                                </h1>
+                                                <p className="text-sm text-muted-foreground">
+                                                    {appointment.shop.detailed_address}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <Separator />
+                                        <ScrollArea className="max-h-96 pr-2 -mr-2">
+                                            <div className="pt-4 space-y-2 mb-5">
+                                                <div className="flex items-center gap-2">
+                                                    <Scissors className="size-4" />
+                                                    <p>
+                                                        Stylist: {appointment.user_appointments[0].staff.staff.first_name + ' ' + appointment.user_appointments[0].staff.staff.last_name}
+                                                    </p>
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <Calendar className="size-4" />
+                                                    <p>Date: {new Date(appointment.date).toLocaleDateString("en-US", {
+                                                        weekday: "short",
+                                                        year: "numeric",
+                                                        month: "short",
+                                                        day: "2-digit",
+                                                    })}</p>
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <Clock className="size-4" />
+                                                    <p>Time: {new Date(`1970-01-01T${appointment.time}Z`).toLocaleTimeString(
+                                                        "en-US",
+                                                        {
+                                                            hour: "2-digit",
+                                                            minute: "2-digit",
+                                                            hour12: true,
+                                                        }
+                                                    )}</p>
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <h1 className="text-xl font-semibold mb-2">Services:</h1>
+                                                <ul className="space-y-2">
+                                                    {appointment.appointment_services.map((service) => (
+                                                        <li key={service.shop_service.id}>
+                                                            <div className="flex items-center justify-between gap-2 mb-2">
+                                                                <p>{service.shop_service.service_name} ({service.shop_service.duration_hour}h {service.shop_service.duration_minute}m)</p>
+                                                                <p>Php {service.shop_service.cost}</p>
+                                                            </div>
+                                                            <Separator />
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                                <div className="flex items-center justify-between mt-2">
+                                                    <h1 className="text-xl font-semibold">Total:</h1>
+                                                    <h1 className="text-xl font-semibold">Php {appointment.total_price}</h1>
+                                                </div>
+                                            </div>
+                                        </ScrollArea>
+                                        <Separator />
+                                        {type === "started" && !appointment.has_review ? (
+                                            <Button
+                                                onClick={() => handleReviewClick(appointment)}
+                                                className="bg-primary"
+                                            >
+                                                Rate & Review
+                                            </Button>
+                                        ) : type === "completed" && appointment.has_review ? (
+                                            <Button
+                                                onClick={() => viewReview(appointment)}
+                                                variant="outline"
+                                                className="flex gap-2"
+                                            >
+                                                <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                                                View Your Review
+                                            </Button>
+                                        ) : type === "completed" && !appointment.has_review ? (
+                                            <Button
+                                                onClick={() => handleReviewClick(appointment)}
+                                                className="bg-primary"
+                                            >
+                                                Rate & Review
+                                            </Button>
+                                        ) : !["completed", "cancelled", "declined", "no-show"].includes(appointment.status) && (
+                                            <>
+                                                <Button variant="secondary">Request Reschedule</Button>
+                                                <Button variant="destructive">Cancel Appointment</Button>
+                                            </>
+                                        )}
+                                    </DialogHeader>
+                                </DialogContent>
+                            </Dialog>
                         ))
                 ) : (
                     <p>No appointments available.</p>
