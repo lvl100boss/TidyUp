@@ -1,37 +1,64 @@
 import UserLayout from "@/Layouts/UserLayout";
-import ShopCard from "@/Components/User/ShopCard";
-import { Head, usePage, Link } from "@inertiajs/react";
+import { Head, usePage, router } from "@inertiajs/react";
 import { useEffect, useState } from "react";
-import {
-    Pagination,
-    PaginationContent,
-    PaginationEllipsis,
-    PaginationItem,
-    PaginationLink,
-    PaginationNext,
-    PaginationPrevious,
-} from "@/components/ui/pagination"
-import { Button } from "@/components/ui/button";
-import { SlidersHorizontal } from "lucide-react";
-import ApplicationLogo from "@/Components/ApplicationLogo";
+import PaginationControls from "@/Components/Shop/Shop_popular/PaginationControls";
+import ShopsList from "@/Components/Shop/Shop_popular/ShopsList";
+import FilterButton from "@/Components/Shop/Shop_popular/FilterButton";
+import FilterDialog from "@/Components/Shop/Shop_popular/FilterDialog";
+import PageHeader from "@/Components/Shop/Shop_popular/PageHeader";
 
-export default function Popular({ shops }) {
+export default function Popular({ shops, categories, provinces, cities, barangays, services }) {
     const { pagination } = usePage().props;
     const [isLoading, setIsLoading] = useState(true);
+    const [filterDialogOpen, setFilterDialogOpen] = useState(false);
+    
+    // Initialize activeFilters with empty values
+    const [activeFilters, setActiveFilters] = useState({
+        category_id: "",
+        province: "",
+        city: "",
+        barangay: "",
+        services: []
+    });
+    
+    // Reset filters when component mounts to ensure synchronization with URL state
+    useEffect(() => {
+        // Clear any existing filters by redirecting to the base route without parameters
+        const currentUrl = window.location.href;
+        const baseUrl = currentUrl.split('?')[0];
+        
+        if (currentUrl !== baseUrl) {
+            // Only redirect if there are query parameters
+            window.location.href = baseUrl;
+        }
+    }, []);
+    
+    // Check if any filters are active
+    const hasActiveFilters = () => {
+        return (
+            activeFilters.category_id !== "" ||
+            activeFilters.province !== "" ||
+            activeFilters.city !== "" ||
+            activeFilters.barangay !== "" ||
+            activeFilters.services.length > 0
+        );
+    };
     
     useEffect(() => {
-        // Debug log to see if shops data is received
-        console.log("Shops data received:", shops?.length || 0);
+        // Data validation
+        if (!shops || !Array.isArray(shops)) {
+            setIsLoading(false);
+            return;
+        }
         
         const preloadImages = async () => {
-            if (!shops || shops.length === 0) {
+            if (shops.length === 0) {
                 setIsLoading(false);
                 return;
             }
             
             const imagePromises = shops.map((shop) => {
                 return new Promise((resolve) => {
-                    // Safe access in case shop_gallery is missing
                     if (!shop.shop_gallery || !shop.shop_gallery[0]) {
                         console.warn(`Shop ${shop.id} has no gallery images`);
                         return resolve();
@@ -42,165 +69,102 @@ export default function Popular({ shops }) {
                     img.onload = resolve;
                     img.onerror = () => {
                         console.warn(`Failed to load image for shop ${shop.id}`);
-                        resolve(); // Resolve even on error to prevent blocking
+                        resolve();
                     };
                 });
             });
 
-            await Promise.all(imagePromises);
-
-            // Add a minimum loading time of 1 second
-            setTimeout(() => {
-                setIsLoading(false);
-            }, 1000);
+            try {
+                await Promise.all(imagePromises);
+            } catch (error) {
+                console.error("Error preloading images:", error);
+            } finally {
+                // Add a minimum loading time for UI smoothness
+                setTimeout(() => {
+                    setIsLoading(false);
+                }, 1000);
+            }
         };
 
         preloadImages();
     }, [shops]);
     
-    // Generate page numbers to display
-    const generatePaginationItems = () => {
-        if (!pagination) return null;
+    const handleApplyFilters = (filters) => {
+        setActiveFilters(filters);
+        setFilterDialogOpen(false);
         
-        const items = [];
-        const { currentPage, lastPage } = pagination;
+        // Prepare query parameters for filtering
+        const params = {};
         
-        // Add previous page button
-        items.push(
-            <PaginationItem key="prev">
-                <Link
-                    href={currentPage > 1 ? `/popular?page=${currentPage - 1}` : '#'}
-                    preserveScroll
-                    preserveState
-                    className={currentPage <= 1 ? 'pointer-events-none opacity-50' : ''}
-                >
-                    <PaginationPrevious />
-                </Link>
-            </PaginationItem>
-        );
+        if (filters.category_id) params.category_id = filters.category_id;
+        if (filters.province) params.province = filters.province;
+        if (filters.city) params.city = filters.city;
+        if (filters.barangay) params.barangay = filters.barangay;
         
-        // First page
-        items.push(
-            <PaginationItem key={1}>
-                <Link
-                    href="/popular?page=1"
-                    preserveScroll
-                    preserveState
-                >
-                    <PaginationLink isActive={currentPage === 1}>1</PaginationLink>
-                </Link>
-            </PaginationItem>
-        );
-        
-        // Ellipsis if needed
-        if (currentPage > 3) {
-            items.push(
-                <PaginationItem key="ellipsis1">
-                    <PaginationEllipsis />
-                </PaginationItem>
-            );
+        // Handle array filters
+        if (filters.services && filters.services.length > 0) {
+            params.services = filters.services.join(',');
         }
         
-        // Pages around current page
-        for (let i = Math.max(2, currentPage - 1); i <= Math.min(lastPage - 1, currentPage + 1); i++) {
-            items.push(
-                <PaginationItem key={i}>
-                    <Link
-                        href={`/popular?page=${i}`}
-                        preserveScroll
-                        preserveState
-                    >
-                        <PaginationLink isActive={currentPage === i}>{i}</PaginationLink>
-                    </Link>
-                </PaginationItem>
-            );
-        }
+        // Server-side filtering
+        router.get(route('Popular'), params, {
+            preserveState: true,
+            replace: true,
+        });
+    };
+    
+    // Function to clear all filters
+    const handleClearFilters = () => {
+        setActiveFilters({
+            category_id: "",
+            province: "",
+            city: "",
+            barangay: "",
+            services: []
+        });
         
-        // Ellipsis if needed
-        if (currentPage < lastPage - 2) {
-            items.push(
-                <PaginationItem key="ellipsis2">
-                    <PaginationEllipsis />
-                </PaginationItem>
-            );
-        }
-        
-        // Last page (if not already included)
-        if (lastPage > 1) {
-            items.push(
-                <PaginationItem key={lastPage}>
-                    <Link
-                        href={`/popular?page=${lastPage}`}
-                        preserveScroll
-                        preserveState
-                    >
-                        <PaginationLink isActive={currentPage === lastPage}>{lastPage}</PaginationLink>
-                    </Link>
-                </PaginationItem>
-            );
-        }
-        
-        // Add next page button
-        items.push(
-            <PaginationItem key="next">
-                <Link
-                    href={currentPage < lastPage ? `/popular?page=${currentPage + 1}` : '#'}
-                    preserveScroll
-                    preserveState
-                    className={currentPage >= lastPage ? 'pointer-events-none opacity-50' : ''}
-                >
-                    <PaginationNext />
-                </Link>
-            </PaginationItem>
-        );
-        
-        return items;
+        // Navigate to base route without parameters
+        router.get(route('Popular'), {}, {
+            preserveState: false,
+            replace: true,
+        });
     };
     
     return (
         <UserLayout>
             <Head title="Popular" />
-            <div>
-                <h1 className="text-nowrap text-2xl">
-                    Most Popular
-                </h1>
-            </div>
+            <PageHeader title="Most Popular" />
+            
             <div className="flex justify-between items-center">
-                <Button size="sm" variant="secondary">
-                    <SlidersHorizontal />
-                    Filter
-                </Button>
+                <FilterButton 
+                    onClick={() => setFilterDialogOpen(true)} 
+                    hasActiveFilters={hasActiveFilters()}
+                />
+                
+                <FilterDialog 
+                    open={filterDialogOpen}
+                    onOpenChange={setFilterDialogOpen}
+                    onApplyFilters={handleApplyFilters}
+                    onClearFilters={handleClearFilters}
+                    categories={categories || []}
+                    provinces={provinces || []}
+                    cities={cities || []}
+                    barangays={barangays || []}
+                    services={services || []}
+                />
                 
                 {pagination && (
-                    <Pagination className="justify-end my-2">
-                        <PaginationContent>
-                            {generatePaginationItems()}
-                        </PaginationContent>
-                    </Pagination>
+                    <PaginationControls 
+                        pagination={pagination} 
+                        className="justify-end my-2"
+                    />
                 )}
             </div>
 
-            {!shops || shops.length === 0 ? (
-                <div>
-                    <ApplicationLogo className="size-48 mx-auto mb-1 opacity-40 dark:invert" />
-                    <p className="text-center font-bold text-2xl opacity-40">
-                        No popular shops available
-                    </p>
-                </div>
-            ) : (
-                <div className="mb-5 grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-2">
-                    {shops.map((shop) => (
-                        <ShopCard key={shop.id} shop={shop} isLoading={isLoading} />
-                    ))}
-                </div>
-            )}
+            <ShopsList shops={shops} isLoading={isLoading} />
             
             {pagination && (
-                <Pagination className="my-2">
-                    <PaginationContent>
-                        {generatePaginationItems()}
-                    </PaginationContent>
-                </Pagination>
+                <PaginationControls pagination={pagination} />
             )}
         </UserLayout>
     );
