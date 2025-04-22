@@ -25,7 +25,7 @@ export default function SearchShop() {
     // Use searchShops for complete list of shops, fallback to shops if not available
     const { searchShops = [], shops = [] } = usePage().props;
     const shopsToSearch = searchShops.length > 0 ? searchShops : shops;
-    
+
     return (
         <>
             <TooltipProvider>
@@ -74,3 +74,4 @@ export default function SearchShop() {
         </>
     )
 }
+
