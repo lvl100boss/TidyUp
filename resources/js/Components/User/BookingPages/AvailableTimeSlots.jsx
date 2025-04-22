@@ -8,7 +8,7 @@ import {
     CardTitle,
 } from "@/components/ui/card"
 import { useState, useEffect } from "react";
-
+import { ScrollArea } from "@/components/ui/scroll-area"
 
 export default function AvailableTimeSlots({
     shop,
@@ -168,7 +168,7 @@ export default function AvailableTimeSlots({
                     <h1 className="font-bold text-2xl ">Select Time</h1>
                     <p className="text-sm text-muted-foreground">Unavailable time slots are shown in gray</p>
                 </div>
-                <div className="">
+                <ScrollArea className="h-72 w-full rounded-md border pr-2 ">
                     <ToggleGroup
                         type="single"
                         variant="outline"
@@ -194,7 +194,7 @@ export default function AvailableTimeSlots({
                             );
                         })}
                     </ToggleGroup>
-                </div>
+                </ScrollArea>
             </div>
         </div >
     )

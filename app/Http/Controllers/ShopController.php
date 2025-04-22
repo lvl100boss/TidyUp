@@ -238,7 +238,6 @@ class ShopController extends Controller
         $shop = Shop::with(['shopGallery', 'shopServiceCategories.serviceCategories', 'shopOperationHours', 'socialMedia'])
             ->where('status', 'verified') // Only get verified shops
             ->find($id);
-
         // If shop doesn't exist or is not verified, return 404
         if (!$shop) {
             Log::warning('Shop not found or not verified', ['shop_id' => $id]);

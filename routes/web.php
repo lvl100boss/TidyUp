@@ -13,6 +13,7 @@ use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\NewsletterSubscriptionController;
 use App\Http\Controllers\ShopAnalyticsController; // Make sure this is imported
 use App\Http\Controllers\FeedbackController;
+use App\Http\Controllers\ViewAppointmentController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -49,6 +50,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::patch('/appointments/decline', [AppointmentController::class, 'declineAppointment'])->name('appointments.decline');
     Route::patch('/appointments/accept', [AppointmentController::class, 'acceptAppointment'])->name('appointments.accept');
     Route::patch('/appointments/cancel', [AppointmentController::class, 'cancelAppointment'])->name('appointments.cancel');
+
+    Route::get('/appointments/{id}', [ViewAppointmentController::class, 'index'])->name('appointment.view');
 
     Route::get('/send-feedback', function () {
         return Inertia::render('Users/SendFeedback');

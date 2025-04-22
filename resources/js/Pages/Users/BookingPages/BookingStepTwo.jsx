@@ -1,13 +1,13 @@
 import UserLayout from "@/Layouts/UserLayout";
 import { Head, Link } from "@inertiajs/react";
-import { Button } from "@/Components/ui/button";
 import { ChevronLeft, LogOut } from "lucide-react";
+import { useForm } from "@inertiajs/react";
+import { useState } from "react";
 import AppointmentSummaryCard from "@/Components/User/BookingPages/AppointmentSummaryCard";
 import StepsIndicator from "@/Components/User/BookingPages/StepsIndicator";
 import AvailableDays from "@/Components/User/BookingPages/AvailableDays";
-import { useState } from "react";
 import AvailableTimeSlots from "@/Components/User/BookingPages/AvailableTimeSlots";
-import { useForm } from "@inertiajs/react";
+import { Button } from "@/Components/ui/button";
 
 export default function BookingStepTwo({ shop, businessDays, shopStaff, shopServiceCategories, data }) {
     const [selectedDate, setSelectedDate] = useState(null);
