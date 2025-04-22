@@ -99,10 +99,5 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasOne(PlatformStaff::class); // Each user has one platform staff
     }
 
-    /**
-     * Check if the user has a specific role
-     *
-     * @param string $roleName
-     * @return bool
-     */
+
 }
