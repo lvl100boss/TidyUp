@@ -11,8 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('platfom_staff', function (Blueprint $table) {
+        Schema::create('newsletter_subscription', function (Blueprint $table) {
             $table->id();
+            $table->string('email');
             $table->timestamps();
         });
     }
@@ -22,6 +23,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('platfom_staff');
+        Schema::dropIfExists('newsletter_subscription');
     }
 };

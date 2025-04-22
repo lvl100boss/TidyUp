@@ -22,8 +22,10 @@ import { useState } from "react";
 import { usePage, Link } from "@inertiajs/react";
 export default function SearchShop() {
     const [open, setOpen] = useState(false);
-    // In your React components:
-    const shops = usePage().props.shops;
+    // Use searchShops for complete list of shops, fallback to shops if not available
+    const { searchShops = [], shops = [] } = usePage().props;
+    const shopsToSearch = searchShops.length > 0 ? searchShops : shops;
+
     return (
         <>
             <TooltipProvider>
@@ -51,7 +53,7 @@ export default function SearchShop() {
                     <CommandList>
                         <CommandEmpty>No results found.</CommandEmpty>
                         <CommandGroup heading="Results">
-                            {shops.map((shop, index) => (
+                            {shopsToSearch.map((shop, index) => (
                                 <>
                                     <Link key={shop.id} href={`/${shop.id}/shop`}>
                                         <CommandItem >
@@ -62,7 +64,7 @@ export default function SearchShop() {
                                             {shop.shop_name}
                                         </CommandItem>
                                     </Link>
-                                    {index < shops.length - 1 && <CommandSeparator />}
+                                    {index < shopsToSearch.length - 1 && <CommandSeparator />}
                                 </>
                             ))}
                         </CommandGroup>
@@ -72,3 +74,4 @@ export default function SearchShop() {
         </>
     )
 }
+

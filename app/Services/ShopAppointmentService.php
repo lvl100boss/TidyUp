@@ -55,6 +55,7 @@ class ShopAppointmentService
                 'appointment',
                 'appointment.appointmentServices.shopService'
             ])
+            ->latest()
             ->get();
 
         // Group appointments by status
@@ -166,6 +167,7 @@ class ShopAppointmentService
             ->whereHas('appointment', function ($query) {
                 $query->where('status', 'upcoming');
             })
+            ->latest()
             ->get();
 
         // Calculate duration for each appointment individually
@@ -207,7 +209,9 @@ class ShopAppointmentService
 
     private function getShopAppointments($staffId)
     {
+        // get the latest appointment for the staff
         $shopAppointments = ShopStaffs::find($staffId)->shop->appointments;
+        // get all appointments for the staff
         $shopAppointments = $shopAppointments->map(function ($appointment) {
             $totalHours = $appointment->appointmentServices->sum('shopService.duration_hour');
             $totalMinutes = $appointment->appointmentServices->sum('shopService.duration_minute');

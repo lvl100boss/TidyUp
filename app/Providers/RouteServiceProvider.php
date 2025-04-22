@@ -48,10 +48,14 @@ class RouteServiceProvider extends ServiceProvider
             $this->app->booted(function () {
                 // Add admin middleware alias
                 $this->app['router']->aliasMiddleware('admin', \App\Http\Middleware\AdminMiddleware::class);
+                // Add shop creation access middleware alias
+                $this->app['router']->aliasMiddleware('shop.creation', \App\Http\Middleware\EnsureShopCreationAccess::class);
             });
         } else {
             // Add admin middleware alias
             $this->app['router']->aliasMiddleware('admin', \App\Http\Middleware\AdminMiddleware::class);
+            // Add shop creation access middleware alias
+            $this->app['router']->aliasMiddleware('shop.creation', \App\Http\Middleware\EnsureShopCreationAccess::class);
         }
     }
 }

@@ -15,7 +15,21 @@ Route::middleware('guest')->group(function () {
     Route::get('register', [RegisteredUserController::class, 'create'])
         ->name('register');
 
-    Route::post('register', [RegisteredUserController::class, 'store']);
+    // This route is used to save the partial user data
+    Route::post('register', [RegisteredUserController::class, 'saveUserForm'])
+        ->name('register.save');
+    // This route is used to show the setup profile form
+    Route::get('register/setupProfile', [RegisteredUserController::class, 'showSetupProflleForm'])
+        ->name('register.setupProfile');
+    // This route is used to save the setup profile data
+    Route::post('register/setupProfile', [RegisteredUserController::class, 'saveUserForm2'])
+        ->name('register.setupProfile.save');
+
+    Route::get('register/setupProfile2', [RegisteredUserController::class, 'showSetupProflleForm2'])
+        ->name('register.setupProfile2');
+    Route::post('register/setupProfile2', [RegisteredUserController::class, 'store'])
+        ->name('register.setupProfile2.save');
+
 
     Route::get('login', [AuthenticatedSessionController::class, 'create'])
         ->name('login');

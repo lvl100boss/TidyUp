@@ -6,8 +6,10 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Route;
 use App\Models\Shop;
+use App\Models\ShopStaffs;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 
 class HomeController extends Controller
 {
@@ -20,6 +22,7 @@ class HomeController extends Controller
         //     ->inRandomOrder()
         //     ->limit(10)
         //     ->get();
+
         $randomShops = Shop::with(['shopGallery', 'shopCategories.categories'])
             ->where('status', '=', 'verified')
             ->inRandomOrder()

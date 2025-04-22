@@ -5,6 +5,7 @@ import Footer from "@/Components/User/Footer";
 import MobileNavButton from "@/Components/MobileNavButton";
 import React, { useState, useEffect } from "react";
 import { usePage } from "@inertiajs/react";
+import GradientBackground from "@/Components/GradientBackground";
 
 export default function UserLayout({ children }) {
     const user = usePage().props.auth.user;
@@ -31,28 +32,28 @@ export default function UserLayout({ children }) {
     };
 
     return (
-        <div className="py-2 px-5 relative min-h-screen">
-            <Header
-                onClick={toggleTheme}
-                isDarkTheme={isDarkTheme}
-                setIsDarkTheme={setIsDarkTheme}
-            />
-            <div className="flex gap-5 mt-[4.5rem]">
-                <Sidebar />
-                <main className="flex-1">{children}</main>
+        <>
+            <div className="py-2 px-5 relative min-h-screen">
+                <GradientBackground />
+                <Header
+                    onClick={toggleTheme}
+                    isDarkTheme={isDarkTheme}
+                    setIsDarkTheme={setIsDarkTheme}
+                />
+                <div className="flex gap-5 mt-[4.5rem]">
+                    {/* <Sidebar /> */}
+                    <main className="flex-1 max-w-screen-2xl mx-auto px-2">
+                        {children}
+                    </main>
+                </div>
+
+                <div>
+                    <MobileNavButton />
+                </div>
             </div>
             <div>
                 <Footer />
             </div>
-            <div>
-                {!user && (
-                    <ThemeButton
-                        onClick={toggleTheme}
-                        isDarkTheme={isDarkTheme}
-                    />
-                )}
-                <MobileNavButton />
-            </div>
-        </div>
+        </>
     );
 }

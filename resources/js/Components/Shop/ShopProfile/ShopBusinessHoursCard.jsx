@@ -28,7 +28,7 @@ import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
 import { router } from "@inertiajs/react";
 
-const ShopBusinessHoursCard = ({ shop }) => {
+const ShopBusinessHoursCard = ({ shop, isOwnerOrManager }) => {
     const [open, setOpen] = useState(false);
     const [hours, setHours] = useState([]);
     const [editedHours, setEditedHours] = useState([]);
@@ -143,103 +143,105 @@ const ShopBusinessHoursCard = ({ shop }) => {
             <CardHeader>
                 <div className="flex justify-between">
                     <CardTitle>Business Hours</CardTitle>
-                    <Dialog open={open} onOpenChange={handleDialogClose}>
-                        <DialogTrigger asChild>
-                            <button type="button" className="focus:outline-none">
-                                <Pencil className="size-4 cursor-pointer hover:scale-125 transition-transform" />
-                            </button>
-                        </DialogTrigger>
-                        <DialogContent className="sm:max-w-xl">
-                            <DialogHeader>
-                                <DialogTitle>Edit Business Hours</DialogTitle>
-                                <DialogDescription>
-                                    Update the days and times your shop is open for business.
-                                </DialogDescription>
-                            </DialogHeader>
-                            <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
-                                {editedHours.map((day, index) => (
-                                    <div key={`edit-${day.id}`} className="rounded-lg border p-3">
-                                        <div className="flex items-center justify-between mb-2">
-                                            <span className="font-medium capitalize">{day.day}</span>
-                                            <div className="flex items-center gap-2">
-                                                <span className="text-sm text-muted-foreground">
-                                                    {day.is_open ? "Open" : "Closed"}
-                                                </span>
-                                                <Switch
-                                                    checked={day.is_open === 1}
-                                                    onCheckedChange={() => handleToggleDay(index)}
-                                                />
+                    {isOwnerOrManager && (
+                        <Dialog open={open} onOpenChange={handleDialogClose}>
+                            <DialogTrigger asChild>
+                                <button type="button" className="focus:outline-none">
+                                    <Pencil className="size-4 cursor-pointer hover:scale-125 transition-transform" />
+                                </button>
+                            </DialogTrigger>
+                            <DialogContent className="sm:max-w-xl">
+                                <DialogHeader>
+                                    <DialogTitle>Edit Business Hours</DialogTitle>
+                                    <DialogDescription>
+                                        Update the days and times your shop is open for business.
+                                    </DialogDescription>
+                                </DialogHeader>
+                                <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
+                                    {editedHours.map((day, index) => (
+                                        <div key={`edit-${day.id}`} className="rounded-lg border p-3">
+                                            <div className="flex items-center justify-between mb-2">
+                                                <span className="font-medium capitalize">{day.day}</span>
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-sm text-muted-foreground">
+                                                        {day.is_open ? "Open" : "Closed"}
+                                                    </span>
+                                                    <Switch
+                                                        checked={day.is_open === 1}
+                                                        onCheckedChange={() => handleToggleDay(index)}
+                                                    />
+                                                </div>
                                             </div>
-                                        </div>
 
-                                        {day.is_open === 1 && (
-                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2">
-                                                <div>
-                                                    <label className="text-sm text-muted-foreground mb-1 block">
-                                                        Opening Time
-                                                    </label>
-                                                    <Select
-                                                        value={day.open_time}
-                                                        onValueChange={(value) => handleOpenTimeChange(index, value)}
-                                                    >
-                                                        <SelectTrigger>
-                                                            <SelectValue placeholder="Select opening time">
-                                                                {getTimeDisplay(day.open_time)}
-                                                            </SelectValue>
-                                                        </SelectTrigger>
-                                                        <SelectContent>
-                                                            {TIME_SLOTS.map((slot) => (
-                                                                <SelectItem key={`open-${day.id}-${slot.value}`} value={slot.value}>
-                                                                    {slot.display}
-                                                                </SelectItem>
-                                                            ))}
-                                                        </SelectContent>
-                                                    </Select>
+                                            {day.is_open === 1 && (
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2">
+                                                    <div>
+                                                        <label className="text-sm text-muted-foreground mb-1 block">
+                                                            Opening Time
+                                                        </label>
+                                                        <Select
+                                                            value={day.open_time}
+                                                            onValueChange={(value) => handleOpenTimeChange(index, value)}
+                                                        >
+                                                            <SelectTrigger>
+                                                                <SelectValue placeholder="Select opening time">
+                                                                    {getTimeDisplay(day.open_time)}
+                                                                </SelectValue>
+                                                            </SelectTrigger>
+                                                            <SelectContent>
+                                                                {TIME_SLOTS.map((slot) => (
+                                                                    <SelectItem key={`open-${day.id}-${slot.value}`} value={slot.value}>
+                                                                        {slot.display}
+                                                                    </SelectItem>
+                                                                ))}
+                                                            </SelectContent>
+                                                        </Select>
+                                                    </div>
+                                                    <div>
+                                                        <label className="text-sm text-muted-foreground mb-1 block">
+                                                            Closing Time
+                                                        </label>
+                                                        <Select
+                                                            value={day.close_time}
+                                                            onValueChange={(value) => handleCloseTimeChange(index, value)}
+                                                        >
+                                                            <SelectTrigger>
+                                                                <SelectValue placeholder="Select closing time">
+                                                                    {getTimeDisplay(day.close_time)}
+                                                                </SelectValue>
+                                                            </SelectTrigger>
+                                                            <SelectContent>
+                                                                {TIME_SLOTS.map((slot) => (
+                                                                    <SelectItem key={`close-${day.id}-${slot.value}`} value={slot.value}>
+                                                                        {slot.display}
+                                                                    </SelectItem>
+                                                                ))}
+                                                            </SelectContent>
+                                                        </Select>
+                                                    </div>
                                                 </div>
-                                                <div>
-                                                    <label className="text-sm text-muted-foreground mb-1 block">
-                                                        Closing Time
-                                                    </label>
-                                                    <Select
-                                                        value={day.close_time}
-                                                        onValueChange={(value) => handleCloseTimeChange(index, value)}
-                                                    >
-                                                        <SelectTrigger>
-                                                            <SelectValue placeholder="Select closing time">
-                                                                {getTimeDisplay(day.close_time)}
-                                                            </SelectValue>
-                                                        </SelectTrigger>
-                                                        <SelectContent>
-                                                            {TIME_SLOTS.map((slot) => (
-                                                                <SelectItem key={`close-${day.id}-${slot.value}`} value={slot.value}>
-                                                                    {slot.display}
-                                                                </SelectItem>
-                                                            ))}
-                                                        </SelectContent>
-                                                    </Select>
-                                                </div>
-                                            </div>
-                                        )}
-                                    </div>
-                                ))}
-                            </div>
-                            <DialogFooter className="mt-4">
-                                <Button
-                                    variant="outline"
-                                    onClick={() => setOpen(false)}
-                                    className="mr-2"
-                                >
-                                    Cancel
-                                </Button>
-                                <Button
-                                    onClick={handleSubmit}
-                                    disabled={isSubmitting}
-                                >
-                                    {isSubmitting ? "Saving..." : "Save changes"}
-                                </Button>
-                            </DialogFooter>
-                        </DialogContent>
-                    </Dialog>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                                <DialogFooter className="mt-4">
+                                    <Button
+                                        variant="outline"
+                                        onClick={() => setOpen(false)}
+                                        className="mr-2"
+                                    >
+                                        Cancel
+                                    </Button>
+                                    <Button
+                                        onClick={handleSubmit}
+                                        disabled={isSubmitting}
+                                    >
+                                        {isSubmitting ? "Saving..." : "Save changes"}
+                                    </Button>
+                                </DialogFooter>
+                            </DialogContent>
+                        </Dialog>
+                    )}
                 </div>
             </CardHeader>
             <CardContent className="space-y-2">

@@ -1,4 +1,8 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
+import { useForm, router } from "@inertiajs/react";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/Components/ui/form";
+import { AlertCircle } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/Components/ui/alert";
 import UserLayout from "@/Layouts/UserLayout";
 import { Button } from "@/Components/ui/button";
 import { Input } from "@/Components/ui/input";
@@ -13,67 +17,231 @@ import {
     CardHeader,
     CardTitle,
 } from "@/Components/ui/card";
-import {
-    Tooltip,
-    TooltipContent,
-    TooltipProvider,
-    TooltipTrigger,
-} from "@/Components/ui/tooltip";
-import {
-    Accordion,
-    AccordionContent,
-    AccordionItem,
-    AccordionTrigger,
-} from "@/Components/ui/accordion";
 import { RadioGroup, RadioGroupItem } from "@/Components/ui/radio-group";
-import { Separator } from "@/Components/ui/separator";
-import { Avatar, AvatarFallback, AvatarImage } from "@/Components/ui/avatar";
+import { Star, Upload, CheckCircle, X, FileText, Image, File, Loader2 } from "lucide-react";
 import { Progress } from "@/Components/ui/progress";
-
+import { Separator } from "@/Components/ui/separator";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm as useReactHookForm } from "react-hook-form";
+import * as z from "zod";
+import { Avatar, AvatarFallback } from "@/Components/ui/avatar";
+import { Badge } from "@/Components/ui/badge";
+import { ScrollArea } from "@/Components/ui/scroll-area";
 import {
-    CheckCircle, Eye, MessageCircle, Upload, Star,
-    HelpCircle, ThumbsUp, Lightbulb, AlertCircle
-} from "lucide-react";
-import { Alert, AlertDescription, AlertTitle } from "@/Components/ui/alert";
-import { motion } from "framer-motion";
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+    DialogClose,
+} from "@/Components/ui/dialog";
+
+const feedbackSchema = z.object({
+  subject: z.string().min(1, "Subject is required"),
+  category: z.enum(["feature", "bug", "improvement", "other"]),
+  rating: z.number().min(1, "Please rate your experience").max(5),
+  message: z.string().min(10, "Please provide more details in your message"),
+  priority: z.string(),
+  attachments: z.array(z.any()).optional(),
+});
 
 export default function SendFeedback() {
     const [submitted, setSubmitted] = useState(false);
-    const [rating, setRating] = useState(0);
     const [fileSelected, setFileSelected] = useState(false);
+    const [feedbackAlert, setFeedbackAlert] = useState({ show: false, type: 'success', message: '' });
+    const [filePreviews, setFilePreviews] = useState([]);
+    const [previewImage, setPreviewImage] = useState(null);
+    const [submitting, setSubmitting] = useState(false);
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        setSubmitted(true);
-        setTimeout(() => setSubmitted(false), 3000); // Auto-hide after 3s
+    const inertiaForm = useForm({
+        subject: '',
+        category: 'feature',
+        rating: 0,
+        message: '',
+        priority: 'Low',
+        attachments: []
+    });
+
+    const form = useReactHookForm({
+        resolver: zodResolver(feedbackSchema),
+        defaultValues: {
+            subject: '',
+            category: 'feature',
+            rating: 0,
+            message: '',
+            priority: 'Low',
+            attachments: []
+        }
+    });
+
+    // Function to generate file previews - modified to only allow images
+    const generatePreviews = (files) => {
+        return Array.from(files).map(file => {
+            const fileType = file.type.split('/')[0];
+            const isImage = fileType === 'image';
+            
+            if (!isImage) return null;
+            
+            return {
+                name: file.name,
+                size: (file.size / 1024).toFixed(1) + ' KB',
+                type: fileType,
+                file: file,
+                preview: URL.createObjectURL(file)
+            };
+        }).filter(Boolean); // Remove null items (non-images)
     };
 
-    const handleFileChange = (e) => {
-        setFileSelected(e.target.files.length > 0);
+    // Handle removing a file from the selection
+    const removeFile = (indexToRemove) => {
+        const newFilePreviews = filePreviews.filter((_, index) => index !== indexToRemove);
+        setFilePreviews(newFilePreviews);
+        const newFiles = newFilePreviews.map(preview => preview.file);
+        form.setValue('attachments', newFiles);
+        setFileSelected(newFiles.length > 0);
     };
+
+    // Function to get the appropriate icon for a file type
+    const getFileIcon = (type) => {
+        switch (type) {
+            case 'image':
+                return <Image className="h-4 w-4" />;
+            case 'application':
+                return <FileText className="h-4 w-4" />;
+            default:
+                return <File className="h-4 w-4" />;
+        }
+    };
+
+    // Handle showing enlarged preview
+    const showEnlargedPreview = (previewUrl) => {
+        setPreviewImage(previewUrl);
+    };
+
+    function onSubmit(data) {
+        try {
+            feedbackSchema.parse(data);
+            
+            if (data.category === "bug") {
+                data.priority = 'High';
+            } else if (data.category === "improvement") {
+                data.priority = 'Medium';
+            }
+
+            const formData = new FormData();
+            formData.append('subject', data.subject);
+            formData.append('category', data.category);
+            formData.append('rating', data.rating);
+            formData.append('message', data.message);
+            formData.append('priority', data.priority);
+            
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+            if (csrfToken) {
+                formData.append('_token', csrfToken);
+            }
+            
+            if (data.attachments && data.attachments.length > 0) {
+                for (let i = 0; i < data.attachments.length; i++) {
+                    formData.append(`attachments[${i}]`, data.attachments[i]);
+                }
+            }
+
+            setSubmitting(true);
+
+            // Update route to use absolute path to the server-side endpoint for storing feedback
+            router.post('/user/feedback', formData, {
+                forceFormData: true,
+                preserveScroll: true,
+                onSuccess: () => {
+                    setSubmitted(true);
+                    form.reset();
+                    setFileSelected(false);
+                    setFilePreviews([]);
+                    setSubmitting(false);
+                    
+                    setFeedbackAlert({
+                        show: true,
+                        type: 'success',
+                        message: 'Your feedback has been submitted successfully.'
+                    });
+                    
+                    setTimeout(() => {
+                        setFeedbackAlert({ show: false, type: 'success', message: '' });
+                        setSubmitted(false);
+                    }, 5000);
+                },
+                onError: (errors) => {
+                    console.error('Form submission errors:', errors);
+                    setSubmitting(false);
+                    
+                    const errorMessage = Object.entries(errors)
+                        .map(([field, error]) => `${field}: ${error}`)
+                        .join(', ');
+                    
+                    setFeedbackAlert({
+                        show: true,
+                        type: 'destructive',
+                        message: `Validation errors: ${errorMessage}`
+                    });
+                    
+                    Object.keys(errors).forEach(key => {
+                        form.setError(key, { 
+                            type: "manual", 
+                            message: errors[key]
+                        });
+                    });
+                    
+                    setTimeout(() => {
+                        setFeedbackAlert({ show: false, type: 'destructive', message: '' });
+                    }, 8000);
+                }
+            });
+        } catch (error) {
+            console.error('Validation error:', error);
+            
+            setFeedbackAlert({
+                show: true,
+                type: 'destructive',
+                message: error.message || 'Please fill in all required fields correctly'
+            });
+            
+            setTimeout(() => {
+                setFeedbackAlert({ show: false, type: 'destructive', message: '' });
+            }, 5000);
+        }
+    }
+
+    useEffect(() => {
+        return () => {
+            filePreviews.forEach(preview => {
+                if (preview.preview) {
+                    URL.revokeObjectURL(preview.preview);
+                }
+            });
+        };
+    }, [filePreviews]);
 
     return (
         <UserLayout>
             <Head title="Send Feedback" />
-            <div className="mx-auto min-h-screen">
-                {/* Hero Section */}
-                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-8 rounded-lg mb-8 shadow-sm">
+            <div className="mx-auto min-h-screen pb-10">
+                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-8 rounded-lg mb-8 shadow-sm border ">
                     <div className="flex flex-col md:flex-row items-center max-w-6xl mx-auto">
                         <div className="md:w-1/2 mb-6 md:mb-0">
-                            <h1 className="text-3xl font-bold text-gray-800 mb-4">Help Us Improve Your Experience</h1>
-                            <p className="text-lg text-gray-600">
+                            <h1 className="text-3xl font-bold text-black mb-4">Help Us Improve Your Experience</h1>
+                            <p className="text-lg text-muted-foreground">
                                 Your feedback is invaluable to us. We're committed to continuous improvement
                                 and your insights help shape our services.
                             </p>
                             <div className="mt-6 flex items-center">
                                 <div className="flex -space-x-2 mr-4">
                                     {['A', 'B', 'C'].map((letter, i) => (
-                                        <Avatar key={i} className="border-2 border-white">
+                                        <Avatar key={i} className="border-2 border-background">
                                             <AvatarFallback>{letter}</AvatarFallback>
                                         </Avatar>
                                     ))}
                                 </div>
-                                <p className="text-sm text-gray-500">Joined by 2,500+ users providing feedback</p>
+                                <p className="text-sm text-muted-foreground">Joined by 2,500+ users providing feedback</p>
                             </div>
                         </div>
                         <div className="md:w-1/2 md:pl-8">
@@ -85,20 +253,20 @@ export default function SendFeedback() {
                         </div>
                     </div>
                 </div>
-
-                <div className="max-w-6xl mx-auto space-y-6 px-4">
-                    {/* Success Message */}
-                    {submitted && (
-                        <Alert className="bg-green-100 border-green-500 text-green-700">
-                            <AlertTitle>Success!</AlertTitle>
+                <div className="max-w-screen-2xl mx-auto space-y-6">
+                    {feedbackAlert.show && (
+                        <Alert variant={feedbackAlert.type}>
+                            <AlertCircle className="h-4 w-4" />
+                            <AlertTitle>
+                                {feedbackAlert.type === 'success' ? 'Success' : 'Error'}
+                            </AlertTitle>
                             <AlertDescription>
-                                Your feedback has been submitted. We appreciate your input!
+                                {feedbackAlert.message}
                             </AlertDescription>
                         </Alert>
                     )}
-
+                    
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        {/* Feedback Form */}
                         <div className="lg:col-span-2">
                             <Card>
                                 <CardHeader>
@@ -108,94 +276,208 @@ export default function SendFeedback() {
                                     </CardDescription>
                                 </CardHeader>
                                 <CardContent>
-                                    <form onSubmit={handleSubmit} className="space-y-4">
-                                        <div className="space-y-2">
-                                            <Label htmlFor="subject">Subject</Label>
-                                            <Input
-                                                id="subject"
-                                                type="text"
-                                                placeholder="Enter feedback subject"
-                                                required
+                                    <Form {...form}>
+                                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                                            <FormField
+                                                control={form.control}
+                                                name="subject"
+                                                render={({ field }) => (
+                                                    <FormItem>
+                                                        <FormLabel>Subject</FormLabel>
+                                                        <FormControl>
+                                                            <Input 
+                                                                placeholder="Enter feedback subject" 
+                                                                {...field} 
+                                                            />
+                                                        </FormControl>
+                                                        <FormMessage />
+                                                    </FormItem>
+                                                )}
                                             />
-                                        </div>
-
-                                        <div className="space-y-2">
-                                            <Label>Feedback Category</Label>
-                                            <RadioGroup defaultValue="feature" className="grid grid-cols-2 gap-2">
-                                                {[
-                                                    { value: "feature", label: "Feature Request" },
-                                                    { value: "bug", label: "Bug Report" },
-                                                    { value: "improvement", label: "Improvement" },
-                                                    { value: "other", label: "Other" }
-                                                ].map((item) => (
-                                                    <div key={item.value} className="flex items-center space-x-2">
-                                                        <RadioGroupItem value={item.value} id={item.value} />
-                                                        <Label htmlFor={item.value}>{item.label}</Label>
-                                                    </div>
-                                                ))}
-                                            </RadioGroup>
-                                        </div>
-
-                                        <div className="space-y-2">
-                                            <Label>Rate Your Experience</Label>
-                                            <div className="flex items-center space-x-1">
-                                                {[1, 2, 3, 4, 5].map((star) => (
-                                                    <Star
-                                                        key={star}
-                                                        className={`cursor-pointer h-6 w-6 ${star <= rating ? "fill-yellow-400 text-yellow-400" : "text-gray-300"
-                                                            }`}
-                                                        onClick={() => setRating(star)}
-                                                    />
-                                                ))}
-                                                <span className="ml-2 text-sm text-gray-500">
-                                                    {rating > 0 ? `${rating} out of 5` : "Click to rate"}
-                                                </span>
-                                            </div>
-                                        </div>
-
-                                        <div className="space-y-2">
-                                            <Label htmlFor="message">
-                                                Your Message
-                                            </Label>
-                                            <Textarea
-                                                id="message"
-                                                placeholder="Write your feedback here... Please include as much detail as possible."
-                                                className="min-h-[150px]"
-                                                required
+                                            <FormField
+                                                control={form.control}
+                                                name="category"
+                                                render={({ field }) => (
+                                                    <FormItem>
+                                                        <FormLabel>Feedback Category</FormLabel>
+                                                        <FormControl>
+                                                            <RadioGroup
+                                                                onValueChange={field.onChange}
+                                                                defaultValue={field.value}
+                                                                className="grid grid-cols-2 gap-2"
+                                                            >
+                                                                {[
+                                                                    { value: "feature", label: "Feature Request" },
+                                                                    { value: "bug", label: "Bug Report" },
+                                                                    { value: "improvement", label: "Improvement" },
+                                                                    { value: "other", label: "Other" },
+                                                                ].map((item) => (
+                                                                    <div key={item.value} className="flex items-center space-x-2">
+                                                                        <RadioGroupItem value={item.value} id={item.value} />
+                                                                        <Label htmlFor={item.value}>{item.label}</Label>
+                                                                    </div>
+                                                                ))}
+                                                            </RadioGroup>
+                                                        </FormControl>
+                                                        <FormMessage />
+                                                    </FormItem>
+                                                )}
                                             />
-                                        </div>
-
-                                        <div className="space-y-2">
-                                            <Label>Attachments (Optional)</Label>
-                                            <div className="border-2 border-dashed rounded-md p-4 text-center hover:bg-gray-50 cursor-pointer">
-                                                <input
-                                                    type="file"
-                                                    id="file"
-                                                    className="hidden"
-                                                    onChange={handleFileChange}
-                                                    multiple
-                                                />
-                                                <Label htmlFor="file" className="cursor-pointer">
-                                                    <Upload className="h-6 w-6 mx-auto mb-2 text-gray-400" />
-                                                    <p className="text-sm text-gray-500">
-                                                        {fileSelected ? "Files selected" : "Drop files here or click to upload"}
-                                                    </p>
-                                                    <p className="text-xs text-gray-400 mt-1">
-                                                        Supports images, PDFs, and documents (max 5MB)
-                                                    </p>
-                                                </Label>
-                                            </div>
-                                        </div>
-
-                                        <Button type="submit" className="w-full mt-4">
-                                            Submit Feedback
-                                        </Button>
-                                    </form>
+                                            <FormField
+                                                control={form.control}
+                                                name="rating"
+                                                render={({ field }) => (
+                                                    <FormItem>
+                                                        <FormLabel>Rate Your Experience </FormLabel>
+                                                        <FormControl>
+                                                            <div className="flex items-center space-x-1">
+                                                                {[1, 2, 3, 4, 5].map((star) => (
+                                                                    <Star
+                                                                        key={star}
+                                                                        className={`cursor-pointer h-6 w-6 ${star <= field.value ? "fill-primary text-primary" : "text-muted-foreground"}`}
+                                                                        onClick={() => field.onChange(star)}
+                                                                    />
+                                                                ))}
+                                                                <span className="ml-2 text-sm text-muted-foreground">
+                                                                    {field.value > 0 ? `${field.value} out of 5` : "Required"}
+                                                                </span>
+                                                            </div>
+                                                        </FormControl>
+                                                        <FormMessage />
+                                                    </FormItem>
+                                                )}
+                                            />
+                                            <FormField
+                                                control={form.control}
+                                                name="message"
+                                                render={({ field }) => (
+                                                    <FormItem>
+                                                        <FormLabel>Your Message</FormLabel>
+                                                        <FormControl>
+                                                            <Textarea
+                                                                placeholder="Write your feedback here... Please include as much detail as possible."
+                                                                className="min-h-[150px]"
+                                                                {...field}
+                                                            />
+                                                        </FormControl>
+                                                        <FormMessage />
+                                                    </FormItem>
+                                                )}
+                                            />
+                                            <FormField
+                                                control={form.control}
+                                                name="attachments"
+                                                render={({ field }) => (
+                                                    <FormItem>
+                                                        <FormLabel>Attachments (Optional)</FormLabel>
+                                                        <FormControl>
+                                                            <div className="border-2 border-dashed rounded-md p-4 text-center hover:bg-muted/50 cursor-pointer">
+                                                                <input
+                                                                    type="file"
+                                                                    id="file"
+                                                                    className="hidden"
+                                                                    onChange={(e) => {
+                                                                        const files = Array.from(e.target.files);
+                                                                        
+                                                                        if (files.length > 0) {
+                                                                            const newPreviews = generatePreviews(files);
+                                                                            
+                                                                            if (newPreviews.length === 0) {
+                                                                                setFeedbackAlert({
+                                                                                    show: true,
+                                                                                    type: 'destructive',
+                                                                                    message: 'Please select only image files (JPEG, PNG, GIF).'
+                                                                                });
+                                                                                
+                                                                                setTimeout(() => {
+                                                                                    setFeedbackAlert({ show: false, type: 'destructive', message: '' });
+                                                                                }, 5000);
+                                                                                return;
+                                                                            }
+                                                                            
+                                                                            setFilePreviews([...filePreviews, ...newPreviews]);
+                                                                            
+                                                                            const allFiles = [...(field.value || []), ...newPreviews.map(p => p.file)];
+                                                                            field.onChange(allFiles);
+                                                                            setFileSelected(true);
+                                                                        }
+                                                                    }}
+                                                                    multiple
+                                                                    accept="image/*"
+                                                                />
+                                                                <Label htmlFor="file" className="cursor-pointer">
+                                                                    <Upload className="h-6 w-6 mx-auto mb-2 text-muted-foreground" />
+                                                                    <p className="text-sm text-muted-foreground">
+                                                                        {fileSelected ? "Files selected" : "Drop images here or click to upload"}
+                                                                    </p>
+                                                                    <p className="text-xs text-muted-foreground/70 mt-1">
+                                                                        Supports images only (JPEG, PNG, GIF) - max 5MB each
+                                                                    </p>
+                                                                </Label>
+                                                            </div>
+                                                        </FormControl>
+                                                        <FormMessage />
+                                                        
+                                                        {filePreviews.length > 0 && (
+                                                            <div className="mt-4">
+                                                                <Label className="text-sm">Selected Images</Label>
+                                                                <ScrollArea className="h-[160px] mt-2 rounded-md border">
+                                                                    <div className="p-4 space-y-3">
+                                                                        {filePreviews.map((preview, index) => (
+                                                                            <div key={index} className="flex items-center gap-3 group">
+                                                                                <div 
+                                                                                    className="w-16 h-16 rounded overflow-hidden flex-shrink-0 cursor-pointer" 
+                                                                                    onClick={() => showEnlargedPreview(preview.preview)}
+                                                                                >
+                                                                                    <img 
+                                                                                        src={preview.preview} 
+                                                                                        alt={preview.name}
+                                                                                        className="h-full w-full object-cover"
+                                                                                    />
+                                                                                </div>
+                                                                                <div className="flex-1 min-w-0">
+                                                                                    <div className="flex items-center justify-between">
+                                                                                        <p className="text-sm font-medium truncate">{preview.name}</p>
+                                                                                        <Button 
+                                                                                            type="button"
+                                                                                            variant="ghost" 
+                                                                                            size="icon" 
+                                                                                            className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                                                            onClick={() => removeFile(index)}
+                                                                                        >
+                                                                                            <X className="h-4 w-4" />
+                                                                                        </Button>
+                                                                                    </div>
+                                                                                    <div>
+                                                                                        <Badge variant="outline" className="text-xs">
+                                                                                            {preview.size}
+                                                                                        </Badge>
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
+                                                                        ))}
+                                                                    </div>
+                                                                </ScrollArea>
+                                                            </div>
+                                                        )}
+                                                    </FormItem>
+                                                )}
+                                            />
+                                            <Button type="submit" className="w-full mt-4" disabled={submitting}>
+                                                {submitting ? (
+                                                    <>
+                                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                                        Submitting...
+                                                    </>
+                                                ) : (
+                                                    "Submit Feedback"
+                                                )}
+                                            </Button>
+                                        </form>
+                                    </Form>
                                 </CardContent>
                             </Card>
                         </div>
-
-                        {/* Sidebar with Stats & Tips */}
                         <Card className="h-fit">
                             <CardHeader>
                                 <CardTitle>Feedback Impact</CardTitle>
@@ -224,9 +506,7 @@ export default function SendFeedback() {
                                         </div>
                                         <Progress value={75} />
                                     </div>
-
                                     <Separator className="my-4" />
-
                                     <div className="space-y-3">
                                         <h4 className="font-medium">Tips for Effective Feedback</h4>
                                         <ul className="space-y-2 text-sm">
@@ -234,10 +514,10 @@ export default function SendFeedback() {
                                                 "Be specific about what you experienced",
                                                 "Include steps to reproduce issues",
                                                 "Suggest solutions if you have ideas",
-                                                "Attach screenshots if relevant"
+                                                "Attach screenshots if relevant",
                                             ].map((tip, i) => (
                                                 <li key={i} className="flex items-start">
-                                                    <CheckCircle className="h-4 w-4 mr-2 text-green-500 shrink-0 mt-0.5" />
+                                                    <CheckCircle className="h-4 w-4 mr-2 text-success shrink-0 mt-0.5" />
                                                     <span>{tip}</span>
                                                 </li>
                                             ))}
@@ -247,178 +527,33 @@ export default function SendFeedback() {
                             </CardContent>
                         </Card>
                     </div>
-
-                    {/* Testimonials Section */}
-                    <div className="my-12">
-                        <h2 className="text-2xl font-bold text-center mb-8">What Others Are Saying</h2>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                            {[
-                                {
-                                    name: "Alex Johnson",
-                                    role: "Regular User",
-                                    avatar: "AJ",
-                                    content: "I suggested a feature for task organization and was amazed to see it implemented in just two weeks! This team really listens."
-                                },
-                                {
-                                    name: "Sarah Miller",
-                                    role: "Premium User",
-                                    avatar: "SM",
-                                    content: "The responsiveness to feedback is why I remain a loyal user. My experience has improved dramatically based on the changes made."
-                                },
-                                {
-                                    name: "Marcus Chen",
-                                    role: "New User",
-                                    avatar: "MC",
-                                    content: "Even as a new user, I felt my input was valued. The team addressed my concerns promptly and made the onboarding process smoother."
-                                }
-                            ].map((testimonial, i) => (
-                                <motion.div
-                                    key={i}
-                                    whileHover={{ y: -5 }}
-                                    transition={{ type: "spring", stiffness: 300 }}
-                                >
-                                    <Card>
-                                        <CardContent className="pt-6">
-                                            <div className="flex items-start space-x-4">
-                                                <Avatar>
-                                                    <AvatarFallback className="bg-primary text-primary-foreground">
-                                                        {testimonial.avatar}
-                                                    </AvatarFallback>
-                                                </Avatar>
-                                                <div>
-                                                    <p className="font-medium">{testimonial.name}</p>
-                                                    <p className="text-sm text-muted-foreground">{testimonial.role}</p>
-                                                </div>
-                                            </div>
-                                            <div className="mt-4">
-                                                <p className="text-gray-600 italic">"{testimonial.content}"</p>
-                                            </div>
-                                        </CardContent>
-                                    </Card>
-                                </motion.div>
-                            ))}
-                        </div>
-                    </div>
-
-                    {/* FAQ Section */}
-                    <Card className="my-8">
-                        <CardHeader>
-                            <CardTitle className="text-center">Frequently Asked Questions</CardTitle>
-                            <CardDescription className="text-center">Common questions about our feedback process</CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <Accordion type="single" collapsible className="w-full">
-                                {[
-                                    {
-                                        question: "What happens after I submit feedback?",
-                                        answer: "Your feedback is reviewed by our product team within 1-3 business days. If actionable, it's prioritized in our development roadmap. You may receive follow-up questions via email if we need clarification."
-                                    },
-                                    {
-                                        question: "Can I track the status of my feedback?",
-                                        answer: "Currently, you cannot track individual feedback items, but we send monthly updates about implemented suggestions and fixes via our newsletter."
-                                    },
-                                    {
-                                        question: "Are there any rewards for valuable feedback?",
-                                        answer: "While we don't have a formal rewards program, users whose feedback leads to significant improvements may receive premium account upgrades or early access to new features."
-                                    },
-                                    {
-                                        question: "How do you decide which feedback to implement?",
-                                        answer: "We evaluate feedback based on user impact, alignment with product vision, technical feasibility, and how many users have requested similar features or improvements."
-                                    }
-                                ].map((item, i) => (
-                                    <AccordionItem key={i} value={`item-${i}`}>
-                                        <AccordionTrigger>{item.question}</AccordionTrigger>
-                                        <AccordionContent>
-                                            {item.answer}
-                                        </AccordionContent>
-                                    </AccordionItem>
-                                ))}
-                            </Accordion>
-                        </CardContent>
-                    </Card>
-
-                    {/* Why Feedback Matters Section */}
-                    <div className="text-center my-12">
-                        <h3 className="text-xl font-semibold mb-4">
-                            Why Your Feedback Matters
-                        </h3>
-                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 max-w-4xl mx-auto">
-                            {[
-                                {
-                                    icon: CheckCircle,
-                                    title: "Improve Service",
-                                    description: "Help us serve you better",
-                                    tooltip: "Your input helps us make better decisions!",
-                                },
-                                {
-                                    icon: Eye,
-                                    title: "Shape the Future",
-                                    description: "Influence our roadmap",
-                                    tooltip: "Your ideas help shape upcoming features!",
-                                },
-                                {
-                                    icon: Lightbulb,
-                                    title: "Inspire Innovation",
-                                    description: "Spark new ideas",
-                                    tooltip: "Your feedback can lead to breakthrough features!",
-                                },
-                                {
-                                    icon: MessageCircle,
-                                    title: "Stay Connected",
-                                    description: "Be part of our community",
-                                    tooltip: "Join discussions and give us feedback!",
-                                },
-                            ].map((item, index) => (
-                                <motion.div
-                                    key={index}
-                                    whileHover={{ scale: 1.05 }}
-                                    transition={{
-                                        type: "spring",
-                                        stiffness: 200,
-                                    }}
-                                >
-                                    <Card className="">
-                                        <CardHeader className="flex items-center justify-center">
-                                            <TooltipProvider>
-                                                <Tooltip>
-                                                    <TooltipTrigger>
-                                                        <item.icon className="w-8 h-8 text-primary" />
-                                                    </TooltipTrigger>
-                                                    <TooltipContent>
-                                                        {item.tooltip}
-                                                    </TooltipContent>
-                                                </Tooltip>
-                                            </TooltipProvider>
-                                        </CardHeader>
-                                        <CardContent className="text-center">
-                                            <CardTitle className="text-base">
-                                                {item.title}
-                                            </CardTitle>
-                                            <p className="text-sm text-muted-foreground">
-                                                {item.description}
-                                            </p>
-                                        </CardContent>
-                                    </Card>
-                                </motion.div>
-                            ))}
-                        </div>
-                    </div>
-
-                    {/* CTA Section */}
-                    <div className="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-lg p-8 my-8 text-center text-black">
-                        <h3 className="text-2xl font-bold mb-4">Ready to Make a Difference?</h3>
-                        <p className="mb-6 max-w-2xl mx-auto ">
-                            Your voice matters to us. Every piece of feedback contributes to making our platform better for everyone.
-                        </p>
-                        <Button
-                            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-                            className="bg-gradient-to-r from-primary to-indigo-600 hover:from-primary/90 hover:to-indigo-700"
-                        >
-                            Share Your Thoughts Now
-                        </Button>
-                    </div>
                 </div>
             </div>
+
+            <Dialog open={!!previewImage} onOpenChange={(open) => !open && setPreviewImage(null)}>
+                <DialogContent className="max-w-3xl max-h-[90vh]">
+                    <DialogHeader>
+                        <DialogTitle>Image Preview</DialogTitle>
+                        <DialogDescription>
+                            View the full-size image
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="overflow-auto max-h-[calc(90vh-10rem)]">
+                        {previewImage && (
+                            <img 
+                                src={previewImage} 
+                                alt="Enlarged preview" 
+                                className="w-full h-auto rounded-md"
+                            />
+                        )}
+                    </div>
+                    <div className="flex justify-end">
+                        <DialogClose asChild>
+                            <Button variant="outline">Close</Button>
+                        </DialogClose>
+                    </div>
+                </DialogContent>
+            </Dialog>
         </UserLayout>
     );
 }

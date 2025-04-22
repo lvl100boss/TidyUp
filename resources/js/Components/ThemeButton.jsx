@@ -13,7 +13,7 @@ const ThemeButton = ({ isDarkTheme, ...props }) => {
             <Tooltip>
                 <TooltipTrigger asChild>
                     <Button
-                        className="size-9"
+                        className="size-9 "
                         variant="outline"
                         size="icon"
                         {...props}

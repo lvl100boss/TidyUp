@@ -19,7 +19,7 @@ import UndoButtonModal from "@/Components/Appointments/UndoButtonModal";
 import NoShowButtonModal from "@/Components/Appointments/NoShowButtonModal";
 
 
-export default function AppointmentCard({ appointment, upcomingSchedules, shopBusinessSchedules }) {
+export default function AppointmentCard({ appointment, upcomingSchedules, shopBusinessSchedules, hideActionModals }) {
     const statusVariants = {
         upcoming: "border-blue-300/30 bg-blue-50/50 text-blue-800 dark:bg-blue-950/50 dark:text-blue-300",
         pending: "border-yellow-300/30 bg-yellow-50/50 text-yellow-800 dark:bg-yellow-950/50 dark:text-yellow-300",
@@ -33,6 +33,8 @@ export default function AppointmentCard({ appointment, upcomingSchedules, shopBu
     const totalCost = appointment.services.reduce(
         (sum, service) => sum + parseFloat(service.cost), 0
     );
+
+    console.log(appointment);
 
     return (
         <>
@@ -212,34 +214,39 @@ export default function AppointmentCard({ appointment, upcomingSchedules, shopBu
                 <Separator className="bg-muted-foreground/10" />
 
                 <CardFooter className="py-4 flex justify-end gap-2">
-                    {appointment.status === "pending" && (
+                    {!hideActionModals && (
                         <>
-                            <ApproveButtonModal appointment={appointment} />
-                            <ReschedReqButton
-                                appointment={appointment}
-                                upcomingSchedules={upcomingSchedules}
-                                shopBusinessSchedules={shopBusinessSchedules}
-                            />
-                            <RejectButtonModal appointment={appointment} />
-                        </>
-                    )}
+                            {appointment.status === "pending" && (
+                                <>
+                                    <ApproveButtonModal appointment={appointment} />
+                                    <ReschedReqButton
+                                        appointment={appointment}
+                                        upcomingSchedules={upcomingSchedules}
+                                        shopBusinessSchedules={shopBusinessSchedules}
+                                    />
+                                    <RejectButtonModal appointment={appointment} />
+                                </>
+                            )}
 
-                    {appointment.status === "upcoming" && (
-                        <>
-                            <StartedButtonModal appointment={appointment} />
-                            <ReschedReqButton
-                                appointment={appointment}
-                                upcomingSchedules={upcomingSchedules}
-                                shopBusinessSchedules={shopBusinessSchedules}
-                            />
-                            <NoShowButtonModal appointment={appointment} />
-                            <CancelButtonModal appointment={appointment} />
-                        </>
-                    )}
-                    {appointment.status === "started" && (
-                        <>
-                            <CompleteButtonModal appointment={appointment} />
-                            <UndoButtonModal appointment={appointment} />
+                            {appointment.status === "upcoming" && (
+                                <>
+                                    <StartedButtonModal appointment={appointment} />
+                                    <ReschedReqButton
+                                        appointment={appointment}
+                                        upcomingSchedules={upcomingSchedules}
+                                        shopBusinessSchedules={shopBusinessSchedules}
+                                    />
+                                    <NoShowButtonModal appointment={appointment} />
+                                    <CancelButtonModal appointment={appointment} />
+                                </>
+                            )}
+
+                            {appointment.status === "started" && (
+                                <>
+                                    <CompleteButtonModal appointment={appointment} />
+                                    <UndoButtonModal appointment={appointment} />
+                                </>
+                            )}
                         </>
                     )}
                 </CardFooter>

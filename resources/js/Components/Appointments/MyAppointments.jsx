@@ -6,17 +6,17 @@ import AddAppointmentModal from "./AddAppointmentModal";
 import { Separator } from "@/components/ui/separator"
 
 
-export default function MyAppointments({ appointments, upcomingSchedules, shopBusinessSchedules, rescheduleRequests }) {
+export default function MyAppointments({ appointments, upcomingSchedules, shopBusinessSchedules, rescheduleRequests, shouldHideActionModals }) {
     console.log("rescheduleRequests", rescheduleRequests);
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const statuses = [
         { value: "pending", label: "Pending" },
         { value: "upcoming", label: "Upcoming" },
+        { value: "started", label: "Started" },
         { value: "completed", label: "Completed" },
         { value: "cancelled", label: "Cancelled" },
         { value: "no-show", label: "No Show" },
         { value: "declined", label: "Rejected" },
-        { value: "started", label: "Started" },
     ];
 
     // Find the first status that has appointments and use it as default tab
@@ -55,6 +55,7 @@ export default function MyAppointments({ appointments, upcomingSchedules, shopBu
                                     appointment={appointment}
                                     upcomingSchedules={upcomingSchedules}
                                     shopBusinessSchedules={shopBusinessSchedules}
+                                    hideActionModals={shouldHideActionModals ? shouldHideActionModals(appointment) : false}
                                 />
                             ))
                         ) : (
@@ -68,7 +69,6 @@ export default function MyAppointments({ appointments, upcomingSchedules, shopBu
 
             <Separator />
 
-
             <div>
                 <h2 className="text-xl font-semibold mb-5">Pending Rescedule</h2>
                 {rescheduleRequests.length > 0 ? (
@@ -78,6 +78,7 @@ export default function MyAppointments({ appointments, upcomingSchedules, shopBu
                             appointment={appointment}
                             upcomingSchedules={upcomingSchedules}
                             shopBusinessSchedules={shopBusinessSchedules}
+                            hideActionModals={shouldHideActionModals ? shouldHideActionModals(appointment) : false}
                         />
                     ))
                 ) : (

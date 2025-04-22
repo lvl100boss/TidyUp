@@ -295,12 +295,12 @@ const StaffTable = ({ staffs, shop, isOwner }) => {
         <div>
             <div className="flex items-center justify-between py-4 gap-3 flex-wrap">
                 <div className="flex items-center gap-2 flex-wrap">
-                    <div>
+                    <div className="w-full sm:w-auto">
                         <Select
                             value={roleFilter}
                             onValueChange={handleRoleFilter}
                         >
-                            <SelectTrigger className="w-[180px]">
+                            <SelectTrigger className="w-full sm:w-[180px]">
                                 <SelectValue placeholder="Filter by role" />
                             </SelectTrigger>
                             <SelectContent>
@@ -313,12 +313,12 @@ const StaffTable = ({ staffs, shop, isOwner }) => {
                             </SelectContent>
                         </Select>
                     </div>
-                    <div>
+                    <div className="w-full sm:w-auto">
                         <Select
                             value={positionFilter}
                             onValueChange={handlePositionFilter}
                         >
-                            <SelectTrigger className="w-[180px]">
+                            <SelectTrigger className="w-full sm:w-[180px]">
                                 <SelectValue placeholder="Filter by position" />
                             </SelectTrigger>
                             <SelectContent>
@@ -342,55 +342,59 @@ const StaffTable = ({ staffs, shop, isOwner }) => {
                         </Button>
                     )}
                 </div>
-                <Input
-                    placeholder="Search by name or email..."
-                    value={searchTerm}
-                    onChange={(event) => handleSearch(event.target.value)}
-                    className="max-w-sm"
-                />
+                <div className="w-full sm:w-auto mt-2 sm:mt-0">
+                    <Input
+                        placeholder="Search by name or email..."
+                        value={searchTerm}
+                        onChange={(event) => handleSearch(event.target.value)}
+                        className="w-full sm:max-w-sm"
+                    />
+                </div>
             </div>
 
-            <div className="rounded-md border">
-                <Table>
-                    <TableHeader>
-                        {table.getHeaderGroups().map((headerGroup) => (
-                            <TableRow key={headerGroup.id}>
-                                {headerGroup.headers.map((header) => (
-                                    <TableHead key={header.id}>
-                                        {header.isPlaceholder
-                                            ? null
-                                            : flexRender(
-                                                header.column.columnDef.header,
-                                                header.getContext()
-                                            )}
-                                    </TableHead>
-                                ))}
-                            </TableRow>
-                        ))}
-                    </TableHeader>
-                    <TableBody>
-                        {table.getRowModel().rows?.length ? (
-                            table.getRowModel().rows.map((row) => (
-                                <TableRow
-                                    key={row.id}
-                                    data-state={row.getIsSelected() && "selected"}
-                                >
-                                    {row.getVisibleCells().map((cell) => (
-                                        <TableCell key={cell.id}>
-                                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                                        </TableCell>
+            <div className="rounded-md border overflow-x-auto max-w-[100vw] -mx-4 sm:mx-0">
+                <div className="min-w-full">
+                    <Table>
+                        <TableHeader>
+                            {table.getHeaderGroups().map((headerGroup) => (
+                                <TableRow key={headerGroup.id}>
+                                    {headerGroup.headers.map((header) => (
+                                        <TableHead key={header.id} className="whitespace-nowrap">
+                                            {header.isPlaceholder
+                                                ? null
+                                                : flexRender(
+                                                    header.column.columnDef.header,
+                                                    header.getContext()
+                                                )}
+                                        </TableHead>
                                     ))}
                                 </TableRow>
-                            ))
-                        ) : (
-                            <TableRow>
-                                <TableCell colSpan={columns.length} className="h-24 text-center">
-                                    No results.
-                                </TableCell>
-                            </TableRow>
-                        )}
-                    </TableBody>
-                </Table>
+                            ))}
+                        </TableHeader>
+                        <TableBody>
+                            {table.getRowModel().rows?.length ? (
+                                table.getRowModel().rows.map((row) => (
+                                    <TableRow
+                                        key={row.id}
+                                        data-state={row.getIsSelected() && "selected"}
+                                    >
+                                        {row.getVisibleCells().map((cell) => (
+                                            <TableCell key={cell.id} className="whitespace-nowrap">
+                                                {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                                            </TableCell>
+                                        ))}
+                                    </TableRow>
+                                ))
+                            ) : (
+                                <TableRow>
+                                    <TableCell colSpan={columns.length} className="h-24 text-center">
+                                        No results.
+                                    </TableCell>
+                                </TableRow>
+                            )}
+                        </TableBody>
+                    </Table>
+                </div>
             </div>
 
             <div className="flex items-center justify-between space-x-2 py-4">
