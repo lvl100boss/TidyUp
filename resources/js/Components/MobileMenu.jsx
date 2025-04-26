@@ -30,6 +30,7 @@ import {
     Moon // Import Moon icon
 } from "lucide-react";
 import { cn } from "@/lib/utils"; // Import cn utility
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
 // Reusable MenuItem component
 const MenuItem = ({ href, icon: Icon, label, method = 'get', as = 'a', onClick, variant }) => {
@@ -110,6 +111,8 @@ const MobileMenu = ({ children }) => {
         ? roleSpecificLinks[role]
         : null;
 
+    const name = user?.first_name + " " + user?.last_name;
+    const profilePic = "/storage/" + user?.profile_photo_path; // Fallback image
     return (
         <Drawer direction="right">
             <DrawerTrigger asChild>{children}</DrawerTrigger>
@@ -118,7 +121,24 @@ const MobileMenu = ({ children }) => {
                     <DrawerTitle>Menu</DrawerTitle>
                 </DrawerHeader>
                 <Separator />
-
+                {/* User Profile */}
+                <div>
+                    <div className="flex items-center p-4">
+                        <div className="flex-shrink-0">
+                            <Avatar className="size-20">
+                                <AvatarImage src={profilePic} alt="Profile" />
+                                <AvatarFallback>
+                                    {user?.first_name.charAt(0).toUpperCase() + user?.last_name.charAt(0).toUpperCase()}
+                                </AvatarFallback>
+                            </Avatar>
+                        </div>
+                        <div className="ml-3">
+                            <h4 className="text-lg font-semibold">{name}</h4>
+                            <p className="text-sm text-muted-foreground">{user?.email}</p>
+                        </div>
+                    </div>
+                </div>
+                <Separator />
                 <div className="flex-grow overflow-y-auto">
                     {navLinks.map((link) => (
                         <MenuItem key={link.href} {...link} />

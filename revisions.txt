@@ -5,6 +5,7 @@ Legend:
 
 Minor Revisions:
 [/] When Searching For shops, Unverified Shop can still be seen in the search
+[/] Settings and profile should be distinct (remove settings or profile)
 [X] Prevent users from booking time slots earlier than the current time.
 [X] Require users to book at least 1 hour in advance to avoid last-minute bookings.
 [X] Make Every Page Responsive.
@@ -17,7 +18,6 @@ Minor Revisions:
 [X] Send Reminders to the customers 24h and 1hr before the Scheduled Time.
 [X] If the User has 3 or more Violation Strikes, They will be restricted of booking appointments for a month.
 [X] If the Staff has 3 or more Violation Strikes, They will not be able to accept an appointments for a month.
-[X] Settings and profile should be distinct (remove settings or profile)
 [X] Register shop (sometimes buggy ang next button)
 [X] ADMIN - User management Ban and edit
 

@@ -159,9 +159,6 @@ const Header = ({ onClick, isDarkTheme, setIsDarkTheme }) => {
                                     <DropdownMenuSeparator />
                                     {/* Dropdown Menu Items */}
                                     <DropdownMenuGroup>
-                                        <Link href="/profile">
-                                            <DropdownMenuItem>Profile</DropdownMenuItem>
-                                        </Link>
                                         {/* Role-specific dashboard/management links */}
                                         {role.role_id === 3 ? ( // Shop Owner
                                             <Link href={route("shop.dashboard")}>
@@ -189,12 +186,11 @@ const Header = ({ onClick, isDarkTheme, setIsDarkTheme }) => {
                                             </Link>
                                         )}
                                     </DropdownMenuGroup>
-                                    <DropdownMenuSeparator />
-                                    {/* Theme Toggle */}
+                                    {/* Theme Toggle
                                     <DropdownMenuItem onClick={onClick}>
                                         Set Theme to{" "}
                                         {isDarkTheme ? "Light Mode" : "Dark Mode"}
-                                    </DropdownMenuItem>
+                                    </DropdownMenuItem> */}
                                     {/* Settings Link */}
                                     <Link href="/profile">
                                         <DropdownMenuItem >
