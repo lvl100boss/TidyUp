@@ -99,15 +99,15 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'web'])->group(funct
     // Other admin routes...
 });
 
-// Add a diagnostic route to check authentication
-Route::get('/check-auth', function () {
-    return response()->json([
-        'authenticated' => auth()->check(),
-        'user' => auth()->check() ? auth()->user() : null,
-        'session_id' => session()->getId(),
-        'csrf_token' => csrf_token()
-    ]);
-})->middleware(['web']);
+// // Add a diagnostic route to check authentication
+// Route::get('/check-auth', function () {
+//     return response()->json([
+//         'authenticated' => auth()->check(),
+//         'user' => auth()->check() ? auth()->user() : null,
+//         'session_id' => session()->getId(),
+//         'csrf_token' => csrf_token()
+//     ]);
+// })->middleware(['web']);
 
 require __DIR__ . '/auth.php';
 require __DIR__ . '/booking.php';

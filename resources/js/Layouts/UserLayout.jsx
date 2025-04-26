@@ -42,13 +42,9 @@ export default function UserLayout({ children }) {
                 />
                 <div className="flex gap-5 mt-[4.5rem]">
                     {/* <Sidebar /> */}
-                    <main className="flex-1 max-w-screen-2xl mx-auto px-2">
+                    <main className="flex-1 max-w-screen-2xl mx-auto sm:px-2">
                         {children}
                     </main>
-                </div>
-
-                <div>
-                    <MobileNavButton />
                 </div>
             </div>
             <div>
