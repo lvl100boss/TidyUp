@@ -62,7 +62,10 @@ class HandleInertiaRequests extends Middleware
                 'message' => fn() => $request->session()->get('message'),
                 'success' => fn() => $request->session()->get('success'),
             ],
-            'shops' => fn() => \App\Models\Shop::select('id', 'shop_name', 'shop_photo')->get(),
+            'shops' => fn() => \App\Models\Shop::select('id', 'shop_name', 'shop_photo')
+                ->where('is_verified', 1)
+                ->where('status', 'verified')
+                ->get(),
         ];
     }
 }
