@@ -43,7 +43,7 @@ export default function Edit({ mustVerifyEmail, status }) {
                         <div className="mt-2 flex gap-2">
                             {/* Light Mode */}
                             <div
-                                className={`p-2 border rounded-lg w-fit transition-all duration-200 ease-in-out hover:scale-105 cursor-pointer`
+                                className={`p-2 border rounded-lg w-fit transition-all duration-200 ease-in-out cursor-pointer`
                                     + (!isDarkTheme ? " border-muted-foreground/50" : "")
                                 }
                                 onClick={toggleLightMode}
@@ -58,7 +58,7 @@ export default function Edit({ mustVerifyEmail, status }) {
                             </div>
                             {/* Dark Mode */}
                             <div
-                                className={`p-2 border rounded-lg w-fit  transition-all duration-200 ease-in-out hover:scale-105 cursor-pointer`
+                                className={`p-2 border rounded-lg w-fit  transition-all duration-200 ease-in-out cursor-pointer`
                                     + (isDarkTheme ? " border-muted-foreground/50" : " ")
                                 }
                                 onClick={toggleDarkMode}

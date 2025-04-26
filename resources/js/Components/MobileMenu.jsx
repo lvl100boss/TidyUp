@@ -122,24 +122,25 @@ const MobileMenu = ({ children }) => {
                 </DrawerHeader>
                 <Separator />
                 {/* User Profile */}
-                <div>
-                    <div className="flex items-center p-4">
-                        <div className="flex-shrink-0">
-                            <Avatar className="size-20">
-                                <AvatarImage src={profilePic} alt="Profile" />
-                                <AvatarFallback>
-                                    {user?.first_name.charAt(0).toUpperCase() + user?.last_name.charAt(0).toUpperCase()}
-                                </AvatarFallback>
-                            </Avatar>
-                        </div>
-                        <div className="ml-3">
-                            <h4 className="text-lg font-semibold">{name}</h4>
-                            <p className="text-sm text-muted-foreground">{user?.email}</p>
+
+                <div className="flex-grow overflow-y-auto">
+                    <div>
+                        <div className="flex items-center p-4">
+                            <div className="flex-shrink-0">
+                                <Avatar className="size-20">
+                                    <AvatarImage src={profilePic} alt="Profile" />
+                                    <AvatarFallback>
+                                        {user?.first_name.charAt(0).toUpperCase() + user?.last_name.charAt(0).toUpperCase()}
+                                    </AvatarFallback>
+                                </Avatar>
+                            </div>
+                            <div className="ml-3">
+                                <h4 className="text-lg font-semibold">{name}</h4>
+                                <p className="text-sm text-muted-foreground">{user?.email}</p>
+                            </div>
                         </div>
                     </div>
-                </div>
-                <Separator />
-                <div className="flex-grow overflow-y-auto">
+                    <Separator />
                     {navLinks.map((link) => (
                         <MenuItem key={link.href} {...link} />
                     ))}
