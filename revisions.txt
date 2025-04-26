@@ -4,7 +4,7 @@ Legend:
 [/] - Done
 
 Minor Revisions:
-[X] When Searching For shops, Unverified Shop can still be seen in the search
+[/] When Searching For shops, Unverified Shop can still be seen in the search
 [X] Prevent users from booking time slots earlier than the current time.
 [X] Require users to book at least 1 hour in advance to avoid last-minute bookings.
 [X] Make Every Page Responsive.

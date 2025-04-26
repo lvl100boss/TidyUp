@@ -52,10 +52,10 @@ export default function SetupUserProfile({ first_name, last_name }) {
     return (
         <section className='grid place-items-center min-h-screen '>
             <Head title="Setup User Profile" />
-            <div className="max-w-xl mx-auto">
+            <div className="max-w-xl mx-auto px-4 py-10 md:py-0 md:px-0">
                 <ApplicationLogo className="size-28 mx-auto" />
-                <h1 className='text-center text-4xl font-medium mt-4'>Welcome!</h1>
-                <h1 className='text-center text-4xl font-medium mb-4'> Let's set up your profile.</h1>
+                <h1 className='text-center md:text-4xl text-2xl font-medium mt-4'>Welcome!</h1>
+                <h1 className='text-center md:text-4xl text-2xl font-medium mb-4'> Let's set up your profile.</h1>
                 <p className='text-sm text-muted-foreground text-center mb-4'>Tell us a bit about yourself to get started.</p>
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div>

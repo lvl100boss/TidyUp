@@ -130,16 +130,18 @@ const MobileMenu = ({ children }) => {
                     <Separator />
 
                     {isLoggedIn && userRoleLink && <MenuItem {...userRoleLink} />}
-
+                    <MenuItem
+                        href="#"
+                        icon={isDarkTheme ? Sun : Moon} // Use Sun/Moon icon
+                        label={isDarkTheme ? "Switch To Light Mode" : "Switch To Dark Mode"} // Update label
+                        onClick={toggleTheme}
+                    />
                     {isLoggedIn && (
                         <>
                             <MenuItem href="/profile" icon={Settings} label="Settings" />
                             <MenuItem href="/send-feedback" icon={MessageCircleMore} label="Send Feedback" />
                         </>
                     )}
-
-
-
                     {isLoggedIn ? (
                         <MenuItem
                             href={route('logout')}
@@ -151,12 +153,7 @@ const MobileMenu = ({ children }) => {
                         />
                     ) : (
                         <>
-                            <MenuItem
-                                href="#"
-                                icon={isDarkTheme ? Sun : Moon} // Use Sun/Moon icon
-                                label={isDarkTheme ? "Change theme to: Light Mode" : "Change theme to: Dark Mode"} // Update label
-                                onClick={toggleTheme}
-                            />
+
                             <MenuItem href={route('login')} icon={KeyRound} label="Login" />
                             <MenuItem href={route('register')} icon={User} label="Register" />
                         </>
