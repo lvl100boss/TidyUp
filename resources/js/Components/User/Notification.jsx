@@ -7,6 +7,8 @@ import {
     DrawerHeader,
     DrawerTitle,
     DrawerTrigger,
+    DrawerClose,
+    DrawerFooter,
 } from "@/components/ui/drawerRight";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -61,7 +63,7 @@ export function Notification({ className, ...props }) {
                 </DrawerHeader>
                 <Separator />
                 {/* ScrollArea takes full height minus header/footer */}
-                <ScrollArea className="h-[calc(100vh-150px)]">
+                <ScrollArea className="h-[calc(100vh-150px)] mt-4">
                     {/* Removed the div with p-4. Padding can be added to DrawerContent or individual items if necessary */}
                     {notifications.length > 0 ? (
                         notifications.map((notification) => {
@@ -115,10 +117,11 @@ export function Notification({ className, ...props }) {
                         </Card>
                     )}
                 </ScrollArea>
-                {/* Optional Footer */}
-                {/* <DrawerFooter>
-                    <Button variant="outline">Mark all as read</Button>
-                </DrawerFooter> */}
+                <DrawerFooter className="mt-auto sm:hidden">
+                    <DrawerClose asChild>
+                        <Button variant="outline" className="w-full">Close</Button>
+                    </DrawerClose>
+                </DrawerFooter>
             </DrawerContent>
         </Drawer>
     );

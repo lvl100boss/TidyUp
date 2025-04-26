@@ -34,6 +34,7 @@ import { Bell, Menu, Search } from "lucide-react";
 import ThemeButton from "@/Components/ThemeButton";
 import SearchShop from "./Header/SearchShop";
 import { cn } from "@/lib/utils";
+import MobileMenu from "../MobileMenu";
 
 const Header = ({ onClick, isDarkTheme, setIsDarkTheme }) => {
     const user = usePage().props.auth.user;
@@ -65,7 +66,7 @@ const Header = ({ onClick, isDarkTheme, setIsDarkTheme }) => {
                 }`}
         >
             {/* Max width container for header content */}
-            <div className="flex justify-between items-center max-w-screen-2xl mx-auto px-2">
+            <div className="flex justify-between items-center max-w-screen-2xl mx-auto sm:px-2">
                 {/* Logo and Application Title */}
                 <div className="">
                     <Link href="/" className="flex items-center gap-2">
@@ -102,8 +103,123 @@ const Header = ({ onClick, isDarkTheme, setIsDarkTheme }) => {
                         {/* Notification Component */}
                         <Notification />
                         {/* User Profile Dropdown */}
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
+                        <div className="hidden sm:block">
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Avatar className="cursor-pointer">
+                                        {/* Display user profile photo or fallback initials */}
+                                        {user.profile_photo_path ? (
+                                            <AvatarImage
+                                                src={`/storage/${user.profile_photo_path}`}
+                                            />
+                                        ) : user.first_name ? (
+                                            <AvatarFallback>
+                                                {user.first_name[0] + user.last_name[0]}
+                                            </AvatarFallback>
+                                        ) : (
+                                            <AvatarFallback className="uppercase">
+                                                {user.username[0] + user.username[1]}
+                                            </AvatarFallback>
+                                        )}
+                                    </Avatar>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent className="w-64 mr-7">
+                                    {/* Dropdown Header with User Info */}
+                                    <DropdownMenuLabel className="flex gap-4 items-center py-3.5">
+                                        <Avatar>
+                                            {user.profile_photo_path ? (
+                                                <AvatarImage
+                                                    src={`/storage/${user.profile_photo_path}`}
+                                                />
+                                            ) : user.first_name ? (
+                                                <AvatarFallback>
+                                                    {user.first_name[0] +
+                                                        user.last_name[0]}
+                                                </AvatarFallback>
+                                            ) : (
+                                                <AvatarFallback className="uppercase">
+                                                    {user.username[0] +
+                                                        user.username[1]}
+                                                </AvatarFallback>
+                                            )}
+                                        </Avatar>
+                                        <div>
+                                            <h6>
+                                                {/* Display user's full name */}
+                                                {user.first_name +
+                                                    (user.middle_name ? ` ${user.middle_name[0]}. ` : " ") +
+                                                    " " +
+                                                    user.last_name}
+                                            </h6>
+                                            <p className="font-normal">
+                                                @{user.username} {/* Display username */}
+                                            </p>
+                                        </div>
+                                    </DropdownMenuLabel>
+                                    <DropdownMenuSeparator />
+                                    {/* Dropdown Menu Items */}
+                                    <DropdownMenuGroup>
+                                        {/* Role-specific dashboard/management links */}
+                                        {role.role_id === 3 ? ( // Shop Owner
+                                            <Link href={route("shop.dashboard")}>
+                                                <DropdownMenuItem>
+                                                    Manage Shop
+                                                </DropdownMenuItem>
+                                            </Link>
+                                        ) : role.role_id === 4 ? ( // Shop Staff
+                                            <Link href={route("shop.appointments")}>
+                                                <DropdownMenuItem>
+                                                    Manage Appointments
+                                                </DropdownMenuItem>
+                                            </Link>
+                                        ) : role.role_id === 1 ? ( // Admin
+                                            <Link href={route("admin.shops")}>
+                                                <DropdownMenuItem>
+                                                    Admin Dashboard
+                                                </DropdownMenuItem>
+                                            </Link>
+                                        ) : ( // Regular User without shop
+                                            <Link href={`/shop/setup`}>
+                                                <DropdownMenuItem>
+                                                    Setup Your Shop
+                                                </DropdownMenuItem>
+                                            </Link>
+                                        )}
+                                    </DropdownMenuGroup>
+                                    {/* Theme Toggle
+                                    <DropdownMenuItem onClick={onClick}>
+                                        Set Theme to{" "}
+                                        {isDarkTheme ? "Light Mode" : "Dark Mode"}
+                                    </DropdownMenuItem> */}
+                                    {/* Settings Link */}
+                                    <Link href="/profile">
+                                        <DropdownMenuItem >
+                                            Settings
+                                        </DropdownMenuItem>
+                                    </Link>
+                                    {/* Send Feedback Link */}
+                                    <Link href="/send-feedback">
+                                        <DropdownMenuItem >
+                                            Send Feedback
+                                        </DropdownMenuItem>
+                                    </Link>
+                                    <DropdownMenuSeparator />
+                                    {/* Logout Button */}
+                                    <Link
+                                        method="post"
+                                        href={route("logout")}
+                                        as="button"
+                                        className="w-full"
+                                    >
+                                        <DropdownMenuItem className="text-red-500">
+                                            Log out
+                                        </DropdownMenuItem>
+                                    </Link>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                        </div>
+                        <div className="sm:hidden">
+                            <MobileMenu>
                                 <Avatar className="cursor-pointer">
                                     {/* Display user profile photo or fallback initials */}
                                     {user.profile_photo_path ? (
@@ -120,129 +236,24 @@ const Header = ({ onClick, isDarkTheme, setIsDarkTheme }) => {
                                         </AvatarFallback>
                                     )}
                                 </Avatar>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent className="w-64 mr-7">
-                                {/* Dropdown Header with User Info */}
-                                <DropdownMenuLabel className="flex gap-4 items-center py-3.5">
-                                    <Avatar>
-                                        {user.profile_photo_path ? (
-                                            <AvatarImage
-                                                src={`/storage/${user.profile_photo_path}`}
-                                            />
-                                        ) : user.first_name ? (
-                                            <AvatarFallback>
-                                                {user.first_name[0] +
-                                                    user.last_name[0]}
-                                            </AvatarFallback>
-                                        ) : (
-                                            <AvatarFallback className="uppercase">
-                                                {user.username[0] +
-                                                    user.username[1]}
-                                            </AvatarFallback>
-                                        )}
-                                    </Avatar>
-                                    <div>
-                                        <h6>
-                                            {/* Display user's full name */}
-                                            {user.first_name +
-                                                (user.middle_name ? ` ${user.middle_name[0]}. ` : " ") +
-                                                " " +
-                                                user.last_name}
-                                        </h6>
-                                        <p className="font-normal">
-                                            @{user.username} {/* Display username */}
-                                        </p>
-                                    </div>
-                                </DropdownMenuLabel>
-                                <DropdownMenuSeparator />
-                                {/* Dropdown Menu Items */}
-                                <DropdownMenuGroup>
-                                    <Link href="/profile">
-                                        <DropdownMenuItem>Profile</DropdownMenuItem>
-                                    </Link>
-                                    {/* Role-specific dashboard/management links */}
-                                    {role.role_id === 3 ? ( // Shop Owner
-                                        <Link href={route("shop.dashboard")}>
-                                            <DropdownMenuItem>
-                                                Manage Shop
-                                            </DropdownMenuItem>
-                                        </Link>
-                                    ) : role.role_id === 4 ? ( // Shop Staff
-                                        <Link href={route("shop.appointments")}>
-                                            <DropdownMenuItem>
-                                                Manage Appointments
-                                            </DropdownMenuItem>
-                                        </Link>
-                                    ) : role.role_id === 1 ? ( // Admin
-                                        <Link href={route("admin.shops")}>
-                                            <DropdownMenuItem>
-                                                Admin Dashboard
-                                            </DropdownMenuItem>
-                                        </Link>
-                                    ) : ( // Regular User without shop
-                                        <Link href={`/shop/setup`}>
-                                            <DropdownMenuItem>
-                                                Setup Your Shop
-                                            </DropdownMenuItem>
-                                        </Link>
-                                    )}
-                                </DropdownMenuGroup>
-                                <DropdownMenuSeparator />
-                                {/* Theme Toggle */}
-                                <DropdownMenuItem onClick={onClick}>
-                                    Set Theme to{" "}
-                                    {isDarkTheme ? "Light Mode" : "Dark Mode"}
-                                </DropdownMenuItem>
-                                {/* Settings Link */}
-                                <Link href="/profile">
-                                    <DropdownMenuItem >
-                                        Settings
-                                    </DropdownMenuItem>
-                                </Link>
-                                {/* Send Feedback Link */}
-                                <Link href="/send-feedback">
-                                    <DropdownMenuItem >
-                                        Send Feedback
-                                    </DropdownMenuItem>
-                                </Link>
-                                <DropdownMenuSeparator />
-                                {/* Logout Button */}
-                                <Link
-                                    method="post"
-                                    href={route("logout")}
-                                    as="button"
-                                    className="w-full"
-                                >
-                                    <DropdownMenuItem className="text-red-500">
-                                        Log out
-                                    </DropdownMenuItem>
-                                </Link>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
+                            </MobileMenu>
+                        </div>
                     </div>
                 ) : (
                     // Logged-out user actions (Guest)
                     <>
                         {/* Mobile Menu Trigger (visible on smaller screens) */}
-                        {/* Search Component */}
                         <div className="flex items-center gap-1.5">
-                            <SearchShop />
-                            <div className="lg:hidden">
-                                <DropdownMenu className="min-w-full">
-                                    <DropdownMenuTrigger asChild>
-                                        <Button variant="outline">
-                                            <Menu size={30} />
-                                        </Button>
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent className="mr-7 " inset>
-                                        <Link href="/login">
-                                            <DropdownMenuItem>Sign In</DropdownMenuItem>
-                                        </Link>
-                                        <Link href="/register">
-                                            <DropdownMenuItem>Sign Up</DropdownMenuItem>
-                                        </Link>
-                                    </DropdownMenuContent>
-                                </DropdownMenu>
+                            {/* Search Component */}
+                            <div className="lg:mr-1.5">
+                                <SearchShop />
+                            </div>
+                            <div className="block md:hidden">
+                                <MobileMenu>
+                                    <Button variant="outline">
+                                        <Menu size={30} />
+                                    </Button>
+                                </MobileMenu>
                             </div>
                         </div>
                         {/* Desktop Auth Buttons (visible on larger screens) */}
