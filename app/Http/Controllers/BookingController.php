@@ -10,11 +10,14 @@ use App\Models\ShopCategory;
 use App\Models\ShopServiceCategories;
 use App\Models\ShopStaffs;
 use App\Models\UserAppointments;
+use App\Notifications\NewAppointmentRequestNotification; // Import the notification class
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log; // Import Log facade
 use Illuminate\Validation\ValidationException;
 
 class BookingController extends Controller
@@ -115,39 +118,58 @@ class BookingController extends Controller
                 }
             }
 
-            // Remove debug statement
+            // Create the main appointment record
             $appointment = Appointments::create([
-                'user_id' => auth()->check() ? auth()->user()->id : null,
+                'user_id' => Auth::id(),
                 'shop_id' => $formData['shop_id'],
+                'staff_id' => $formData['staff_id'], // Use the staff_id from session
                 'date' => $formData['date'],
                 'time' => $formData['time'],
                 'total_price' => $formData['total_price'],
                 'note' => $request->note,
                 'status' => 'pending',
-                'is_successful' => true,
-            ]);
-            UserAppointments::create([
-                'user_id' => auth()->check() ? auth()->user()->id : null,
-                'appointment_id' => $appointment->id,
-                'staff_id' => $formData['staff_id'],
+                'is_successful' => true, // Consider if this should default to true or be set later
             ]);
 
+            // Create the user appointment link
+            UserAppointments::create([
+                'user_id' => Auth::id(),
+                'appointment_id' => $appointment->id,
+                'staff_id' => $formData['staff_id'], // Use the staff_id from session
+            ]);
+
+            // Create appointment services links
             foreach ($formData['service_id'] as $serviceId) {
                 AppointmentServices::create([
                     'appointment_id' => $appointment->id,
                     'service_id' => $serviceId,
-                    'user_id' => auth()->check() ? auth()->user()->id : null, // Fixed potential issue with auth check
+                    'user_id' => Auth::id() // Assuming service is linked to the booking user
                 ]);
             }
+
+            // --- Send Notification to the Selected Staff ---
+            // Find the ShopStaff record, including the related User model
+            // Assuming 'staff' is the relationship name on ShopStaffs model linking to the User model
+            $staffMember = ShopStaffs::with('staff')->find($formData['staff_id']);
+
+            if ($staffMember && $staffMember->staff) {
+                // Ensure the appointment instance has necessary relations loaded for the notification content
+                $appointment->loadMissing(['user', 'appointmentServices.shopService']);
+                // Notify the User associated with the ShopStaff record
+                $staffMember->staff->notify(new NewAppointmentRequestNotification($appointment));
+            } else {
+                // Optional: Log a warning if the staff member or their user account can't be found
+                Log::warning("Could not find staff user for ShopStaff ID: {$formData['staff_id']} to send NewAppointmentRequestNotification for appointment ID: {$appointment->id}");
+            }
+            // --- End Notification ---
 
             session()->forget('form_data');
             return redirect()->route('appointments')->with('message', 'Appointment has been booked successfully')->with('success', true);
         } catch (\Exception $e) {
-            // Log the detailed error
-            \Log::error('Booking error: ' . $e->getMessage());
-
-            // Return error with more details
-            return redirect()->back()->with('message', 'Error: ' . $e->getMessage())->with('success', false);
+            // Log the detailed error for debugging
+            Log::error("Booking Step 3 Error: " . $e->getMessage(), ['exception' => $e]);
+            // Provide a user-friendly error message
+            return redirect()->back()->with('message', 'Error: Could not complete booking. Please try again or contact support.')->with('success', false);
         }
     }
 }

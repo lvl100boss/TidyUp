@@ -1,0 +1,42 @@
+Legend:
+[X] - To Do
+[-] - In Progress
+[/] - Done
+
+Minor Revisions:
+[/] When Searching For shops, Unverified Shop can still be seen in the search
+[/] Settings and profile should be distinct (remove settings or profile)
+[-][by Art] Register shop (sometimes buggy ang next button) Remake the Register shop Process
+[X] Make Every Page Responsive.
+[X] Prevent users from booking time slots earlier than the current time.
+[X] Require users to book at least 1 hour in advance to avoid last-minute bookings.
+[X] Update Status in Admin Shop must not be a dropdown. (for example, There should only be a button for Verify or Reject)
+[X] There Must be A notification for Almost all activity in the Website.
+[X] There Must be Age limit when registering Birth Date.
+[X] In registration, Setting up Profile for the 3rd Step must be Skippable/Optional.
+[X] When Clicking The book now, instead of asking the user to sign. Allow the user to fill up the forms but dont allow the user submit the form when not logged in
+[X] In Appointment Detail for the shop Staff. Staff must be able to see the number of times of No-Show
+[X] Send Reminders to the customers 24h and 1hr before the Scheduled Time.
+[X] If the User has 3 or more Violation Strikes, They will be restricted of booking appointments for a month.
+[X] If the Staff has 3 or more Violation Strikes, They will not be able to accept an appointments for a month.
+[X] ADMIN - User management Ban and edit
+
+Major Revisions:
+[X] Allow Multiple User/Customer for Booking.
+[X] Something About Time Conflict (Check this if all the items below are checked) 
+Possible Scenarios Need to be handle by the system:
+- What if the Customer Arrives Earlier Than Expected? [ ]
+    * If the Slot is Available. Offer to Start Early.
+    * If not, don't allow the appointment to Start because there is an ongoing appointment
+- What if the customer is Late? [ ]
+    * Give them an option the move their Time slot, transfer Stylist, or Continue with the appointment then adjust all appointments for this day based on how minutes the customer was late. 
+- No-Shows
+    * Allow Staff to mark them as No Show. [ ]
+        # If a User was marked as no-show their Strike Record must add plus 1 Strike.  
+- Last Minute Cancellation [ ]
+    * Cancellation must be atleast 24hrs before the schedule time.
+        # if the staff cancelled < 2 h before a Strike Violation will also be added to the staff.
+- Double-Booking Accident [ ]
+    * if both customer booked same date and same time or with overlapping time slot, only accept one then the other one will be rejected.
+- Staff Sick / No-Show  [ ]
+    * Allow Owner or Manager to tranfer stylist, if no stylist available, then offer rechedule or cancellation fo appointment. 

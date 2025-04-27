@@ -25,7 +25,8 @@ class Shop extends Model
         'bio',
         'status',
         'rejection_reason',
-        'resubmit_count'
+        'resubmit_count',
+        'subscription_id',
     ];
 
     // Add appends to ensure status is always included
@@ -99,7 +100,13 @@ class Shop extends Model
         return $this->belongsTo(User::class);
     }
 
+
     public function socialMedia()
+    {
+        return $this->hasMany(ShopSocialMedia::class, 'shop_id');
+    }
+
+    public function shopSocialMedia()
     {
         return $this->hasMany(ShopSocialMedia::class, 'shop_id');
     }
@@ -143,6 +150,11 @@ class Shop extends Model
 
     protected $with = ['user', 'shopCategories.categories', 'legalDocuments'];
 
+    //shop table has column subscription_id
+    public function subscription()
+    {
+        return $this->belongsTo(Subscription::class, 'subscription_id');
+    }
     public function subscriptions()
     {
         return $this->belongsToMany(Subscription::class, 'shop_subscriptions')

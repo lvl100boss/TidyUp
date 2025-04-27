@@ -30,6 +30,11 @@ class ShopStaffs extends Model
     {
         return $this->belongsTo(User::class, 'staff_id');
     }
+    //staff() and user() are the same
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'staff_id');
+    }
 
     public function appointments()
     {

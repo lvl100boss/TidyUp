@@ -29,17 +29,43 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
+        $user = $request->user(); // Get authenticated user
+
+        // Fetch notifications only if user is authenticated
+        $notifications = collect(); // Default to empty collection
+        if ($user) {
+            // Assuming User model uses Notifiable trait
+            $notifications = $user->notifications()
+                ->latest()
+                ->limit(15) // Adjust limit as needed
+                ->get()
+                ->map(function ($notification) {
+                    // Map to ensure consistent structure passed to frontend
+                    return [
+                        'id' => $notification->id,
+                        'type' => $notification->type, // Notification class name
+                        'data' => $notification->data, // Array from toDatabase()
+                        'read_at' => $notification->read_at,
+                        'created_at' => $notification->created_at,
+                    ];
+                });
+        }
+
         return [
             ...parent::share($request),
             'auth' => [
                 'user' => $request->user(),
                 'userRole' => $request->user()?->userRole,
+                'notifications' => $notifications, // Add notifications here
             ],
             'flash' => [
                 'message' => fn() => $request->session()->get('message'),
                 'success' => fn() => $request->session()->get('success'),
             ],
-            'shops' => fn() => \App\Models\Shop::select('id', 'shop_name', 'shop_photo')->get(),
+            'shops' => fn() => \App\Models\Shop::select('id', 'shop_name', 'shop_photo')
+                ->where('is_verified', 1)
+                ->where('status', 'verified')
+                ->get(),
         ];
     }
 }
