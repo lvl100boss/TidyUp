@@ -37,7 +37,7 @@ class ShopSeeder extends Seeder
                 'availability' => true,
                 'is_verified' => true,
                 'bio' => 'Professional salon offering quality haircuts and styling services.',
-                'status' => 'approved',
+                'status' => 'verified',
                 'tokens' => 50,
                 'categories' => [1], // Assuming category IDs
             ],
@@ -54,7 +54,7 @@ class ShopSeeder extends Seeder
                 'availability' => true,
                 'is_verified' => true,
                 'bio' => 'Premium salon providing traditional and modern styling services.',
-                'status' => 'approved',
+                'status' => 'verified',
                 'tokens' => 75,
                 'categories' => [2], // Assuming category IDs
             ],
@@ -71,7 +71,7 @@ class ShopSeeder extends Seeder
                 'availability' => true,
                 'is_verified' => true,
                 'bio' => 'Family-friendly salon catering to all ages and styles.',
-                'status' => 'approved',
+                'status' => 'verified',
                 'tokens' => 35,
                 'categories' => [1, 2], // Assuming category IDs
             ],
@@ -105,7 +105,7 @@ class ShopSeeder extends Seeder
                 'availability' => false,
                 'is_verified' => true,
                 'bio' => 'Trendy salon offering the latest styles and techniques.',
-                'status' => 'approved',
+                'status' => 'verified',
                 'tokens' => 60,
                 'categories' => [2], // Assuming category IDs
             ],
