@@ -6,7 +6,7 @@ Legend:
 Minor Revisions:
 [/] When Searching For shops, Unverified Shop can still be seen in the search
 [/] Settings and profile should be distinct (remove settings or profile)
-[-][by Art] Register shop (sometimes buggy ang next button) Remake the Register shop Process
+[/][by Art] Register shop (sometimes buggy ang next button) Remake the Register shop Process
 [X] Make Every Page Responsive.
 [X] Prevent users from booking time slots earlier than the current time.
 [X] Require users to book at least 1 hour in advance to avoid last-minute bookings.
