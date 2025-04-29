@@ -33,6 +33,15 @@ return new class extends Migration
                 'created_at' => now(),
                 'updated_at' => now()
             ],
+            [
+                'tier' => 'Premium Tier',
+                'monthly_price' => 100.00,
+                'yearly_price' => 1200.00,
+                'monthly_discount' => 0,
+                'yearly_discount' => 0,
+                'created_at' => now(),
+                'updated_at' => now()
+            ]
         ]);
     }
 

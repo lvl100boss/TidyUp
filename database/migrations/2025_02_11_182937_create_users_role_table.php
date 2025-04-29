@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -19,6 +20,10 @@ return new class extends Migration
 
             $table->unique(['user_id', 'role_id']);
         });
+
+        DB::table('user_role')->insert([
+            ['user_id' => 1, 'role_id' => 1, 'created_at' => now(), 'updated_at' => now()],
+        ]);
     }
 
     /**

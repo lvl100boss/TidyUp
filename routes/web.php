@@ -13,6 +13,7 @@ use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\NewsletterSubscriptionController;
 use App\Http\Controllers\ShopAnalyticsController; // Make sure this is imported
 use App\Http\Controllers\FeedbackController;
+use App\Http\Controllers\ViewAppointmentController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -49,6 +50,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::patch('/appointments/decline', [AppointmentController::class, 'declineAppointment'])->name('appointments.decline');
     Route::patch('/appointments/accept', [AppointmentController::class, 'acceptAppointment'])->name('appointments.accept');
     Route::patch('/appointments/cancel', [AppointmentController::class, 'cancelAppointment'])->name('appointments.cancel');
+
+    Route::get('/appointments/{id}', [ViewAppointmentController::class, 'index'])->name('appointment.view');
 
     Route::get('/send-feedback', function () {
         return Inertia::render('Users/SendFeedback');
@@ -96,15 +99,15 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'web'])->group(funct
     // Other admin routes...
 });
 
-// Add a diagnostic route to check authentication
-Route::get('/check-auth', function () {
-    return response()->json([
-        'authenticated' => auth()->check(),
-        'user' => auth()->check() ? auth()->user() : null,
-        'session_id' => session()->getId(),
-        'csrf_token' => csrf_token()
-    ]);
-})->middleware(['web']);
+// // Add a diagnostic route to check authentication
+// Route::get('/check-auth', function () {
+//     return response()->json([
+//         'authenticated' => auth()->check(),
+//         'user' => auth()->check() ? auth()->user() : null,
+//         'session_id' => session()->getId(),
+//         'csrf_token' => csrf_token()
+//     ]);
+// })->middleware(['web']);
 
 require __DIR__ . '/auth.php';
 require __DIR__ . '/booking.php';

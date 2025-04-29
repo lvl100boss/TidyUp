@@ -21,7 +21,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'check.restriction' => \App\Http\Middleware\CheckUserRestriction::class,
             'shop.creation' => \App\Http\Middleware\EnsureShopCreationAccess::class,
             'shop.owner.staff' => \App\Http\Middleware\CheckShopAccess::class,
-            'shop.owner.manager' => \App\Http\Middleware\CheckShopOwnerOrManager::class
+            'shop.owner.manager' => \App\Http\Middleware\CheckShopOwnerOrManager::class,
+            'admin' => \App\Http\Middleware\AdminMiddleware::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

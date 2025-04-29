@@ -17,7 +17,7 @@ export default function HeroSection() {
         // Kept padding adjustments
         <div className="relative w-full py-20 sm:py-28 flex items-center justify-center">
             {/* Adjusted max-width, added text-center */}
-            <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <div className="w-full max-w-6xl mx-auto px-2 sm:px-6 lg:px-8 text-center">
                 {/* Removed grid layout */}
                 <motion.div
                     // Main content animation
@@ -39,8 +39,8 @@ export default function HeroSection() {
                         Discover and book appointments with top barbershops and salons in your area. Quick, easy, and stylish.
                     </p>
 
-                    {/* Centered buttons */}
-                    <div className="flex flex-wrap gap-4 justify-center pt-4">
+                    {/* MD SIZED Centered buttons */}
+                    <div className="hidden md:flex flex-wrap gap-4 justify-center pt-4">
                         <Link
                             href="/discover"
                             className={buttonVariants({
@@ -63,11 +63,34 @@ export default function HeroSection() {
                             Popular Services
                         </Link>
                     </div>
+                    {/* Mobile Centered buttons */}
+                    <div className="flex md:hidden flex-wrap gap-4 justify-center pt-4">
+                        <Link
+                            href="/discover"
+                            className={buttonVariants({
+                                variant: "default",
+                                size: "sm",
+                                // Added hover effect
+                                className: " transition-transform duration-200 ease-in-out hover:scale-105"
+                            })}
+                        >
+                            Get Started
+                        </Link>
+                        <Link
+                            href="/popular"
+                            className={buttonVariants({
+                                variant: "outline",
+                                size: "sm",
+                            })}
+                        >
+                            Popular Services
+                        </Link>
+                    </div>
                 </motion.div>
 
                 {/* Features Section - Centered Row below */}
                 {/* Using simple icon + text like original, but with animation */}
-                <div className="flex flex-wrap justify-center sm:grid sm:grid-cols-3 gap-x-10 gap-y-8 pt-16 max-w-4xl mx-auto">
+                <div className="hidden flex-wrap justify-center sm:grid sm:grid-cols-3 gap-x- gap-y-8 pt-16 max-w-4xl mx-auto">
                     {[
                         { icon: Calendar, text: "Easy Booking" },
                         { icon: Clock, text: "Flexible Hours" },
@@ -81,11 +104,11 @@ export default function HeroSection() {
                             // Delay based on index, starting after main content animation
                             transition={{ delay: mounted ? 0.8 + (i * 0.1) : 0, duration: 0.5 }}
                             // Reverted to simpler flex layout for each item
-                            className="flex items-center justify-center space-x-3"
+                            className="flex items-center justify-center space-x-2"
                         >
                             {/* Increased icon size and padding */}
-                            <div className="p-3 rounded-full bg-primary/10">
-                                <item.icon className="h-6 w-6 text-primary" />
+                            <div className="p-2 rounded-full bg-primary/10">
+                                <item.icon className="size-4 text-primary" />
                             </div>
                             {/* Increased text size */}
                             <span className="text-base font-medium text-foreground/90">{item.text}</span>

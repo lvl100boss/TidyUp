@@ -33,7 +33,7 @@ export default function Footer() {
     return (
         <footer className={cn("w-[100%] bg-background/50 backdrop-blur-3xl text-foreground py-8")}>
 
-            <div className={cn("container mx-auto px-2")}>
+            <div className={cn("container mx-auto px-6 md:px-3")}>
                 {/* Main Content */}
                 <div
                     className={cn(
