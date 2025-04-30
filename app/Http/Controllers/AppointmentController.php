@@ -33,7 +33,6 @@ class AppointmentController extends Controller
         }
 
         extract($appointmentsByStatus);
-
         $requestRescheduleAppointments = $userAppointments->appointments->where('status', 'pending')->where('is_successful', true)->where('resched_data', '!=', null)->values()->all();
 
         return inertia('Users/Appointments', [

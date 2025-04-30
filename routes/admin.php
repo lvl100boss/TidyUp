@@ -20,7 +20,7 @@ Route::get('/admin/test', function () {
 })->name('admin.test');
 
 // Use the middleware class name, not a string
-Route::middleware(['auth', \App\Http\Middleware\AdminMiddleware::class])->prefix('admin')->name('admin.')->group(function () {
+Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', function () {
         return Inertia::render('Admin/Dashboard');
     })->name('dashboard');
@@ -53,16 +53,16 @@ Route::middleware(['auth', \App\Http\Middleware\AdminMiddleware::class])->prefix
     })->name('customer-service');
 
     Route::get('/admin/subscription', [SubscriptionController::class, 'index'])
-    ->name('admin.subscriptions.index');
+        ->name('admin.subscriptions.index');
 
-Route::post('/admin/subscriptions', [SubscriptionController::class, 'store'])
-    ->name('admin.subscriptions.store');
+    Route::post('/admin/subscriptions', [SubscriptionController::class, 'store'])
+        ->name('admin.subscriptions.store');
 
-Route::put('/admin/subscriptions/{subscription}', [SubscriptionController::class, 'update'])
-    ->name('admin.subscriptions.update');
+    Route::put('/admin/subscriptions/{subscription}', [SubscriptionController::class, 'update'])
+        ->name('admin.subscriptions.update');
 
-Route::delete('/admin/subscriptions/{subscription}', [SubscriptionController::class, 'destroy'])
-    ->name('admin.subscriptions.destroy');
+    Route::delete('/admin/subscriptions/{subscription}', [SubscriptionController::class, 'destroy'])
+        ->name('admin.subscriptions.destroy');
 
     // Platform Staff Routes
     Route::get('/platform-staff', [PlatformStaffController::class, 'index'])->name('platform-staff');
@@ -88,26 +88,26 @@ Route::delete('/admin/subscriptions/{subscription}', [SubscriptionController::cl
     Route::post('/restrictions/lift', [UserRestrictionController::class, 'lift'])
         ->name('restrictions.lift');
 
-// Subscription routes
-Route::get('/subscription', [SubscriptionController::class, 'index'])
-->name('subscriptions.index');
+    // Subscription routes
+    Route::get('/subscription', [SubscriptionController::class, 'index'])
+        ->name('subscriptions.index');
 
-Route::post('/subscriptions', [SubscriptionController::class, 'store'])
-->name('subscriptions.store');
+    Route::post('/subscriptions', [SubscriptionController::class, 'store'])
+        ->name('subscriptions.store');
 
-Route::put('/subscriptions/{subscription}', [SubscriptionController::class, 'update'])
-->name('subscriptions.update');
+    Route::put('/subscriptions/{subscription}', [SubscriptionController::class, 'update'])
+        ->name('subscriptions.update');
 
-Route::delete('/subscriptions/{subscription}', [SubscriptionController::class, 'destroy'])
-->name('subscriptions.destroy');
+    Route::delete('/subscriptions/{subscription}', [SubscriptionController::class, 'destroy'])
+        ->name('subscriptions.destroy');
 
 
-     //  Platform Staff Routes
+    //  Platform Staff Routes
     // Route::get('/staff', [PlatformStaffController::class, 'index'])->name('staff.index');
     // Route::post('/staff', [PlatformStaffController::class, 'store'])->name('staff.store');
     // Route::put('/staff/{staff}', [PlatformStaffController::class, 'update'])->name('staff.update');
     // Route::post('/staff/{staff}/avatar', [PlatformStaffController::class, 'updateAvatar'])->name('staff.avatar');
-    
+
     // Route::delete('/staff/{staff}', [PlatformStaffController::class, 'destroy'])->name('staff.destroy');
 
 

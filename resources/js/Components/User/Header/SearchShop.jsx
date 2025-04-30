@@ -47,10 +47,10 @@ export default function SearchShop() {
                 </Tooltip>
             </TooltipProvider>
 
-            <CommandDialog open={open} onOpenChange={setOpen}>
+            <CommandDialog open={open} onOpenChange={setOpen} >
                 <Command>
                     <CommandInput placeholder="Type a name of shop to search..." className="border-none" />
-                    <CommandList>
+                    <CommandList >
                         <CommandEmpty>No results found.</CommandEmpty>
                         <CommandGroup heading="Results">
                             {shopsToSearch.map((shop, index) => (

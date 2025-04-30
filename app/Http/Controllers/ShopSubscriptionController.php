@@ -20,7 +20,7 @@ class ShopSubscriptionController extends Controller
     public function index(Request $request)
     {
         // Fetch the shop associated with the logged-in user
-        $user = User::find(auth()->id());
+        $user = User::find(Auth::id());
         $currentStaff = ShopStaffs::where('staff_id', $user->id)->first();
         $shop = $currentStaff->shop;
         if (!$shop) {
@@ -29,21 +29,12 @@ class ShopSubscriptionController extends Controller
 
         // Fetch all active subscription plans
         $subscriptions = Subscription::where('status', 'active')->get();
-
-        // Get the current active subscription for this shop
-        $currentSubscription = ShopSubscription::with('subscription')
-            ->where('shop_id', $shop->id)
-            ->where('status', 'active')
-            ->where('end_date', '>', Carbon::now())
-            ->first();
-
+        // Get the current active subscriptio   n for this shop
+        $currentSubscription = $shop->subscription_id;
         // Get subscription history
         $subscriptionHistory = ShopSubscription::with('subscription')
+
             ->where('shop_id', $shop->id)
-            ->where(function ($query) {
-                $query->where('status', '!=', 'active')
-                    ->orWhere('end_date', '<=', Carbon::now());
-            })
             ->orderBy('created_at', 'desc')
             ->get();
 

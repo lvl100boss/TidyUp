@@ -54,7 +54,7 @@ const MobileNavButton = () => {
         },
     ];
     return (
-        <div className="lg:hidden">
+        <div className="md:hidden">
             <Drawer>
                 <DrawerTrigger>
                     <Button size="sm" className="fixed bottom-5 right-5 shop">
