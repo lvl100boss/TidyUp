@@ -22,6 +22,108 @@ use Illuminate\Validation\ValidationException;
 
 class BookingController extends Controller
 {
+// Add these methods to your BookingController class
+
+/**
+ * Show preview of booking step one for unauthenticated users
+ */
+public function previewStepOne(Shop $shop)
+{
+    $shop->load(['shopGallery', 'shopServiceCategories.serviceCategories', 'shopOperationHours']);
+    $shopStaff = ShopStaffs::with('appointments.appointment.appointmentServices.shopService', 'staff')
+        ->where('shop_id', $shop->id)
+        ->where('is_active', 1)
+        ->get();
+
+    $data = session()->get('preview_form_data', []);
+    return Inertia::render('Users/BookingPages/BookingStepOne', [
+        'shop' => $shop,
+        'shopStaff' => $shopStaff,
+        'data' => $data,
+        'isPreview' => true
+    ]);
+}
+
+/**
+ * Store preview data for step one
+ */
+public function previewStepOneStore(Request $request, Shop $shop)
+{
+    $validatedData = $request->validate([
+        'service_id' => 'required|array',
+        'service_id.*' => 'exists:shop_service_categories,id',
+        'total_price' => 'required',
+    ]);
+    session()->put('preview_form_data', array_merge(session()->get('preview_form_data', []), $validatedData));
+    return redirect()->route('booking.preview.step.two', $shop);
+}
+
+/**
+ * Show preview of booking step two
+ */
+public function previewStepTwo(Shop $shop)
+{
+    $data = session()->get('preview_form_data', []);
+    $shop->load(['shopGallery', 'shopServiceCategories.serviceCategories', 'shopOperationHours']);
+    $shopStaff = ShopStaffs::with('appointments.appointment.appointmentServices.shopService', 'staff')
+        ->where('shop_id', $shop->id)
+        ->where('is_active', 1)
+        ->get();
+    $business_days = $shop->shopOperationHours->where('is_open', 1)->pluck('day')->toArray();
+    $shopServiceCategories = ShopServiceCategories::with('serviceCategories')->where('shop_id', $shop->id)->get();
+    
+    return Inertia::render('Users/BookingPages/BookingStepTwo', [
+        'shop' => $shop,
+        'businessDays' => $business_days,
+        'shopStaff' => $shopStaff,
+        'shopServiceCategories' => $shopServiceCategories,
+        'data' => $data,
+        'isPreview' => true
+    ]);
+}
+
+/**
+ * Store preview data for step two
+ */
+public function previewStepTwoStore(Request $request, Shop $shop)
+{
+    $validatedData = $request->validate([
+        'shop_id' => 'required|exists:shops,id',
+        'staff_id' => 'required|exists:shop_staffs,id',
+        'staff_index' => 'required',
+        'date' => 'required|date',
+        'time' => 'required',
+    ]);
+    session()->put('preview_form_data', array_merge(session()->get('preview_form_data', []), $validatedData));
+    return redirect()->route('booking.preview.step.three', $shop);
+}
+
+/**
+ * Show preview of booking step three (final step)
+ */
+public function previewStepThree(Shop $shop)
+{
+    $data = session()->get('preview_form_data', []);
+    $shop->load(['shopGallery', 'shopServiceCategories.serviceCategories', 'shopOperationHours']);
+    $shopStaff = ShopStaffs::with('appointments.appointment.appointmentServices.shopService', 'staff')
+        ->where('shop_id', $shop->id)
+        ->where('is_active', 1)
+        ->get();
+    
+    return Inertia::render('Users/BookingPages/BookingStepThree', [
+        'shop' => $shop,
+        'shopStaff' => $shopStaff,
+        'data' => $data,
+        'isPreview' => true
+    ]);
+}
+
+
+
+
+
+
+
     public function stepOne(Shop $shop)
     {
         // session()->forget('form_data');

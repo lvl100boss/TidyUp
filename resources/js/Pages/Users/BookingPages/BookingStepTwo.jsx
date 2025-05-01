@@ -9,22 +9,27 @@ import AvailableDays from "@/Components/User/BookingPages/AvailableDays";
 import AvailableTimeSlots from "@/Components/User/BookingPages/AvailableTimeSlots";
 import { Button } from "@/Components/ui/button";
 
-export default function BookingStepTwo({ shop, businessDays, shopStaff, shopServiceCategories, data }) {
-    const [selectedDate, setSelectedDate] = useState(null);
-    const [selectedStaff, setSelectedStaff] = useState(null);
-    const [selectedTime, setSelectedTime] = useState(null);
+export default function BookingStepTwo({ shop, businessDays, shopStaff, shopServiceCategories, data, isPreview = false }) {
+    const [selectedDate, setSelectedDate] = useState(data.date || null);
+    const [selectedStaff, setSelectedStaff] = useState(data.staff_id || null);
+    const [selectedTime, setSelectedTime] = useState(data.time || null);
 
     const { data: formData, setData, post, processing, errors } = useForm({
         shop_id: shop.id,
-        staff_id: "",
-        staff_index: "",
-        date: "",
-        time: "",
+        staff_id: data.staff_id || "",
+        staff_index: data.staff_index || "",
+        date: data.date || "",
+        time: data.time || "",
     });
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        post(`/${shop.id}/booking/2`);
+        // Use the appropriate route based on preview status
+        if (isPreview) {
+            post(`/${shop.id}/preview/booking/2`);
+        } else {
+            post(`/${shop.id}/booking/2`);
+        }
     }
 
     const selectedServices = data && data.service_id ? data.service_id : [];
@@ -36,7 +41,7 @@ export default function BookingStepTwo({ shop, businessDays, shopStaff, shopServ
                 <div className="min-h-screen">
                     <header className="flex justify-center relative ">
                         <Button className="absolute rounded-none border-b border-foreground left-0" variant="ghost" asChild>
-                            <Link href={`/${shop.id}/booking/1`}>
+                            <Link href={isPreview ? `/${shop.id}/preview/booking/1` : `/${shop.id}/booking/1`}>
                                 <span><ChevronLeft className="mr-2" /></span>
                                 Back
                             </Link>

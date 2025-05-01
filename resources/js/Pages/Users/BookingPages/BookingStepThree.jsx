@@ -1,8 +1,7 @@
-import React from 'react';
-import { Head, Link } from "@inertiajs/react";
+import React, { useState } from 'react';
+import { Head, Link, useForm, usePage, router } from "@inertiajs/react";
 import { Button } from "@/Components/ui/button";
 import { ChevronLeft, LogOut } from "lucide-react";
-import AppointmentSummaryCard from "@/Components/User/BookingPages/AppointmentSummaryCard";
 import StepsIndicator from "@/Components/User/BookingPages/StepsIndicator";
 import UserLayout from "@/Layouts/UserLayout";
 import {
@@ -12,15 +11,24 @@ import {
     CardFooter,
     CardHeader,
     CardTitle,
-} from "@/components/ui/card"
-import { useForm } from "@inertiajs/react";
+} from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarImage, AvatarFallback } from '@/Components/ui/avatar';
 import { Separator } from '@/Components/ui/separator';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog";
 
-
-
-export default function BookingStepThree({ shop, shopStaff, data }) {
+export default function BookingStepThree({ shop, shopStaff, data, isPreview = false }) {
+    const { auth } = usePage().props;
+    const isAuthenticated = auth.user !== null;
+    const [showLoginDialog, setShowLoginDialog] = useState(false);
+    
     const { data: formData, setData, post, processing, errors } = useForm({
         shop_id: shop.id,
         staff_id: data.staff_id,
@@ -34,9 +42,15 @@ export default function BookingStepThree({ shop, shopStaff, data }) {
 
     const handleSubmit = (e) => {
         e.preventDefault();
+        
+        // If in preview mode or not authenticated, show login dialog
+        if (isPreview || !isAuthenticated) {
+            setShowLoginDialog(true);
+            return;
+        }
+        
         post(`/${shop.id}/booking/3`);
     };
-    console.log(shopStaff);
 
     return (
         <>
@@ -45,7 +59,7 @@ export default function BookingStepThree({ shop, shopStaff, data }) {
                 <div className="min-h-screen">
                     <header className="flex justify-center relative ">
                         <Button className="absolute rounded-none border-b border-foreground left-0" variant="ghost" asChild>
-                            <Link href={`/${shop.id}/booking/2`}>
+                            <Link href={isPreview ? `/${shop.id}/preview/booking/2` : `/${shop.id}/booking/2`}>
                                 <span>
                                     <ChevronLeft className="mr-2" />
                                 </span>
@@ -169,10 +183,32 @@ export default function BookingStepThree({ shop, shopStaff, data }) {
                                 </Card>
                             </div>
                         </form>
-                    </section >
-
-                </div >
-            </UserLayout >
+                    </section>
+                </div>
+            </UserLayout>
+            
+            {/* Authentication Dialog */}
+            <Dialog open={showLoginDialog} onOpenChange={setShowLoginDialog}>
+                <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                        <DialogTitle>Sign in required</DialogTitle>
+                        <DialogDescription>
+                            You need to sign in or create an account to complete your booking.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter className="flex items-center justify-end gap-2">
+                        <Button variant="outline" onClick={() => setShowLoginDialog(false)}>
+                            Cancel
+                        </Button>
+                        <Button onClick={() => router.visit(route('login', { redirect: window.location.pathname }))}>
+                            Sign In
+                        </Button>
+                        <Button variant="default" onClick={() => router.visit(route('register', { redirect: window.location.pathname }))}>
+                            Create Account
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </>
     );
 }

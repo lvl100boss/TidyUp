@@ -1,5 +1,5 @@
 import UserLayout from "@/Layouts/UserLayout";
-import { Head, Link } from "@inertiajs/react";
+import { Head, Link, usePage } from "@inertiajs/react";
 import { Button } from "@/Components/ui/button";
 import { ChevronLeft, LogOut } from "lucide-react";
 import AppointmentSummaryCard from "@/Components/User/BookingPages/AppointmentSummaryCard";
@@ -8,16 +8,21 @@ import { useState } from "react";
 import { useForm } from "@inertiajs/react";
 import BookingServiceTabs from "@/Components/Shop/ShopPage/BookingServiceTabs";
 
-export default function BookingStepOne({ shop, shopStaff, data }) {
+export default function BookingStepOne({ shop, shopStaff, data, isPreview = false }) {
     const { data: formData, setData, post, processing, errors } = useForm({
         shop_id: shop.id,
-        service_id: [],
-        total_price: 0,
+        service_id: data.service_id || [],
+        total_price: data.total_price || 0,
     });
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        post(`/${shop.id}/booking/1`);
+        // Use the appropriate route based on preview status
+        if (isPreview) {
+            post(`/${shop.id}/preview/booking/1`);
+        } else {
+            post(`/${shop.id}/booking/1`);
+        }
     };
 
     const categories = [

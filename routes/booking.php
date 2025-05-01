@@ -4,6 +4,16 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Http\Controllers\BookingController;
 
+// Guest preview routes (no authentication required)
+Route::get('/{shop}/preview/booking/1', [BookingController::class, 'previewStepOne'])->name('booking.preview.step.one');
+Route::post('/{shop}/preview/booking/1', [BookingController::class, 'previewStepOneStore'])->name('booking.preview.step.one.store');
+
+Route::get('/{shop}/preview/booking/2', [BookingController::class, 'previewStepTwo'])->name('booking.preview.step.two');
+Route::post('/{shop}/preview/booking/2', [BookingController::class, 'previewStepTwoStore'])->name('booking.preview.step.two.store');
+
+Route::get('/{shop}/preview/booking/3', [BookingController::class, 'previewStepThree'])->name('booking.preview.step.three');
+
+// Authenticated routes
 Route::middleware(['auth'])->group(function () {
     Route::get('/{shop}/booking/1', [BookingController::class, 'stepOne'])->name('booking.step.one');
     Route::post('/{shop}/booking/1', [BookingController::class, 'stepOneStore'])->name('booking.step.one.store');
