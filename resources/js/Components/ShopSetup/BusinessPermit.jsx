@@ -2,14 +2,9 @@ import React, { useState, useEffect } from "react";
 import { Input } from "@/Components/ui/input";
 import { Label } from "@/Components/ui/label";
 import InputError from "@/Components/InputError";
-import {
-    Info, CheckCircle, AlertTriangle, XCircle, Loader2, X,
-    Server, Cpu, CheckCircle2, Calendar
-} from "lucide-react";
-import axios from "axios";
+import { Info, CheckCircle, X, Calendar } from "lucide-react";
 import { Button } from "@/Components/ui/button";
 import { Alert, AlertDescription } from "@/Components/ui/alert";
-import { verifyDocumentUpload } from "@/Utils/documentVerification";
 import { Badge } from "@/Components/ui/badge";
 
 export default function BusinessPermit({
@@ -24,42 +19,37 @@ export default function BusinessPermit({
     setAllFieldsFilled,
     allFieldsFilled,
 }) {
-    const [verificationStatus, setVerificationStatus] = useState({
-        business_permit: { status: null, message: "", issue: null, statusType: null, loading: false },
-        dti_registration: { status: null, message: "", issue: null, statusType: null, loading: false },
-        valid_id: { status: null, message: "", issue: null, statusType: null, loading: false },
-    });
-
     // State to track which image is being viewed in expanded mode
     const [expandedImage, setExpandedImage] = useState(null);
+    
+    // Track uploaded documents status
+    const [uploadStatus, setUploadStatus] = useState({
+        business_permit: null,
+        dti_registration: null,
+        valid_id: null
+    });
 
-    if (
-        data.business_permit &&
-        data.dti_registration &&
-        data.valid_id &&
-        !allFieldsFilled
-    ) {
-        setAllFieldsFilled(true);
-    } else if (
-        !data.business_permit &&
-        !data.dti_registration &&
-        !data.valid_id &&
-        allFieldsFilled
-    ) {
-        setAllFieldsFilled(false);
-    }
-
-    // Get CSRF token for non-authenticated routes
+    // Set allFieldsFilled based on document uploads
     useEffect(() => {
-        // Get the CSRF token from the meta tag
-        const token = document.head.querySelector('meta[name="csrf-token"]');
-        if (token) {
-            axios.defaults.headers.common['X-CSRF-TOKEN'] = token.content;
-        } else {
-            console.error('CSRF token not found');
+        if (
+            data.business_permit &&
+            data.dti_registration &&
+            data.valid_id &&
+            !allFieldsFilled
+        ) {
+            setAllFieldsFilled(true);
+        } else if (
+            (!data.business_permit ||
+            !data.dti_registration ||
+            !data.valid_id) &&
+            allFieldsFilled
+        ) {
+            setAllFieldsFilled(false);
         }
+    }, [data.business_permit, data.dti_registration, data.valid_id, allFieldsFilled, setAllFieldsFilled]);
 
-        // Add event listener to close expanded image when clicking outside
+    // Add event listener to close expanded image when clicking outside
+    useEffect(() => {
         const handleClickOutside = (e) => {
             if (expandedImage && !e.target.closest('.expanded-image-content')) {
                 setExpandedImage(null);
@@ -74,131 +64,31 @@ export default function BusinessPermit({
         };
     }, [expandedImage]);
 
-
-    const resetVerification = (documentType = null) => {
-        if (documentType) {
-            // Reset only specific document type
-            setVerificationStatus(prev => ({
+    // Update document upload status
+    const updateUploadStatus = (documentType, file) => {
+        if (file) {
+            setUploadStatus(prev => ({
                 ...prev,
-                [documentType]: {
-                    status: null,
-                    message: "",
-                    issue: null,
-                    statusType: null,
-                    loading: false
-                }
+                [documentType]: 'uploaded'
             }));
         } else {
-            // Reset all document types
-            setVerificationStatus({
-                business_permit: { status: null, message: "", issue: null, statusType: null, loading: false },
-                dti_registration: { status: null, message: "", issue: null, statusType: null, loading: false },
-                valid_id: { status: null, message: "", issue: null, statusType: null, loading: false },
-            });
-        }
-    };
-
-    const verifyDocument = async (documentType, file) => {
-        if (!file) return;
-        
-        // Set loading state
-        setVerificationStatus(prev => ({
-            ...prev,
-            [documentType]: {
-                ...prev[documentType],
-                loading: true
-            }
-        }));
-        
-        try {
-            // Simplified retry logic - just try once in most cases
-            let result = null;
-            
-            try {
-                // Use less strict verification
-                result = await verifyDocumentUpload(file, documentType);
-            } catch (err) {
-                console.log('Verification failed, accepting document:', err);
-                // Always accept the document with a simple fallback
-                result = {
-                    isValid: true,
-                    message: 'Document accepted (will be reviewed by admin)',
-                    status: 'success',
-                    fallback: true,
-                    adminReview: true
-                };
-            }
-            
-            // If we still don't have a result, create a simple acceptance
-            if (!result) {
-                console.log('No verification result, using acceptance fallback');
-                result = {
-                    isValid: true,
-                    message: 'Document accepted (will be reviewed by admin)',
-                    status: 'success',
-                    fallback: true
-                };
-            }
-            
-            // Always ensure the result is valid for better user experience
-            if (!result.isValid) {
-                result.isValid = true;
-                result.message = 'Document accepted (will be verified by admin)';
-                result.status = 'success';
-                result.adminReview = true;
-            }
-            
-            // Update the verification status
-            setVerificationStatus(prev => ({
+            setUploadStatus(prev => ({
                 ...prev,
-                [documentType]: {
-                    status: result.isValid, // Should always be true now
-                    message: result.message,
-                    issue: result.issue || null,
-                    statusType: 'success', // Always show success to the user
-                    loading: false,
-                    dateInfo: result.dateInfo || null,
-                    suggestions: result.suggestions || [],
-                    fallback: result.fallback || false,
-                    source: result.source || 'fallback',
-                    adminReview: result.adminReview || false
-                }
-            }));
-
-        } catch (error) {
-            console.error("Document verification error, accepting document:", error);
-            
-            setVerificationStatus(prev => ({
-                ...prev,
-                [documentType]: {
-                    status: true, // Accept the document
-                    message: 'Document accepted (admin will verify)',
-                    issue: null,
-                    statusType: 'success',
-                    loading: false,
-                    suggestions: ['Your document will be verified during processing'],
-                    fallback: true,
-                    adminReview: true
-                }
+                [documentType]: null
             }));
         }
     };
 
-    const handleFileChangeWithVerification = (e, originalHandler, documentType) => {
-        // If user selects a new file
+    // Handle file changes with status updates
+    const handleFileChangeWithStatus = (e, originalHandler, documentType) => {
+        // Call the original handler to update the preview
+        originalHandler(e);
+
+        // Update the upload status
         if (e.target.files && e.target.files.length > 0) {
-            // Reset the verification status before starting a new verification
-            resetVerification(documentType);
-
-            // Call the original handler to update the preview
-            originalHandler(e);
-
-            // Automatically verify the document when file is selected
-            verifyDocument(documentType, e.target.files[0]);
+            updateUploadStatus(documentType, e.target.files[0]);
         } else {
-            // If the file selection was cancelled or cleared, reset verification
-            resetVerification(documentType);
-            originalHandler(e);
+            updateUploadStatus(documentType, null);
         }
     };
 
@@ -214,6 +104,8 @@ export default function BusinessPermit({
                 break;
             case 'valid_id':
                 imageUrl = previewValidIdImage;
+                break;
+            default:
                 break;
         }
 
@@ -250,126 +142,31 @@ export default function BusinessPermit({
         }
     };
 
-    const renderVerificationStatus = (documentType) => {
-        const { status, message, loading, statusType, dateInfo, suggestions, fallback, adminReview } = verificationStatus[documentType];
-
-        if (loading) {
-            return (
-                <Alert className="bg-blue-950 border-blue-900 text-blue-200 dark:bg-blue-100 dark:border-blue-200 dark:text-blue-800 mt-2">
-                    <div className="flex items-center gap-2">
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                        <AlertDescription>Processing document, please wait...</AlertDescription>
-                    </div>
-                </Alert>
-            );
-        }
-
-        if (status === null) return null;
-
-
-        const ExpirationBadge = () => {
-            if (!dateInfo || !dateInfo.status) return null;
-            
-            let color = "";
-            let icon = null;
-            let text = "";
-            
-            switch (dateInfo.status) {
-                case 'expired':
-                    color = "bg-amber-950 text-amber-100 dark:bg-amber-100 dark:text-amber-800";
-                    icon = <AlertTriangle className="h-3 w-3 mr-1" />;
-                    text = "Expired";
-                    break;
-                case 'expiring_soon':
-                    color = "bg-amber-950 text-amber-100 dark:bg-amber-100 dark:text-amber-800";
-                    icon = <AlertTriangle className="h-3 w-3 mr-1" />;
-                    text = "Expiring Soon";
-                    break;
-                case 'warning':
-                    color = "bg-blue-950 text-blue-100 dark:bg-blue-100 dark:text-blue-800";
-                    icon = <Info className="h-3 w-3 mr-1" />;
-                    text = "Expires Soon";
-                    break;
-                default:
-                    return null;
-            }
-
-            return (
-                <span className={`text-xs font-medium px-2 py-1 rounded ${color} inline-flex items-center ml-2`}>
-                    {icon} {text}
-                </span>
-            );
-        };
-
-        // Date badge component to show expiration date
-        const DateBadge = () => {
-            if (!dateInfo) return null;
-
-            
-            let color = "bg-green-950 text-green-100 dark:bg-green-100 dark:text-green-800";
-            let icon = <Calendar className="h-3 w-3 mr-1" />;
-            let text = `Valid until ${dateInfo.formatted || dateInfo.date}`;
-            
-            // Always show the date, even if expired or expiring soon
-            if (dateInfo.status === 'expired') {
-                color = "bg-blue-950 text-blue-100 dark:bg-blue-100 dark:text-blue-800";
-                text = `Expired on ${dateInfo.formatted || dateInfo.date}`;
-            } else if (dateInfo.daysUntilExpiry !== undefined) {
-                text = `Expires in ${dateInfo.daysUntilExpiry} days`;
-                if (dateInfo.daysUntilExpiry < 0) {
-                    text = `Expired ${Math.abs(dateInfo.daysUntilExpiry)} days ago`;
-                    color = "bg-blue-950 text-blue-100 dark:bg-blue-100 dark:text-blue-800";
-                }
-            }
-
-            return (
-                <span className={`text-xs font-medium px-2 py-1 rounded ${color} inline-flex items-center ml-2`}>
-                    {icon} {text}
-                </span>
-            );
-        };
-
-        // Render suggestions if available
-        const SuggestionsList = () => {
-            if (!suggestions || suggestions.length === 0) return null;
-
-            return (
-                <div className="mt-2 text-sm">
-                    <p className="font-medium">Information:</p>
-                    <ul className="list-disc pl-5 mt-1 space-y-1">
-                        {suggestions.map((suggestion, index) => (
-                            <li key={index}>{suggestion}</li>
-                        ))}
-                    </ul>
-                </div>
-            );
-        };
+    // Render upload status
+    const renderUploadStatus = (documentType) => {
+        const status = uploadStatus[documentType];
         
-        // Admin review badge - friendlier wording
-        const AdminReviewBadge = () => {
-            if (!adminReview && !fallback) return null;
-            
-            return (
-
-                <Badge variant="outline" className="ml-2 text-xs font-normal bg-blue-100 text-blue-800 border-blue-300">
-                    Admin Review
-                </Badge>
-            );
-        };
-
-        // Now we only show success status
+        if (!status) return null;
+        
         return (
             <Alert className="bg-green-950 border-green-900 text-green-100 dark:bg-green-100 dark:border-green-200 dark:text-green-800 mt-2">
                 <div className="flex items-center gap-2 flex-wrap">
                     <CheckCircle className="h-4 w-4" />
                     <AlertDescription className="flex items-center flex-wrap">
-                        {message}
-                        <AdminReviewBadge />
-                        <ExpirationBadge />
-                        <DateBadge />
+                        Document uploaded successfully
+                        <Badge variant="outline" className="ml-2 text-xs font-normal bg-blue-100 text-blue-800 border-blue-300">
+                            Will be reviewed by admin
+                        </Badge>
                     </AlertDescription>
                 </div>
-                <SuggestionsList />
+                <div className="mt-2 text-sm">
+                    <p className="font-medium">Information:</p>
+                    <ul className="list-disc pl-5 mt-1 space-y-1">
+                        <li>Please ensure your document is clearly readable</li>
+                        <li>The document should not be expired</li>
+                        <li>Our team will manually verify your documents</li>
+                    </ul>
+                </div>
             </Alert>
         );
     };
@@ -386,7 +183,7 @@ export default function BusinessPermit({
                         type="file"
                         id="business_permit"
                         accept="image/*"
-                        onChange={(e) => handleFileChangeWithVerification(e, handlePermitImageChange, 'business_permit')}
+                        onChange={(e) => handleFileChangeWithStatus(e, handlePermitImageChange, 'business_permit')}
                         className="cursor-pointer pt-2"
                     />
                     {previewPermitImage && (
@@ -400,7 +197,7 @@ export default function BusinessPermit({
                             <div className="text-xs text-center mt-1 text-muted-foreground">Click to enlarge</div>
                         </div>
                     )}
-                    {renderVerificationStatus('business_permit')}
+                    {renderUploadStatus('business_permit')}
                     <InputError field="business_permit" errors={errors} />
                 </div>
             </div>
@@ -414,7 +211,7 @@ export default function BusinessPermit({
                     type="file"
                     id="dti_registration"
                     accept="image/*"
-                    onChange={(e) => handleFileChangeWithVerification(e, handleDtiRegistrationImageChange, 'dti_registration')}
+                    onChange={(e) => handleFileChangeWithStatus(e, handleDtiRegistrationImageChange, 'dti_registration')}
                     className="cursor-pointer pt-2"
                 />
                 {previewDtiRegistrationImage && (
@@ -428,7 +225,7 @@ export default function BusinessPermit({
                         <div className="text-xs text-center mt-1 text-muted-foreground">Click to enlarge</div>
                     </div>
                 )}
-                {renderVerificationStatus('dti_registration')}
+                {renderUploadStatus('dti_registration')}
                 <InputError field="dti_registration" errors={errors} />
             </div>
 
@@ -439,7 +236,7 @@ export default function BusinessPermit({
                     type="file"
                     id="valid_id"
                     accept="image/*"
-                    onChange={(e) => handleFileChangeWithVerification(e, handleValidIdImageChange, 'valid_id')}
+                    onChange={(e) => handleFileChangeWithStatus(e, handleValidIdImageChange, 'valid_id')}
                     className="cursor-pointer pt-2"
                 />
                 {previewValidIdImage && (
@@ -453,7 +250,7 @@ export default function BusinessPermit({
                         <div className="text-xs text-center mt-1 text-muted-foreground">Click to enlarge</div>
                     </div>
                 )}
-                {renderVerificationStatus('valid_id')}
+                {renderUploadStatus('valid_id')}
                 <InputError field="valid_id" errors={errors} />
             </div>
 
