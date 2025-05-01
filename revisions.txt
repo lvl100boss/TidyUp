@@ -12,14 +12,14 @@ Minor Revisions:
 [X] Require users to book at least 1 hour in advance to avoid last-minute bookings.
 [X] Update Status in Admin Shop must not be a dropdown. (for example, There should only be a button for Verify or Reject)
 [X] There Must be A notification for Almost all activity in the Website.
-[-][by pol] There Must be Age limit when registering Birth Date.
-[-][by pol] In registration, Setting up Profile for the 3rd Step must be Skippable/Optional.
-[-][by pol] When Clicking The book now, instead of asking the user to sign. Allow the user to fill up the forms but dont allow the user submit the form when not logged in
+[/][by pol] There Must be Age limit when registering Birth Date.
+[/][by pol] In registration, Setting up Profile for the 3rd Step must be Skippable/Optional.
+[/][by pol] When Clicking The book now, instead of asking the user to sign. Allow the user to fill up the forms but dont allow the user submit the form when not logged in
 [X] In Appointment Detail for the shop Staff. Staff must be able to see the number of times of No-Show
-[X] Send Reminders to the customers 24h and 1hr before the Scheduled Time.
+[-][by pol] Send Reminders to the customers 24h and 1hr before the Scheduled Time.
 [X] If the User has 3 or more Violation Strikes, They will be restricted of booking appointments for a month.
 [X] If the Staff has 3 or more Violation Strikes, They will not be able to accept an appointments for a month.
-[X] ADMIN - User management Ban and edit
+[-][by pol] ADMIN - User management Ban and edit
 
 Major Revisions:
 [X] Allow Multiple User/Customer for Booking.
