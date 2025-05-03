@@ -8,18 +8,20 @@ Minor Revisions:
 [/] Settings and profile should be distinct (remove settings or profile)
 [-][by Art] Register shop (sometimes buggy ang next button) Remake the Register shop Process
 [X] Make Every Page Responsive.
-[X] Prevent users from booking time slots earlier than the current time.
-[X] Require users to book at least 1 hour in advance to avoid last-minute bookings.
-[X] Update Status in Admin Shop must not be a dropdown. (for example, There should only be a button for Verify or Reject)
-[X] There Must be A notification for Almost all activity in the Website.
+[-][by pol] Prevent users from booking time slots earlier than the current time.
+[-][by pol] Require users to book at least 1 hour in advance to avoid last-minute bookings.
+[-][by pol] Update Status in Admin Shop must not be a dropdown. (for example, There should only be a button for Verify or Reject)
+[-][by pol] There Must be A notification for Almost all activity in the Website.
 [/][by pol] There Must be Age limit when registering Birth Date.
 [/][by pol] In registration, Setting up Profile for the 3rd Step must be Skippable/Optional.
 [/][by pol] When Clicking The book now, instead of asking the user to sign. Allow the user to fill up the forms but dont allow the user submit the form when not logged in
 [X] In Appointment Detail for the shop Staff. Staff must be able to see the number of times of No-Show
-[-][by pol] Send Reminders to the customers 24h and 1hr before the Scheduled Time.
+[x] Send Reminders to the customers 24h and 1hr before the Scheduled Time.
 [X] If the User has 3 or more Violation Strikes, They will be restricted of booking appointments for a month.
 [X] If the Staff has 3 or more Violation Strikes, They will not be able to accept an appointments for a month.
 [-][by pol] ADMIN - User management Ban and edit
+[/][by pol] Additional by art: Allow user confirmation when shop set the appointment as complete.
+[-][by pol] allow user to report an issue for the user confirmation regarding the appointment completion.(should be reflected in admin user support)
 
 Major Revisions:
 [X] Allow Multiple User/Customer for Booking.
