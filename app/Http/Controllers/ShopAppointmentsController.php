@@ -6,6 +6,7 @@ use App\Models\Appointments;
 use App\Models\ShopStaffs;
 use App\Services\ShopAppointmentService;
 use App\Notifications\AppointmentAcceptedNotification;
+use App\Notifications\AppointmentCompletedNotification;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\App;
@@ -173,16 +174,35 @@ class ShopAppointmentsController extends Controller
 
     public function complete(Request $request, $appointment)
     {
-        $targetAppointment = Appointments::find($appointment);
+        $targetAppointment = Appointments::with('user')->find($appointment);
+    
+        if (!$targetAppointment) {
+            return redirect()->back()->with('message', 'Appointment not found')->with('success', false);
+        }
+    
+        $currentStaff = ShopStaffs::where('staff_id', Auth::id())->first();
+    
         DB::beginTransaction();
         try {
+            // Change status to 'completed' but mark it as pending user confirmation
             $targetAppointment->status = 'completed';
+            $targetAppointment->completed_by = $currentStaff->id;
+            $targetAppointment->completed_at = now();
+            $targetAppointment->is_user_confirmed = false; // Add this field to appointments table
             $targetAppointment->save();
+            
+            // Notify the user about completion and request confirmation
+            $user = $targetAppointment->user;
+            if ($user) {
+                $user->notify(new AppointmentCompletedNotification($targetAppointment));
+            }
+            
             DB::commit();
-            return redirect()->back()->with('message', 'Appointment completed successfully')->with('success', true);
+            
+            return redirect()->back()->with('message', 'Appointment marked as completed. Waiting for user confirmation.')->with('success', true);
         } catch (\Exception $e) {
             DB::rollBack();
-            return redirect()->back()->with('message', 'Failed to complete appointment')->with('success', false);
+            return redirect()->back()->with('message', 'An error occurred while completing the appointment: ' . $e->getMessage())->with('success', false);
         }
     }
 

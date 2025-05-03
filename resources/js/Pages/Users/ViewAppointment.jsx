@@ -1,11 +1,12 @@
 import UserLayout from '@/Layouts/UserLayout'
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { format } from 'date-fns'
 import { Head } from '@inertiajs/react'
+import CompletionConfirmationModal from '@/Components/Appointments/CompletionConfirmationModal'
 
 const ViewAppointment = ({
     appointmentId,
@@ -17,7 +18,18 @@ const ViewAppointment = ({
     review,
     status
 }) => {
+    const [completionModalOpen, setCompletionModalOpen] = useState(false)
 
+    // Check if this appointment needs confirmation when component mounts
+    useEffect(() => {
+        // Check if we should skip showing the modal based on URL parameter
+        const searchParams = new URLSearchParams(window.location.search);
+        const skipModal = searchParams.has('skipModal');
+        
+        if (!skipModal && appointment.status === 'completed' && !appointment.is_user_confirmed) {
+            setCompletionModalOpen(true);
+        }
+    }, [appointment]);
 
     const staffName = `${staff.staff.first_name} ${staff.staff.last_name}`
     const formattedDate = format(new Date(appointment.date), 'MMMM dd, yyyy')
@@ -32,10 +44,21 @@ const ViewAppointment = ({
         declined: "border-red-300/30 bg-red-50/50 text-red-800 dark:bg-red-950/50 dark:text-red-300",
         started: "border-indigo-300/30 bg-indigo-50/50 text-indigo-800 dark:bg-indigo-950/50 dark:text-indigo-300",
     };
+    
     return (
         <UserLayout>
             <Head title="Appointment" />
-            <Card className="w-full max-w-4xl mx-auto bg-background/50">
+            
+            {/* Appointment Completion Confirmation Modal */}
+            {appointment.status === 'completed' && (
+                <CompletionConfirmationModal
+                    appointment={appointment}
+                    open={completionModalOpen}
+                    onOpenChange={setCompletionModalOpen}
+                />
+            )}
+            
+            <Card className="w-full max-w-4xl mx-auto">
                 <CardHeader>
                     <CardTitle>Appointment Details</CardTitle>
                     <CardDescription>Review the details of your appointment.</CardDescription>
@@ -44,7 +67,7 @@ const ViewAppointment = ({
                     {/* Shop Information */}
                     <div className="mb-6">
                         <h3 className="text-lg font-semibold mb-2">Shop Information</h3>
-                        <Card className="bg-background/50">
+                        <Card>
                             <CardHeader>
                                 <CardTitle>{shop.shop_name}</CardTitle>
                                 <CardDescription>{shopAddress}</CardDescription>
@@ -95,8 +118,8 @@ const ViewAppointment = ({
                     {/* Staff Information */}
                     <div className="mb-6">
                         <h3 className="text-lg font-semibold mb-2">Stylist</h3>
-                        <div className="flex items-center"> {/* Use flex for layout */}
-                            <Avatar className="h-10 w-10 mr-4"> {/* Add margin */}
+                        <div className="flex items-center">
+                            <Avatar className="h-10 w-10 mr-4">
                                 <AvatarImage src={`/storage/${staff.staff.profile_photo_path}`} alt={staffName} />
                                 <AvatarFallback>{staffName.split(' ').map(n => n[0]).join('')}</AvatarFallback>
                             </Avatar>
@@ -110,9 +133,9 @@ const ViewAppointment = ({
                     <div>
                         <h3 className="text-lg font-semibold mb-2">Services</h3>
                         {appointmentServices.map((serviceItem) => (
-                            <Card key={serviceItem.id} className="mb-2 background-background/50">
-                                <CardContent className="pt-4"> {/* Add padding top */}
-                                    <div className="flex justify-between items-center"> {/* Use flex for layout */}
+                            <Card key={serviceItem.id} className="mb-2">
+                                <CardContent className="pt-4">
+                                    <div className="flex justify-between items-center">
                                         <div>
                                             <p className="font-medium">{serviceItem.shop_service.service_name}</p>
                                             <p className="text-sm text-muted-foreground">
@@ -126,10 +149,6 @@ const ViewAppointment = ({
                             </Card>
                         ))}
                     </div>
-
-                    {/* Review Section (Optional - Add later if needed) */}
-                    {/* {review && ( ... )} */}
-
                 </CardContent>
             </Card>
         </UserLayout>
