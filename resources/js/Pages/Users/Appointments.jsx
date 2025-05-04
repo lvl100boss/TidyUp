@@ -44,6 +44,7 @@ import {
     SelectValue,
 } from "@/components/ui/select"
 import FlashMessageWrapper from "@/Components/FlashMessageWrapper"
+import CompletionConfirmationModal from "@/Components/Appointments/CompletionConfirmationModal"
 
 export default function Appointments({
     pendingAppointments,
@@ -62,6 +63,10 @@ export default function Appointments({
     const [serviceRating, setServiceRating] = useState(0);
     const [staffRating, setStaffRating] = useState(0);
     const [showConfirmationDialog, setShowConfirmationDialog] = useState(false);
+    
+    // Added states for completion confirmation modal
+    const [completionModalOpen, setCompletionModalOpen] = useState(false);
+    const [appointmentToConfirm, setAppointmentToConfirm] = useState(null);
 
     const appointmentTypes = ["pending", "upcoming", "started", "completed", "cancelled", "declined", "no-show"];
 
@@ -70,7 +75,9 @@ export default function Appointments({
         upcoming: upcomingAppointments,
         completed: completedAppointments,
         started: startedAppointments,
-
+        cancelled: cancelledAppointments,
+        "no-show": noShowAppointments,
+        declined: declinedAppointments
     };
 
     const { data, setData, post, processing, errors, reset } = useForm({
@@ -99,6 +106,44 @@ export default function Appointments({
             setActiveTab("pending");
         }
     }, [flash.message]);
+
+    // Add effect to check for appointments needing confirmation
+    useEffect(() => {
+        // Find the first appointment that needs confirmation
+        const needsConfirmation = completedAppointments?.find(
+            app => app.status === 'completed' && !app.is_user_confirmed
+        );
+        
+        if (needsConfirmation) {
+            setAppointmentToConfirm(needsConfirmation);
+            setCompletionModalOpen(true);
+        }
+    }, [completedAppointments]);
+
+// Update the useEffect hook that handles sessionStorage
+useEffect(() => {
+    // Check if there's a stored appointment ID from notification click
+    const storedAppointmentId = sessionStorage.getItem('showCompletionModalForAppointment');
+    
+    if (storedAppointmentId) {
+        // Clear the storage so it doesn't trigger again on refresh
+        sessionStorage.removeItem('showCompletionModalForAppointment');
+        
+        // Find the appointment in completed appointments
+        // Add check for is_user_confirmed to prevent showing the modal if already confirmed
+        const appointmentToShow = completedAppointments?.find(
+            app => app.id === parseInt(storedAppointmentId, 10) && 
+                  app.status === 'completed' && 
+                  !app.is_user_confirmed
+        );
+        
+        if (appointmentToShow) {
+            setAppointmentToConfirm(appointmentToShow);
+            setCompletionModalOpen(true);
+            setActiveTab("completed");
+        }
+    }
+}, [completedAppointments]);
 
     const handleReviewClick = (appointment) => {
         setAppointmentToReview(appointment);
@@ -166,7 +211,7 @@ export default function Appointments({
     const getAppointmentContent = (type) => {
         const appointments = appointmentData[type];
         return (
-            <TabsContent value={type} className="grid gap-5 mt-0 w-full">
+            <TabsContent value={type}>
                 {appointments && appointments.length > 0 ? (
                     appointments
                         .filter(
@@ -192,16 +237,15 @@ export default function Appointments({
             <FlashMessageWrapper message={flashState.message} success={flashState.success} />
 
             <Head title="Appointments" />
-            <h1 className="text-3xl font-semibold mt-2 lg:mb-3 lg:mt-0 uppercase">
+            <h1>
                 My Appointments
             </h1>
             <Tabs
                 defaultValue={activeTab}
                 value={activeTab}
                 onValueChange={setActiveTab}
-                className="overflow-x-auto whitespace-nowrap mb-20"
             >
-                <div className="sm:hidden w-full">
+                <div className="sm:hidden">
                     <Select value={activeTab} onValueChange={setActiveTab}>
                         <SelectTrigger>
                             <SelectValue placeholder="Select a tab" />
@@ -209,7 +253,7 @@ export default function Appointments({
                         <SelectContent>
                             {appointmentTypes.map((type) => (
                                 <SelectItem key={type} value={type}>
-                                    {type}
+                                    {type.charAt(0).toUpperCase() + type.slice(1)}
                                 </SelectItem>
                             ))}
                         </SelectContent>
@@ -217,24 +261,35 @@ export default function Appointments({
                 </div>
 
                 <div className="hidden sm:block">
-                    <TabsList className="mb-5 block md:inline-flex w-min mx-autolg:mx-0 ">
+                    <TabsList>
                         {appointmentTypes.map((type) => (
-                            <TabsTrigger key={type} value={type} className="capitalize">{type}</TabsTrigger>
+                            <TabsTrigger key={type} value={type}>
+                                {type.charAt(0).toUpperCase() + type.slice(1)}
+                            </TabsTrigger>
                         ))}
                     </TabsList>
                 </div>
 
-                <div className="tab-content-wrapper">
+                <div>
                     {appointmentTypes.map((type) => getAppointmentContent(type))}
                 </div>
             </Tabs>
+
+            {/* Appointment Completion Confirmation Modal */}
+            {appointmentToConfirm && (
+                <CompletionConfirmationModal
+                    appointment={appointmentToConfirm}
+                    open={completionModalOpen}
+                    onOpenChange={setCompletionModalOpen}
+                />
+            )}
 
             <Dialog open={isReviewDialogOpen} onOpenChange={(open) => {
                 if (!open && appointmentToReview?.review) {
                     setIsReviewDialogOpen(false);
                 }
             }}>
-                <DialogContent className="sm:max-w-[425px]">
+                <DialogContent>
                     <DialogHeader>
                         <DialogTitle>Rate Your Experience</DialogTitle>
                         <DialogDescription>
@@ -244,15 +299,14 @@ export default function Appointments({
                         </DialogDescription>
                     </DialogHeader>
                     <form onSubmit={submitReview}>
-                        <div className="grid gap-4 py-4">
-                            <div className="space-y-4">
+                        <div>
+                            <div>
                                 <div>
-                                    <h3 className="text-sm font-medium mb-2">Service Quality</h3>
-                                    <div className="flex items-center justify-center space-x-1 mb-2">
+                                    <h3>Service Quality</h3>
+                                    <div>
                                         {[1, 2, 3, 4, 5].map((star) => (
                                             <Star
                                                 key={star}
-                                                className={`${appointmentToReview?.review ? "" : "cursor-pointer"} h-8 w-8 ${star <= serviceRating ? "fill-yellow-400 text-yellow-400" : "text-gray-300"}`}
                                                 onClick={() => {
                                                     if (!appointmentToReview?.review) {
                                                         setServiceRating(star);
@@ -262,16 +316,15 @@ export default function Appointments({
                                             />
                                         ))}
                                     </div>
-                                    {errors.service_rating && <p className="text-red-500 text-sm text-center">{errors.service_rating}</p>}
+                                    {errors.service_rating && <p>{errors.service_rating}</p>}
                                 </div>
 
                                 <div>
-                                    <h3 className="text-sm font-medium mb-2">Staff Performance</h3>
-                                    <div className="flex items-center justify-center space-x-1 mb-2">
+                                    <h3>Staff Performance</h3>
+                                    <div>
                                         {[1, 2, 3, 4, 5].map((star) => (
                                             <Star
                                                 key={star}
-                                                className={`${appointmentToReview?.review ? "" : "cursor-pointer"} h-8 w-8 ${star <= staffRating ? "fill-yellow-400 text-yellow-400" : "text-gray-300"}`}
                                                 onClick={() => {
                                                     if (!appointmentToReview?.review) {
                                                         setStaffRating(star);
@@ -281,7 +334,7 @@ export default function Appointments({
                                             />
                                         ))}
                                     </div>
-                                    {errors.staff_rating && <p className="text-red-500 text-sm text-center">{errors.staff_rating}</p>}
+                                    {errors.staff_rating && <p>{errors.staff_rating}</p>}
                                 </div>
                             </div>
 
@@ -293,11 +346,11 @@ export default function Appointments({
                                     rows={4}
                                     disabled={appointmentToReview?.review}
                                 />
-                                {errors.comment && <p className="text-red-500 text-sm">{errors.comment}</p>}
+                                {errors.comment && <p>{errors.comment}</p>}
                             </div>
 
                             {!appointmentToReview?.review && appointmentToReview?.status === "started" && (
-                                <div className="flex items-center space-x-2">
+                                <div>
                                     <Checkbox
                                         id="confirm_completion"
                                         checked={data.confirm_completion}
@@ -351,7 +404,7 @@ export default function Appointments({
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                         <AlertDialogCancel>Not Now</AlertDialogCancel>
-                        <AlertDialogAction onClick={confirmCompletion} className="bg-primary">
+                        <AlertDialogAction onClick={confirmCompletion}>
                             <CheckCircle className="mr-2 h-4 w-4" />
                             Confirm Completion
                         </AlertDialogAction>

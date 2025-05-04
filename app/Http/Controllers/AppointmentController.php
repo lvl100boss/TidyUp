@@ -86,33 +86,39 @@ class AppointmentController extends Controller
      */
     public function confirmCompletion(Request $request)
     {
-        $validated = $request->validate([
-            'appointment_id' => 'required|exists:appointments,id',
-        ]);
-
-        $appointment = Appointments::find($validated['appointment_id']);
-
+        $appointmentId = $request->input('appointment_id');
+        $appointment = Appointments::find($appointmentId);
+        
+        if (!$appointment) {
+            return redirect()->back()
+                ->with('message', 'Appointment not found')
+                ->with('success', false);
+        }
+        
         // Verify the appointment belongs to the authenticated user
         if ($appointment->user_id !== Auth::id()) {
-            return redirect()->back()->with('message', 'You are not authorized to confirm this appointment')->with('success', false);
+            return redirect()->back()
+                ->with('message', 'Unauthorized action')
+                ->with('success', false);
         }
-
+        
         DB::beginTransaction();
         try {
-            // Update status only if it's not already completed
-            if ($appointment->status !== 'completed') {
-                $appointment->status = 'completed';
-            }
-
-            // Mark the appointment as confirmed by the user
+            // Update the appointment to confirm it's completed
+            $appointment->is_user_confirmed = true;
             $appointment->is_successful = true;
             $appointment->save();
-
+            
             DB::commit();
-            return redirect()->back()->with('message', 'Thank you for confirming your appointment was completed successfully!')->with('success', true);
+            
+            return redirect()->route('appointments', ['tab' => 'completed'])
+                ->with('message', 'Appointment has been confirmed as completed')
+                ->with('success', true);
         } catch (\Exception $e) {
-            DB::rollback();
-            return redirect()->back()->with('message', 'An error occurred while confirming appointment completion: ' . $e->getMessage())->with('success', false);
+            DB::rollBack();
+            return redirect()->back()
+                ->with('message', 'An error occurred while confirming appointment completion: ' . $e->getMessage())
+                ->with('success', false);
         }
     }
 }

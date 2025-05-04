@@ -16,16 +16,14 @@ import {
     Card,
     CardContent,
     CardDescription,
-    CardHeader,
-    CardTitle,
 } from "@/components/ui/card";
-import { Link, usePage } from "@inertiajs/react";
+import { Link, router, usePage } from "@inertiajs/react";
+import { useState } from "react";
 
-// Helper function to format date (optional, adjust as needed)
+// Helper function to format date
 const formatNotificationDate = (dateString) => {
     if (!dateString) return '';
     const date = new Date(dateString);
-    // Example format: "Apr 23, 2025, 10:30 AM" - adjust format as desired
     return date.toLocaleString('en-US', {
         year: 'numeric', month: 'short', day: 'numeric',
         hour: 'numeric', minute: '2-digit', hour12: true
@@ -36,49 +34,83 @@ export function Notification({ className, ...props }) {
     // Access notifications shared globally via Inertia
     const { auth } = usePage().props;
     const notifications = auth?.notifications ?? [];
+    const [isOpen, setIsOpen] = useState(false);
 
+    const handleNotificationClick = (e, notification) => {
+        if (!notification || !notification.data) return;
+        
+        const { data } = notification;
+        
+        // Check if this is a completion notification that should trigger the modal
+        const isCompletionNotification = 
+            data.title === 'Appointment Marked as Completed' && 
+            data.appointment_id;
+        
+        if (isCompletionNotification) {
+            // Prevent default navigation
+            e.preventDefault();
+            
+            // Close the notification drawer
+            setIsOpen(false);
+            
+            // Store the appointment ID in sessionStorage for the Appointments component to read
+            const appointmentId = parseInt(data.appointment_id, 10);
+            sessionStorage.setItem('showCompletionModalForAppointment', appointmentId);
+            
+            // Navigate to the appointments page with completed tab active
+            router.visit('/appointments?tab=completed', {
+                preserveState: true,
+                onSuccess: () => {
+                    console.log("Navigation complete, modal should show for appointment:", appointmentId);
+                }
+            });
+            
+            // Stop event propagation
+            e.stopPropagation();
+            return false;
+        } else if (data.link) {
+            // For all other notifications with links, navigate normally
+            router.visit(data.link);
+            setIsOpen(false);
+        }
+    };
 
     return (
         <Drawer
             direction="right"
             size="sm"
-            {...props} // Pass down any other props
+            open={isOpen}
+            onOpenChange={setIsOpen}
+            {...props}
         >
             <DrawerTrigger asChild>
                 <Button
                     variant="outline"
-                    radius="round"
                     size="icon"
-                    className={className} // Allow styling the trigger container
+                    className={className}
                 >
                     <Bell className="stroke-2" />
-                    {/* Optional: Add badge for unread count */}
-                    {/* {unreadCount > 0 && <span className="..."></span>} */}
                 </Button>
             </DrawerTrigger>
-            <DrawerContent> {/* Apply padding here if needed for the whole content area */}
-                <DrawerHeader> {/* Removed relative class, assuming not needed */}
+            <DrawerContent>
+                <DrawerHeader>
                     <DrawerTitle>Notifications</DrawerTitle>
                     <DrawerDescription>Stay up to date with the latest activity.</DrawerDescription>
                 </DrawerHeader>
                 <Separator />
-                {/* ScrollArea takes full height minus header/footer */}
                 <ScrollArea className="h-[calc(100vh-150px)] mt-4">
-                    {/* Removed the div with p-4. Padding can be added to DrawerContent or individual items if necessary */}
                     {notifications.length > 0 ? (
                         notifications.map((notification) => {
-                            // Add checks for notification and data integrity
                             if (!notification || !notification.data) {
                                 console.warn("Received incomplete notification:", notification);
-                                return null; // Skip rendering malformed notification
+                                return null;
                             }
 
                             const { id, data, created_at } = notification;
-                            // Provide default values for potentially missing data fields
                             const { title = "Notification", message = "No message content.", link } = data;
-                            // Define the Card structure once
+                            
                             const notificationCard = (
-                                <div className="p-4 bg-background/50 rounded-lg m-4 border" > {/* Use mb-2 for spacing between cards */}
+                                <div className="p-4 rounded-lg m-4 border">
                                     <div className="mb-4">
                                         <div>{title}</div>
                                         <div className="text-sm text-muted-foreground">
@@ -86,31 +118,32 @@ export function Notification({ className, ...props }) {
                                         </div>
                                     </div>
                                     <div>
-                                        <div className="p-4 bg-muted/50 rounded-lg">
+                                        <div className="p-4 rounded-lg">
                                             <p className="text-sm">{message}</p>
                                         </div>
                                     </div>
                                 </div>
                             );
 
-                            // Render Link conditionally wrapping the Card
                             return (
-                                <div key={id}> {/* Use a simple div or fragment as the key holder */}
-                                    {link ? (
-                                        <Link href={link}>
-                                            {notificationCard}
-                                        </Link>
-                                    ) : (
-                                        notificationCard
-                                    )}
+                                <div key={id}>
+                              {link ? (
+                                    <div 
+                                        onClick={(e) => handleNotificationClick(e, notification)}
+                                        className="cursor-pointer"
+                                    >
+                                        {notificationCard}
+                                    </div>
+                                ) : (
+                                    notificationCard
+                                )}
                                 </div>
                             );
                         })
                     ) : (
-                        // Use Card components for the empty state message for consistent styling
                         <Card className="border-none shadow-none">
                             <CardContent>
-                                <CardDescription className="text-center"> {/* Use text-center utility if absolutely needed, or structure differently */}
+                                <CardDescription className="text-center">
                                     No new notifications.
                                 </CardDescription>
                             </CardContent>
@@ -119,7 +152,7 @@ export function Notification({ className, ...props }) {
                 </ScrollArea>
                 <DrawerFooter className="mt-auto sm:hidden">
                     <DrawerClose asChild>
-                        <Button variant="outline" className="w-full">Close</Button>
+                        <Button variant="outline">Close</Button>
                     </DrawerClose>
                 </DrawerFooter>
             </DrawerContent>
