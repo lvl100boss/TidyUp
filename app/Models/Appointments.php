@@ -30,6 +30,7 @@ class Appointments extends Model
         'resched_reason',
         'has_review',
         'user_confirmed',
+        'buffer_time_minutes',
     ];
 
     protected $casts = [
@@ -82,5 +83,10 @@ class Appointments extends Model
     public function scopeWithStatus($query, $status)
     {
         return $query->where('status', $status);
+    }
+
+    public function attendees()
+    {
+        return $this->hasMany(Attendee::class, 'appointment_id');
     }
 }

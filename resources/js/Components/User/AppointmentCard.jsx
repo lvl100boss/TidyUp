@@ -1,4 +1,11 @@
-const AppointmentCard = ({ appointment }) => {
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { format } from "date-fns";
+import { Calendar, Clock, Star, ChevronRight } from "lucide-react";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+
+const AppointmentCard = ({ appointment, onReviewClick, onViewReview }) => {
     const shopImg = appointment.shop.shop_gallery[0].url;
     const shopName = appointment.shop.shop_name;
     const location = appointment.shop.detailed_address;
@@ -18,35 +25,209 @@ const AppointmentCard = ({ appointment }) => {
         }
     );
 
-    return (
-        <div className="card border p-4 rounded-lg flex flex-col md:flex-row gap-4 md:gap-8 md:items-center md:justify-between hover:border-muted-foreground cursor-pointer">
-            <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
-                <div className="w-full md:w-[12rem]">
-                    <img
-                        className="w-full h-[12rem] md:h-[7rem] object-cover rounded-md"
-                        src={shopImg}
-                        alt={shopName}
-                    />
-                </div>
-                <div className="space-y-2 md:space-y-3 w-full md:w-auto">
-                    <h6 className="font-semibold text-lg text-left">{shopName}</h6>
-                    <p className="text-sm text-muted-foreground">{location}</p>
-                </div>
-            </div>
+    // Calculate service end time
+    const calculateEndTime = () => {
+        try {
+            // Parse the time
+            const [hours, minutes] = appointment.time.split(':');
+            
+            // Get total duration from all services
+            let totalDuration = 0;
+            appointment.appointment_services?.forEach(service => {
+                if (service.shop_service) {
+                    totalDuration += (service.shop_service.duration_hour * 60) + 
+                                     service.shop_service.duration_minute;
+                }
+            });
 
-            <div className="flex md:flex-col justify-between md:text-right mt-4 md:mt-0 md:hidden">
-                <h6 className="font-semibold text-lg">Php {totalPrice}</h6>
-                <div className="text-right md:mt-3">
-                    <p className="text-sm text-muted-foreground">{date}</p>
-                    <p className="text-sm text-muted-foreground">{time}</p>
+            // Use 30 min as minimum duration or use the appointment's buffer time if available
+            const bufferTime = appointment.buffer_time_minutes || 30;
+            totalDuration = Math.max(30, totalDuration);
+            
+            const startTime = new Date();
+            startTime.setHours(hours, minutes, 0);
+            
+            const endTime = new Date(startTime.getTime() + totalDuration * 60000);
+            
+            return endTime.toLocaleTimeString('en-US', {
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: true
+            });
+        } catch {
+            return null;
+        }
+    };
+    
+    const endTime = calculateEndTime();
+    
+    // Get buffer time end (service end time + buffer time)
+    const calculateBufferEndTime = () => {
+        try {
+            const [hours, minutes] = appointment.time.split(':');
+            
+            let totalDuration = 0;
+            appointment.appointment_services?.forEach(service => {
+                if (service.shop_service) {
+                    totalDuration += (service.shop_service.duration_hour * 60) + 
+                                    service.shop_service.duration_minute;
+                }
+            });
+
+            const bufferTime = appointment.buffer_time_minutes || 30;
+            totalDuration = Math.max(30, totalDuration);
+            
+            const startTime = new Date();
+            startTime.setHours(hours, minutes, 0);
+            
+            const serviceEndTime = new Date(startTime.getTime() + totalDuration * 60000);
+            const bufferEndTime = new Date(serviceEndTime.getTime() + (bufferTime * 60000));
+            
+            return bufferEndTime.toLocaleTimeString('en-US', {
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: true
+            });
+        } catch {
+            return null;
+        }
+    };
+
+    const bufferEndTime = calculateBufferEndTime();
+    
+    const statusVariants = {
+        pending: "border-yellow-300 bg-yellow-50 text-yellow-800 hover:bg-yellow-100",
+        upcoming: "border-blue-300 bg-blue-50 text-blue-800 hover:bg-blue-100",
+        completed: "border-green-300 bg-green-50 text-green-800 hover:bg-green-100",
+        started: "border-indigo-300 bg-indigo-50 text-indigo-800 hover:bg-indigo-100",
+        cancelled: "border-gray-300 bg-gray-50 text-gray-800 hover:bg-gray-100",
+        declined: "border-red-300 bg-red-50 text-red-800 hover:bg-red-100",
+        "no-show": "border-red-300 bg-red-50 text-red-800 hover:bg-red-100",
+    };
+
+    // Get staff assigned to this appointment
+    const getStaffName = () => {
+        if (appointment.user_appointments && appointment.user_appointments[0]?.staff?.staff) {
+            const staff = appointment.user_appointments[0].staff.staff;
+            return `${staff.first_name} ${staff.last_name}`;
+        }
+        return null;
+    };
+    
+    const staffName = getStaffName();
+
+    // Get primary service name
+    const getPrimaryService = () => {
+        if (appointment.appointment_services && appointment.appointment_services.length > 0) {
+            return appointment.appointment_services[0].shop_service?.service_name;
+        }
+        return null;
+    };
+
+    // Count additional services
+    const additionalServiceCount = appointment.appointment_services 
+        ? Math.max(0, appointment.appointment_services.length - 1) 
+        : 0;
+
+    return (
+        <Card className={`overflow-hidden transition-all border-l-4 ${statusVariants[appointment.status] || ''}`}>
+            <div className="grid md:grid-cols-[1fr_auto] gap-4">
+                <div className="p-4 md:p-6">
+                    <div className="flex items-start gap-4">
+                        <div className="w-[70px] h-[70px] md:w-20 md:h-20 rounded-md overflow-hidden flex-shrink-0">
+                            <img
+                                className="w-full h-full object-cover"
+                                src={shopImg}
+                                alt={shopName}
+                            />
+                        </div>
+                        <div className="space-y-1 flex-grow">
+                            <div className="flex items-start justify-between">
+                                <div>
+                                    <h3 className="font-semibold text-lg">{shopName}</h3>
+                                    <p className="text-sm text-muted-foreground">{location}</p>
+                                </div>
+                                <Badge variant="outline" className={`capitalize ml-2 ${statusVariants[appointment.status] || ''}`}>
+                                    {appointment.status === "no-show" ? "No Show" : appointment.status}
+                                </Badge>
+                            </div>
+                            
+                            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted-foreground mt-2">
+                                {staffName && (
+                                    <div className="flex items-center">
+                                        <Avatar className="h-5 w-5 mr-1">
+                                            <AvatarFallback className="text-[10px]">
+                                                {staffName.split(' ').map(n => n[0]).join('')}
+                                            </AvatarFallback>
+                                        </Avatar>
+                                        {staffName}
+                                    </div>
+                                )}
+                                
+                                <div className="flex items-center">
+                                    <Calendar className="h-3.5 w-3.5 mr-1" />
+                                    {date}
+                                </div>
+                                
+                                <div className="flex items-center">
+                                    <Clock className="h-3.5 w-3.5 mr-1" />
+                                    {time}{endTime ? ` - ${endTime}` : ''}{bufferEndTime ? ` (Buffer: ${bufferEndTime})` : ''}
+                                </div>
+                            </div>
+                            
+                            <div className="mt-3">
+                                <p className="text-sm">
+                                    <span className="font-medium">{getPrimaryService()}</span>
+                                    {additionalServiceCount > 0 && (
+                                        <span className="text-muted-foreground"> +{additionalServiceCount} more service{additionalServiceCount > 1 ? 's' : ''}</span>
+                                    )}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div className="flex items-center justify-between mt-4">
+                        <div className="font-medium">₱{parseFloat(totalPrice).toFixed(2)}</div>
+                        
+                        <div className="flex items-center gap-2">
+                            {appointment.has_review && (
+                                <div className="flex items-center text-yellow-500">
+                                    <Star className="h-4 w-4 fill-current" />
+                                    <span className="ml-1 text-sm">{appointment.review?.service_rating || 5}</span>
+                                </div>
+                            )}
+                            
+                            {(onReviewClick || onViewReview) && (
+                                <Button 
+                                    variant={appointment.has_review ? "outline" : "default"} 
+                                    size="sm"
+                                    className="ml-2"
+                                    onClick={e => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        appointment.has_review ? onViewReview() : onReviewClick();
+                                    }}
+                                >
+                                    {appointment.has_review ? (
+                                        <>
+                                            <Star className="h-3.5 w-3.5 mr-1 fill-yellow-500 text-yellow-500" />
+                                            View Review
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Star className="h-3.5 w-3.5 mr-1" />
+                                            Leave Review
+                                        </>
+                                    )}
+                                </Button>
+                            )}
+                            
+                            <ChevronRight className="h-5 w-5 text-muted-foreground" />
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div className="space-y-2 md:space-y-3 w-full md:w-auto hidden md:block text-right">
-                <h6 className="font-semibold text-lg">Php {totalPrice}</h6>
-                <p className="text-sm text-muted-foreground">{date}</p>
-                <p className="text-sm text-muted-foreground">{time}</p>
-            </div>
-        </div>
+        </Card>
     );
 };
 

@@ -20,14 +20,14 @@ import {
 } from "@/components/ui/alert-dialog"
 import ResceduleAppointmentCard from "@/Pages/Users/AppointmentPartial/RescheduleAppointmentCard";
 import { Separator } from "@/components/ui/separator"
-import { Calendar, CheckCircle, Clock, Scissors, Star } from "lucide-react";
+import { Calendar, CheckCircle, Clock, Scissors, Star, LoaderCircle } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { Button } from "@/components/ui/button"
+import { Button } from "@/Components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Label } from "@/components/ui/label"
+import { Checkbox } from "@/Components/ui/checkbox"
+import { Label } from "@/Components/ui/label"
 import { Head, Link, useForm, usePage } from "@inertiajs/react"
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef } from "react"
 import UserLayout from "@/Layouts/UserLayout"
 import AppointmentCard from "@/Components/User/AppointmentCard"
 import {
@@ -45,6 +45,19 @@ import {
 } from "@/components/ui/select"
 import FlashMessageWrapper from "@/Components/FlashMessageWrapper"
 import CompletionConfirmationModal from "@/Components/Appointments/CompletionConfirmationModal"
+import {
+    Alert,
+    AlertDescription,
+    AlertTitle,
+} from "@/components/ui/alert"
+import { Pagination } from "@/Components/ui/pagination"
+import { 
+    PaginationContent, 
+    PaginationItem, 
+    PaginationNext, 
+    PaginationPrevious 
+} from "@/Components/ui/pagination"
+import AppointmentDetailDialog from "@/Components/User/AppointmentDetailDialog";
 
 export default function Appointments({
     pendingAppointments,
@@ -63,7 +76,7 @@ export default function Appointments({
     const [serviceRating, setServiceRating] = useState(0);
     const [staffRating, setStaffRating] = useState(0);
     const [showConfirmationDialog, setShowConfirmationDialog] = useState(false);
-    
+
     // Added states for completion confirmation modal
     const [completionModalOpen, setCompletionModalOpen] = useState(false);
     const [appointmentToConfirm, setAppointmentToConfirm] = useState(null);
@@ -79,6 +92,27 @@ export default function Appointments({
         "no-show": noShowAppointments,
         declined: declinedAppointments
     };
+
+    const [selectedAppointment, setSelectedAppointment] = useState(null);
+    const [isAppointmentDialogOpen, setIsAppointmentDialogOpen] = useState(false);
+    
+    const [appointmentData, setAppointmentData] = useState({
+        pending: pendingAppointments || [],
+        upcoming: upcomingAppointments || [],
+        completed: completedAppointments || [],
+        started: startedAppointments || [],
+        cancelled: cancelledAppointments || [],
+        declined: declinedAppointments || [],
+        "no-show": noShowAppointments || [],
+    });
+    
+    const [currentPage, setCurrentPage] = useState(1);
+    const [itemsPerPage] = useState(5);
+    const [error, setError] = useState(null);
+    const pollingIntervalRef = useRef(null);
+
+    const appointmentTypes = ["pending", "upcoming", "started", "completed", "cancelled", "declined", "no-show"];
+
 
     const { data, setData, post, processing, errors, reset } = useForm({
         appointment_id: '',
@@ -97,15 +131,27 @@ export default function Appointments({
 
     useEffect(() => {
         if (flash.message) {
-            setFlashState({ message: flash.message, success: flash.success });
+            setFlashState({ 
+                message: flash.message, 
+                success: flash.success 
+            });
+            const timer = setTimeout(() => {
+                setFlashState({ message: null, success: null });
+            }, 5000);
+            return () => clearTimeout(timer);
         }
     }, [flash.message, flash.success]);
 
     useEffect(() => {
         if (flash.message === "Appointment has been booked successfully") {
             setActiveTab("pending");
+        } else if (flash.message === "Appointment has been confirmed as completed") {
+            setActiveTab("completed");
+        } else if (flash.message && flash.message.includes("review")) {
+            setActiveTab("completed");
         }
     }, [flash.message]);
+
 
     // Add effect to check for appointments needing confirmation
     useEffect(() => {
@@ -144,8 +190,66 @@ useEffect(() => {
         }
     }
 }, [completedAppointments]);
+    useEffect(() => {
+        setAppointmentData({
+            pending: pendingAppointments || [],
+            upcoming: upcomingAppointments || [],
+            completed: completedAppointments || [],
+            started: startedAppointments || [],
+            cancelled: cancelledAppointments || [],
+            declined: declinedAppointments || [],
+            "no-show": noShowAppointments || [],
+        });
+    }, [
+        pendingAppointments,
+        upcomingAppointments,
+        completedAppointments,
+        startedAppointments,
+        cancelledAppointments,
+        noShowAppointments,
+        declinedAppointments
+    ]);
+
+    useEffect(() => {
+        pollingIntervalRef.current = setInterval(() => {
+            fetch('/api/appointments/status')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    setAppointmentData(prevData => ({
+                        ...prevData,
+                        ...data
+                    }));
+                })
+                .catch(error => {
+                    console.error('Failed to fetch appointment updates:', error);
+                });
+        }, 60000);
+        
+        return () => {
+            if (pollingIntervalRef.current) {
+                clearInterval(pollingIntervalRef.current);
+            }
+        };
+    }, []);
+
+    const canLeaveReview = (appointment) => {
+        return appointment && 
+            (appointment.status === 'completed' || appointment.status === 'started') && 
+            !appointment.review;
+    };
+
 
     const handleReviewClick = (appointment) => {
+        if (!canLeaveReview(appointment) && !appointment.review) {
+            setError(`You can only review completed or started appointments.`);
+            return;
+        }
+        
         setAppointmentToReview(appointment);
         setIsReviewDialogOpen(true);
         setData({
@@ -159,21 +263,41 @@ useEffect(() => {
         });
         setServiceRating(0);
         setStaffRating(0);
+        setError(null);
+    };
+
+    const handleAppointmentClick = (appointment) => {
+        setSelectedAppointment(appointment);
+        setIsAppointmentDialogOpen(true);
     };
 
     const submitReview = (e) => {
         e.preventDefault();
+        
+        if (!data.service_rating || !data.staff_rating) {
+            setError('Please rate both service and staff before submitting');
+            return;
+        }
+        
         post(route('appointments.review'), {
             preserveScroll: true,
             onSuccess: () => {
                 setIsReviewDialogOpen(false);
-                if (!data.confirm_completion) {
+                if (!data.confirm_completion && appointmentToReview?.status === 'started') {
                     setShowConfirmationDialog(true);
                     confirmCompletionForm.setData('appointment_id', appointmentToReview.id);
                 }
                 reset();
                 setServiceRating(0);
                 setStaffRating(0);
+                setError(null);
+            },
+            onError: (errors) => {
+                if (errors.message) {
+                    setError(errors.message);
+                } else {
+                    setError('An error occurred while submitting your review. Please try again.');
+                }
             }
         });
     };
@@ -187,6 +311,9 @@ useEffect(() => {
                 if (flash.message === "Appointment has been confirmed as completed") {
                     setActiveTab("completed");
                 }
+            },
+            onError: () => {
+                setError('Failed to confirm appointment completion. Please try again.');
             }
         });
     };
@@ -205,12 +332,30 @@ useEffect(() => {
             setServiceRating(appointment.review.service_rating);
             setStaffRating(appointment.review.staff_rating);
             setIsReviewDialogOpen(true);
+            setError(null);
         }
     };
 
+    const getCurrentPageItems = (items) => {
+        if (!items || !Array.isArray(items)) return [];
+        
+        const indexOfLastItem = currentPage * itemsPerPage;
+        const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+        return items.slice(indexOfFirstItem, indexOfLastItem);
+    };
+
+    const totalPages = (items) => {
+        if (!items || !Array.isArray(items)) return 0;
+        return Math.ceil(items.length / itemsPerPage);
+    };
+
     const getAppointmentContent = (type) => {
-        const appointments = appointmentData[type];
+        const appointments = appointmentData[type] || [];
+        const paginatedAppointments = getCurrentPageItems(appointments);
+        const pages = totalPages(appointments);
+        
         return (
+
             <TabsContent value={type}
             className="grid gap-5 mt-0 w-full">
                 {appointments && appointments.length > 0 ? (
@@ -229,9 +374,65 @@ useEffect(() => {
                 ) : (
                     <p>No appointments available.</p>
                 )}
+
+            <TabsContent value={type} className="mt-0 w-full">
+                <div className="grid gap-5">
+                    {appointments.length > 0 ? (
+                        <>
+                            {paginatedAppointments
+                                .filter(appointment => appointment && new Date(appointment.created_at) <= new Date())
+                                .map(appointment => (
+                                    <div 
+                                        key={appointment.id} 
+                                        onClick={() => handleAppointmentClick(appointment)}
+                                        className="cursor-pointer"
+                                    >
+                                        <AppointmentCard
+                                            appointment={appointment}
+                                        />
+                                    </div>
+                                ))
+                            }
+                            
+                            {pages > 1 && (
+                                <Pagination className="mt-4">
+                                    <PaginationContent>
+                                        <PaginationItem>
+                                            <PaginationPrevious 
+                                                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))} 
+                                                disabled={currentPage === 1}
+                                                aria-label="Go to previous page"
+                                            />
+                                        </PaginationItem>
+                                        
+                                        <PaginationItem>
+                                            Page {currentPage} of {pages}
+                                        </PaginationItem>
+                                        
+                                        <PaginationItem>
+                                            <PaginationNext 
+                                                onClick={() => setCurrentPage(prev => Math.min(prev + 1, pages))}
+                                                disabled={currentPage === pages}
+                                                aria-label="Go to next page"
+                                            />
+                                        </PaginationItem>
+                                    </PaginationContent>
+                                </Pagination>
+                            )}
+                        </>
+                    ) : (
+                        <div className="text-center py-8">
+                            <p className="text-muted-foreground">No {type.replace('-', ' ')} appointments found.</p>
+                        </div>
+                    )}
+                </div>
             </TabsContent>
         );
     };
+
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [activeTab]);
 
     return (
         <UserLayout>
@@ -241,6 +442,14 @@ useEffect(() => {
             <h1 className="text-3xl font-semibold mt-2 lg:mb-3 lg:mt-0 uppercase">
                 My Appointments
             </h1>
+
+            {error && (
+                <Alert variant="destructive" className="mb-4">
+                    <AlertTitle>Error</AlertTitle>
+                    <AlertDescription>{error}</AlertDescription>
+                </Alert>
+            )}
+
             <Tabs
                 defaultValue={activeTab}
                 value={activeTab}
@@ -248,13 +457,17 @@ useEffect(() => {
             >
                 <div className="sm:hidden">
                     <Select value={activeTab} onValueChange={setActiveTab}>
-                        <SelectTrigger>
+                        <SelectTrigger aria-label="Select appointment status tab">
                             <SelectValue placeholder="Select a tab" />
                         </SelectTrigger>
                         <SelectContent>
                             {appointmentTypes.map((type) => (
                                 <SelectItem key={type} value={type}>
+
                                     {type.charAt(0).toUpperCase() + type.slice(1)}
+
+                                    {type.replace('-', ' ')}
+                                    {appointmentData[type]?.length > 0 && ` (${appointmentData[type].length})`}
                                 </SelectItem>
                             ))}
                         </SelectContent>
@@ -262,11 +475,24 @@ useEffect(() => {
                 </div>
 
                 <div className="hidden sm:block">
+
                 <TabsList 
                 className="mb-5 block md:inline-flex w-min mx-autolg:mx-0 ">
                         {appointmentTypes.map((type) => (
                             <TabsTrigger key={type} value={type}>
                                 {type.charAt(0).toUpperCase() + type.slice(1)}
+
+                    <TabsList className="mb-5 block md:inline-flex w-min mx-auto lg:mx-0">
+                        {appointmentTypes.map((type) => (
+                            <TabsTrigger 
+                                key={type} 
+                                value={type} 
+                                className="capitalize"
+                                aria-label={`View ${type.replace('-', ' ')} appointments`}
+                            >
+                                {type.replace('-', ' ')}
+                                {appointmentData[type]?.length > 0 && ` (${appointmentData[type].length})`}
+
                             </TabsTrigger>
                         ))}
                     </TabsList>
@@ -277,6 +503,7 @@ useEffect(() => {
                 </div>
             </Tabs>
 
+
             {/* Appointment Completion Confirmation Modal */}
             {appointmentToConfirm && (
                 <CompletionConfirmationModal
@@ -285,6 +512,15 @@ useEffect(() => {
                     onOpenChange={setCompletionModalOpen}
                 />
             )}
+
+            <AppointmentDetailDialog
+                appointment={selectedAppointment}
+                open={isAppointmentDialogOpen}
+                onOpenChange={setIsAppointmentDialogOpen}
+                onReviewClick={handleReviewClick}
+                onViewReview={viewReview}
+                disabled={processing}
+            />
 
             <Dialog open={isReviewDialogOpen} onOpenChange={(open) => {
                 if (!open && appointmentToReview?.review) {
@@ -300,6 +536,13 @@ useEffect(() => {
                                 : "Share your feedback about the service you received"}
                         </DialogDescription>
                     </DialogHeader>
+                    
+                    {error && (
+                        <Alert variant="destructive">
+                            <AlertDescription>{error}</AlertDescription>
+                        </Alert>
+                    )}
+                    
                     <form onSubmit={submitReview}>
                     <div className="grid gap-4 py-4">
                     <div className="space-y-4">
@@ -317,6 +560,9 @@ useEffect(() => {
                                                         setData('service_rating', star);
                                                     }
                                                 }}
+                                                aria-label={`Rate service ${star} out of 5 stars`}
+                                                role="button"
+                                                tabIndex={appointmentToReview?.review ? -1 : 0}
                                             />
                                         ))}
                                     </div>
@@ -338,6 +584,9 @@ useEffect(() => {
                                                         setData('staff_rating', star);
                                                     }
                                                 }}
+                                                aria-label={`Rate staff ${star} out of 5 stars`}
+                                                role="button"
+                                                tabIndex={appointmentToReview?.review ? -1 : 0}
                                             />
                                         ))}
                                     </div>
@@ -346,12 +595,14 @@ useEffect(() => {
                             </div>
 
                             <div>
-                                <Label>Comment</Label>
+                                <Label htmlFor="review-comment">Comment</Label>
                                 <Textarea
+                                    id="review-comment"
                                     value={data.comment}
                                     onChange={(e) => setData('comment', e.target.value)}
                                     rows={4}
                                     disabled={appointmentToReview?.review}
+                                    placeholder="Share your experience with this service (optional)"
                                 />
                                 {errors.comment && <p>{errors.comment}</p>}
                             </div>
@@ -375,6 +626,7 @@ useEffect(() => {
                                 <Button
                                     type="button"
                                     onClick={() => setIsReviewDialogOpen(false)}
+                                    aria-label="Close review dialog"
                                 >
                                     Close
                                 </Button>
@@ -384,14 +636,23 @@ useEffect(() => {
                                         type="button"
                                         variant="outline"
                                         onClick={() => setIsReviewDialogOpen(false)}
+                                        aria-label="Cancel review submission"
                                     >
                                         Cancel
                                     </Button>
                                     <Button
                                         type="submit"
                                         disabled={processing || !serviceRating || !staffRating}
+                                        aria-label="Submit your review"
                                     >
-                                        Submit Review
+                                        {processing ? (
+                                            <>
+                                                <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />
+                                                Submitting...
+                                            </>
+                                        ) : (
+                                            "Submit Review"
+                                        )}
                                     </Button>
                                 </>
                             )}
@@ -413,7 +674,7 @@ useEffect(() => {
                         <AlertDialogCancel>Not Now</AlertDialogCancel>
                         <AlertDialogAction onClick={confirmCompletion}>
                             <CheckCircle className="mr-2 h-4 w-4" />
-                            Confirm Completion
+                            {confirmCompletionForm.processing ? "Processing..." : "Confirm Completion"}
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>

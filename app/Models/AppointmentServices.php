@@ -14,9 +14,9 @@ class AppointmentServices extends Model
     protected $fillable = [
         'appointment_id',
         'service_id',
+        'attendee_id',
+        'staff_id',
         'user_id',
-        'created_at',
-        'updated_at',
     ];
 
     public function appointment()
@@ -24,25 +24,18 @@ class AppointmentServices extends Model
         return $this->belongsTo(Appointments::class, 'appointment_id');
     }
 
-    /**
-     * Get the shop service associated with this appointment service.
-     * This relates to the service_id column which references shop_service_categories.id
-     */
-    public function shop_service()
-    {
-        return $this->belongsTo(ShopServiceCategories::class, 'service_id');
-    }
-    // don't remove both of these functions
-    /**
-     * Alias for shop_service to maintain backward compatibility
-     */
     public function shopService()
     {
         return $this->belongsTo(ShopServiceCategories::class, 'service_id');
     }
 
-    public function user()
+    public function attendee()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(Attendee::class, 'attendee_id');
+    }
+
+    public function staff()
+    {
+        return $this->belongsTo(ShopStaffs::class, 'staff_id');
     }
 }
