@@ -61,7 +61,6 @@ export function Notification({ className, ...props }) {
             router.visit('/appointments?tab=completed', {
                 preserveState: true,
                 onSuccess: () => {
-                    console.log("Navigation complete, modal should show for appointment:", appointmentId);
                 }
             });
             
@@ -110,7 +109,7 @@ export function Notification({ className, ...props }) {
                             const { title = "Notification", message = "No message content.", link } = data;
                             
                             const notificationCard = (
-                                <div className="p-4 rounded-lg m-4 border">
+                                <div className="p-4 bg-background/50 rounded-lg m-4 border">
                                     <div className="mb-4">
                                         <div>{title}</div>
                                         <div className="text-sm text-muted-foreground">
@@ -152,7 +151,7 @@ export function Notification({ className, ...props }) {
                 </ScrollArea>
                 <DrawerFooter className="mt-auto sm:hidden">
                     <DrawerClose asChild>
-                        <Button variant="outline">Close</Button>
+                        <Button variant="outline" className="w-full">Close</Button>
                     </DrawerClose>
                 </DrawerFooter>
             </DrawerContent>

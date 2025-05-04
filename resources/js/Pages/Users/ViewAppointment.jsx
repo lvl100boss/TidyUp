@@ -133,7 +133,7 @@ const ViewAppointment = ({
                     <div>
                         <h3 className="text-lg font-semibold mb-2">Services</h3>
                         {appointmentServices.map((serviceItem) => (
-                            <Card key={serviceItem.id} className="mb-2">
+                            <Card key={serviceItem.id} className="mb-2 background-background/50">
                                 <CardContent className="pt-4">
                                     <div className="flex justify-between items-center">
                                         <div>
