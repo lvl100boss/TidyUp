@@ -44,6 +44,7 @@ import {
     SelectValue,
 } from "@/components/ui/select"
 import FlashMessageWrapper from "@/Components/FlashMessageWrapper"
+import CompletionConfirmationModal from "@/Components/Appointments/CompletionConfirmationModal"
 import {
     Alert,
     AlertDescription,
@@ -75,6 +76,23 @@ export default function Appointments({
     const [serviceRating, setServiceRating] = useState(0);
     const [staffRating, setStaffRating] = useState(0);
     const [showConfirmationDialog, setShowConfirmationDialog] = useState(false);
+
+    // Added states for completion confirmation modal
+    const [completionModalOpen, setCompletionModalOpen] = useState(false);
+    const [appointmentToConfirm, setAppointmentToConfirm] = useState(null);
+
+    const appointmentTypes = ["pending", "upcoming", "started", "completed", "cancelled", "declined", "no-show"];
+
+    const appointmentData = {
+        pending: pendingAppointments,
+        upcoming: upcomingAppointments,
+        completed: completedAppointments,
+        started: startedAppointments,
+        cancelled: cancelledAppointments,
+        "no-show": noShowAppointments,
+        declined: declinedAppointments
+    };
+
     const [selectedAppointment, setSelectedAppointment] = useState(null);
     const [isAppointmentDialogOpen, setIsAppointmentDialogOpen] = useState(false);
     
@@ -94,6 +112,7 @@ export default function Appointments({
     const pollingIntervalRef = useRef(null);
 
     const appointmentTypes = ["pending", "upcoming", "started", "completed", "cancelled", "declined", "no-show"];
+
 
     const { data, setData, post, processing, errors, reset } = useForm({
         appointment_id: '',
@@ -133,6 +152,44 @@ export default function Appointments({
         }
     }, [flash.message]);
 
+
+    // Add effect to check for appointments needing confirmation
+    useEffect(() => {
+        // Find the first appointment that needs confirmation
+        const needsConfirmation = completedAppointments?.find(
+            app => app.status === 'completed' && !app.is_user_confirmed
+        );
+        
+        if (needsConfirmation) {
+            setAppointmentToConfirm(needsConfirmation);
+            setCompletionModalOpen(true);
+        }
+    }, [completedAppointments]);
+
+// Update the useEffect hook that handles sessionStorage
+useEffect(() => {
+    // Check if there's a stored appointment ID from notification click
+    const storedAppointmentId = sessionStorage.getItem('showCompletionModalForAppointment');
+    
+    if (storedAppointmentId) {
+        // Clear the storage so it doesn't trigger again on refresh
+        sessionStorage.removeItem('showCompletionModalForAppointment');
+        
+        // Find the appointment in completed appointments
+        // Add check for is_user_confirmed to prevent showing the modal if already confirmed
+        const appointmentToShow = completedAppointments?.find(
+            app => app.id === parseInt(storedAppointmentId, 10) && 
+                  app.status === 'completed' && 
+                  !app.is_user_confirmed
+        );
+        
+        if (appointmentToShow) {
+            setAppointmentToConfirm(appointmentToShow);
+            setCompletionModalOpen(true);
+            setActiveTab("completed");
+        }
+    }
+}, [completedAppointments]);
     useEffect(() => {
         setAppointmentData({
             pending: pendingAppointments || [],
@@ -185,6 +242,7 @@ export default function Appointments({
             (appointment.status === 'completed' || appointment.status === 'started') && 
             !appointment.review;
     };
+
 
     const handleReviewClick = (appointment) => {
         if (!canLeaveReview(appointment) && !appointment.review) {
@@ -297,6 +355,26 @@ export default function Appointments({
         const pages = totalPages(appointments);
         
         return (
+
+            <TabsContent value={type}
+            className="grid gap-5 mt-0 w-full">
+                {appointments && appointments.length > 0 ? (
+                    appointments
+                        .filter(
+                            (appointment) =>
+                                new Date(appointment.created_at) <= new Date()
+                        )
+                        .map((appointment) => (
+                            <Link href={`/appointments/${appointment.id}`} key={appointment.id}>
+                                <AppointmentCard
+                                    appointment={appointment}
+                                />
+                            </Link>
+                        ))
+                ) : (
+                    <p>No appointments available.</p>
+                )}
+
             <TabsContent value={type} className="mt-0 w-full">
                 <div className="grid gap-5">
                     {appointments.length > 0 ? (
@@ -376,9 +454,8 @@ export default function Appointments({
                 defaultValue={activeTab}
                 value={activeTab}
                 onValueChange={setActiveTab}
-                className="overflow-x-auto whitespace-nowrap mb-20"
             >
-                <div className="sm:hidden w-full">
+                <div className="sm:hidden">
                     <Select value={activeTab} onValueChange={setActiveTab}>
                         <SelectTrigger aria-label="Select appointment status tab">
                             <SelectValue placeholder="Select a tab" />
@@ -386,6 +463,9 @@ export default function Appointments({
                         <SelectContent>
                             {appointmentTypes.map((type) => (
                                 <SelectItem key={type} value={type}>
+
+                                    {type.charAt(0).toUpperCase() + type.slice(1)}
+
                                     {type.replace('-', ' ')}
                                     {appointmentData[type]?.length > 0 && ` (${appointmentData[type].length})`}
                                 </SelectItem>
@@ -395,6 +475,13 @@ export default function Appointments({
                 </div>
 
                 <div className="hidden sm:block">
+
+                <TabsList 
+                className="mb-5 block md:inline-flex w-min mx-autolg:mx-0 ">
+                        {appointmentTypes.map((type) => (
+                            <TabsTrigger key={type} value={type}>
+                                {type.charAt(0).toUpperCase() + type.slice(1)}
+
                     <TabsList className="mb-5 block md:inline-flex w-min mx-auto lg:mx-0">
                         {appointmentTypes.map((type) => (
                             <TabsTrigger 
@@ -405,6 +492,7 @@ export default function Appointments({
                             >
                                 {type.replace('-', ' ')}
                                 {appointmentData[type]?.length > 0 && ` (${appointmentData[type].length})`}
+
                             </TabsTrigger>
                         ))}
                     </TabsList>
@@ -414,6 +502,16 @@ export default function Appointments({
                     {appointmentTypes.map((type) => getAppointmentContent(type))}
                 </div>
             </Tabs>
+
+
+            {/* Appointment Completion Confirmation Modal */}
+            {appointmentToConfirm && (
+                <CompletionConfirmationModal
+                    appointment={appointmentToConfirm}
+                    open={completionModalOpen}
+                    onOpenChange={setCompletionModalOpen}
+                />
+            )}
 
             <AppointmentDetailDialog
                 appointment={selectedAppointment}
@@ -429,7 +527,7 @@ export default function Appointments({
                     setIsReviewDialogOpen(false);
                 }
             }}>
-                <DialogContent className="sm:max-w-[425px]">
+               <DialogContent className="sm:max-w-[425px]">
                     <DialogHeader>
                         <DialogTitle>Rate Your Experience</DialogTitle>
                         <DialogDescription>
@@ -446,11 +544,12 @@ export default function Appointments({
                     )}
                     
                     <form onSubmit={submitReview}>
-                        <div className="grid gap-4 py-4">
-                            <div className="space-y-4">
+                    <div className="grid gap-4 py-4">
+                    <div className="space-y-4">
                                 <div>
-                                    <h3 className="text-sm font-medium mb-2">Service Quality</h3>
-                                    <div className="flex items-center justify-center space-x-1 mb-2">
+                                <h3 className="text-sm font-medium mb-2">Service Quality</h3>
+                                    <div 
+                                    className="flex items-center justify-center space-x-1 mb-2">
                                         {[1, 2, 3, 4, 5].map((star) => (
                                             <Star
                                                 key={star}
@@ -467,16 +566,18 @@ export default function Appointments({
                                             />
                                         ))}
                                     </div>
-                                    {errors.service_rating && <p className="text-red-500 text-sm text-center">{errors.service_rating}</p>}
+        
+                                    {errors.service_rating &&
+                                    <p className="text-red-500 text-sm text-center">
+                                        {errors.service_rating}</p>}
                                 </div>
 
                                 <div>
-                                    <h3 className="text-sm font-medium mb-2">Staff Performance</h3>
-                                    <div className="flex items-center justify-center space-x-1 mb-2">
+                                    <h3>Staff Performance</h3>
+                                    <div>
                                         {[1, 2, 3, 4, 5].map((star) => (
                                             <Star
                                                 key={star}
-                                                className={`${appointmentToReview?.review ? "" : "cursor-pointer"} h-8 w-8 ${star <= staffRating ? "fill-yellow-400 text-yellow-400" : "text-gray-300"}`}
                                                 onClick={() => {
                                                     if (!appointmentToReview?.review) {
                                                         setStaffRating(star);
@@ -489,7 +590,7 @@ export default function Appointments({
                                             />
                                         ))}
                                     </div>
-                                    {errors.staff_rating && <p className="text-red-500 text-sm text-center">{errors.staff_rating}</p>}
+                                    {errors.staff_rating && <p>{errors.staff_rating}</p>}
                                 </div>
                             </div>
 
@@ -503,11 +604,11 @@ export default function Appointments({
                                     disabled={appointmentToReview?.review}
                                     placeholder="Share your experience with this service (optional)"
                                 />
-                                {errors.comment && <p className="text-red-500 text-sm">{errors.comment}</p>}
+                                {errors.comment && <p>{errors.comment}</p>}
                             </div>
 
                             {!appointmentToReview?.review && appointmentToReview?.status === "started" && (
-                                <div className="flex items-center space-x-2">
+                                <div>
                                     <Checkbox
                                         id="confirm_completion"
                                         checked={data.confirm_completion}
@@ -571,7 +672,7 @@ export default function Appointments({
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                         <AlertDialogCancel>Not Now</AlertDialogCancel>
-                        <AlertDialogAction onClick={confirmCompletion} className="bg-primary">
+                        <AlertDialogAction onClick={confirmCompletion}>
                             <CheckCircle className="mr-2 h-4 w-4" />
                             {confirmCompletionForm.processing ? "Processing..." : "Confirm Completion"}
                         </AlertDialogAction>

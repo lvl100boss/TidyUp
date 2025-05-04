@@ -1,3 +1,8 @@
+
+import React, { useState } from 'react';
+import { Head, Link, useForm, usePage, router } from "@inertiajs/react";
+import { Button } from "@/Components/ui/button";
+import { ChevronLeft, LogOut } from "lucide-react";
 import React, { useState, useEffect } from 'react';
 import { Head, Link } from "@inertiajs/react";
 import { Button } from "@/Components/ui/button";
@@ -11,6 +16,24 @@ import {
     CardHeader,
     CardTitle,
 } from "@/components/ui/card";
+import { Textarea } from "@/components/ui/textarea";
+import { Avatar, AvatarImage, AvatarFallback } from '@/Components/ui/avatar';
+import { Separator } from '@/Components/ui/separator';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog";
+
+export default function BookingStepThree({ shop, shopStaff, data, isPreview = false }) {
+    const { auth } = usePage().props;
+    const isAuthenticated = auth.user !== null;
+    const [showLoginDialog, setShowLoginDialog] = useState(false);
+    
+=======
 import { useForm } from "@inertiajs/react";
 import { Input } from "@/Components/ui/input";
 import { Label } from "@/Components/ui/label";
@@ -80,6 +103,13 @@ export default function BookingStepThree({ shop, shopStaff, data }) {
     const handleSubmit = (e) => {
         e.preventDefault();
         
+        // If in preview mode or not authenticated, show login dialog
+        if (isPreview || !isAuthenticated) {
+            setShowLoginDialog(true);
+            return;
+        }
+        
+        post(`/${shop.id}/booking/3`);
         // Validate attendee data before submission
         let hasError = false;
         
@@ -128,7 +158,7 @@ export default function BookingStepThree({ shop, shopStaff, data }) {
                 <div className="min-h-screen">
                     <header className="flex justify-center relative">
                         <Button className="absolute rounded-none border-b border-foreground left-0" variant="ghost" asChild>
-                            <Link href={`/${shop.id}/booking/2`}>
+                            <Link href={isPreview ? `/${shop.id}/preview/booking/2` : `/${shop.id}/booking/2`}>
                                 <span>
                                     <ChevronLeft className="mr-2" />
                                 </span>
@@ -225,6 +255,38 @@ export default function BookingStepThree({ shop, shopStaff, data }) {
                                         >
                                             <Plus className="mr-2 h-4 w-4" /> Add Attendee
                                         </Button>
+
+                                    </CardContent>
+                                </Card>
+                            </div>
+                        </form>
+                    </section>
+                </div>
+            </UserLayout>
+            
+            {/* Authentication Dialog */}
+            <Dialog open={showLoginDialog} onOpenChange={setShowLoginDialog}>
+                <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                        <DialogTitle>Sign in required</DialogTitle>
+                        <DialogDescription>
+                            You need to sign in or create an account to complete your booking.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter className="flex items-center justify-end gap-2">
+                        <Button variant="outline" onClick={() => setShowLoginDialog(false)}>
+                            Cancel
+                        </Button>
+                        <Button onClick={() => router.visit(route('login', { redirect: window.location.pathname }))}>
+                            Sign In
+                        </Button>
+                        <Button variant="default" onClick={() => router.visit(route('register', { redirect: window.location.pathname }))}>
+                            Create Account
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
 
                                         <div className="flex justify-end">
                                             <Button 

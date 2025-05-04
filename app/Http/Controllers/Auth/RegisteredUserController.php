@@ -105,15 +105,31 @@ class RegisteredUserController extends Controller
     {
         $partialUser = session('partial_user');
         $validatedData = $request->validate([
-            'profile_photo_path' => 'required|image|mimes:webp,jpeg,jpg,png|max:20048',
+            'profile_photo_path' => 'nullable|image|mimes:webp,jpeg,jpg,png|max:20048',
             'gender' => 'required|string|in:Male,Female|max:6',
             'contact_number' => 'required|string|max:15',
-            'date_of_birth' => 'required|date|before:today',
+            'date_of_birth' => [
+                'required',
+                'date',
+                'before:today',
+                function ($attribute, $value, $fail) {
+                    $dob = new \DateTime($value);
+                    $today = new \DateTime();
+                    $age = $dob->diff($today)->y;
+                    if ($age < 14) {
+                        $fail('You must be at least 14 years old to register.');
+                    }
+                }
+            ],
         ]);
 
-
-        $path = $request->file('profile_photo_path')->store('profile-photos', 'public');
-        $partialUser['profile_photo_path'] = $path;
+        if ($request->hasFile('profile_photo_path')) {
+            $path = $request->file('profile_photo_path')->store('profile-photos', 'public');
+            $partialUser['profile_photo_path'] = $path;
+        } else {
+            $partialUser['profile_photo_path'] = null;
+        }
+        
         $user = User::create([
             'first_name' => $partialUser['first_name'],
             'middle_name' => $partialUser['middle_name'],
