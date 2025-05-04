@@ -211,7 +211,8 @@ useEffect(() => {
     const getAppointmentContent = (type) => {
         const appointments = appointmentData[type];
         return (
-            <TabsContent value={type}>
+            <TabsContent value={type}
+            className="grid gap-5 mt-0 w-full">
                 {appointments && appointments.length > 0 ? (
                     appointments
                         .filter(
@@ -237,7 +238,7 @@ useEffect(() => {
             <FlashMessageWrapper message={flashState.message} success={flashState.success} />
 
             <Head title="Appointments" />
-            <h1>
+            <h1 className="text-3xl font-semibold mt-2 lg:mb-3 lg:mt-0 uppercase">
                 My Appointments
             </h1>
             <Tabs
@@ -261,7 +262,8 @@ useEffect(() => {
                 </div>
 
                 <div className="hidden sm:block">
-                    <TabsList>
+                <TabsList 
+                className="mb-5 block md:inline-flex w-min mx-autolg:mx-0 ">
                         {appointmentTypes.map((type) => (
                             <TabsTrigger key={type} value={type}>
                                 {type.charAt(0).toUpperCase() + type.slice(1)}
@@ -270,7 +272,7 @@ useEffect(() => {
                     </TabsList>
                 </div>
 
-                <div>
+                <div className="tab-content-wrapper">
                     {appointmentTypes.map((type) => getAppointmentContent(type))}
                 </div>
             </Tabs>
@@ -289,7 +291,7 @@ useEffect(() => {
                     setIsReviewDialogOpen(false);
                 }
             }}>
-                <DialogContent>
+               <DialogContent className="sm:max-w-[425px]">
                     <DialogHeader>
                         <DialogTitle>Rate Your Experience</DialogTitle>
                         <DialogDescription>
@@ -299,14 +301,16 @@ useEffect(() => {
                         </DialogDescription>
                     </DialogHeader>
                     <form onSubmit={submitReview}>
-                        <div>
-                            <div>
+                    <div className="grid gap-4 py-4">
+                    <div className="space-y-4">
                                 <div>
-                                    <h3>Service Quality</h3>
-                                    <div>
+                                <h3 className="text-sm font-medium mb-2">Service Quality</h3>
+                                    <div 
+                                    className="flex items-center justify-center space-x-1 mb-2">
                                         {[1, 2, 3, 4, 5].map((star) => (
                                             <Star
                                                 key={star}
+                                                className={`${appointmentToReview?.review ? "" : "cursor-pointer"} h-8 w-8 ${star <= serviceRating ? "fill-yellow-400 text-yellow-400" : "text-gray-300"}`}
                                                 onClick={() => {
                                                     if (!appointmentToReview?.review) {
                                                         setServiceRating(star);
@@ -316,7 +320,10 @@ useEffect(() => {
                                             />
                                         ))}
                                     </div>
-                                    {errors.service_rating && <p>{errors.service_rating}</p>}
+        
+                                    {errors.service_rating &&
+                                    <p className="text-red-500 text-sm text-center">
+                                        {errors.service_rating}</p>}
                                 </div>
 
                                 <div>
