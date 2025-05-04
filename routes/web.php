@@ -75,11 +75,18 @@ Route::get('/{id}/shop', [ShopController::class, 'show'])->where('id', '[0-9]+')
 
 Route::post('/reviews', [ReviewController::class, 'store'])->name('reviews.store');
 
-// User appointment routes
-Route::post('/appointments/confirm-completion', [AppointmentController::class, 'confirmCompletion'])->name('appointments.confirm-completion');
-
-Route::get('/shop/setup', [ShopController::class, 'create'])->name('shop.setup');
-Route::post('/shop/setup', [ShopController::class, 'store'])->name('shop.store');
+// Appointment routes
+Route::middleware(['auth'])->group(function () {
+    // Existing appointment routes
+    Route::get('/appointments', [AppointmentController::class, 'index'])->name('appointments');
+    Route::get('/appointments/{id}', [AppointmentController::class, 'show'])->name('appointments.show');
+    Route::post('/appointments/review', [AppointmentController::class, 'review'])->name('appointments.review');
+    Route::post('/appointments/confirm-completion', [AppointmentController::class, 'confirmCompletion'])->name('appointments.confirm-completion');
+    Route::post('/appointments/reschedule', [AppointmentController::class, 'requestReschedule'])->name('appointments.reschedule');
+    Route::get('/appointments/available-slots', [AppointmentController::class, 'getAvailableTimeSlots'])->name('appointments.available-slots');
+    Route::post('/appointments/cancel', [AppointmentController::class, 'cancelAppointment'])->name('appointments.cancel');
+    Route::post('/appointments/decline', [AppointmentController::class, 'declineAppointment'])->name('appointments.user.decline');
+});
 
 // Admin routes
 Route::prefix('admin')->name('admin.')->middleware(['auth', 'web'])->group(function () {
@@ -98,16 +105,6 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'web'])->group(funct
 
     // Other admin routes...
 });
-
-// // Add a diagnostic route to check authentication
-// Route::get('/check-auth', function () {
-//     return response()->json([
-//         'authenticated' => auth()->check(),
-//         'user' => auth()->check() ? auth()->user() : null,
-//         'session_id' => session()->getId(),
-//         'csrf_token' => csrf_token()
-//     ]);
-// })->middleware(['web']);
 
 require __DIR__ . '/auth.php';
 require __DIR__ . '/booking.php';

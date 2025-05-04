@@ -11,12 +11,22 @@ import BookingServiceTabs from "@/Components/Shop/ShopPage/BookingServiceTabs";
 export default function BookingStepOne({ shop, shopStaff, data }) {
     const { data: formData, setData, post, processing, errors } = useForm({
         shop_id: shop.id,
-        service_id: [],
-        total_price: 0,
+        service_id: data?.service_id || [],
+        total_price: data?.total_price || 0,
+        attendees: data?.attendees || [],
+        buffer_time_minutes: shop?.settings?.buffer_time_minutes || 30
     });
+
+    const hasSelectedServices = formData.service_id && formData.service_id.length > 0;
 
     const handleSubmit = (e) => {
         e.preventDefault();
+
+        if (!hasSelectedServices) {
+            alert("Please select at least one service");
+            return;
+        }
+
         post(`/${shop.id}/booking/1`);
     };
 
@@ -86,6 +96,16 @@ export default function BookingStepOne({ shop, shopStaff, data }) {
                                     >
                                         Next
                                     </Button>
+                                    {errors.service_id && (
+                                        <p className="text-sm text-destructive mt-2 text-center">
+                                            {errors.service_id}
+                                        </p>
+                                    )}
+                                    {!hasSelectedServices && (
+                                        <p className="text-sm text-muted-foreground mt-2 text-center">
+                                            Please select at least one service to continue
+                                        </p>
+                                    )}
                                 </form>
                             </div>
                         </div>
