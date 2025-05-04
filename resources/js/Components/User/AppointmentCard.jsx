@@ -9,7 +9,7 @@ const AppointmentCard = ({ appointment }) => {
         month: "short",
         day: "2-digit",
     });
-    const time = new Date(`1970-01-01T${appointment.time}Z`).toLocaleTimeString(
+    const time = new Date(`1970-01-01T${appointment.time}`).toLocaleTimeString(
         "en-US",
         {
             hour: "2-digit",
