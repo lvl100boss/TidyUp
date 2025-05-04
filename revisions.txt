@@ -8,8 +8,8 @@ Minor Revisions:
 [/] Settings and profile should be distinct (remove settings or profile)
 [-][by Art] Register shop (sometimes buggy ang next button) Remake the Register shop Process
 [X] Make Every Page Responsive.
-[-][by pol] Prevent users from booking time slots earlier than the current time.
-[-][by pol] Require users to book at least 1 hour in advance to avoid last-minute bookings.
+[/][by pol] Prevent users from booking time slots earlier than the current time.
+[/][by pol] Require users to book at least 1 hour in advance to avoid last-minute bookings.
 [-][by pol] Update Status in Admin Shop must not be a dropdown. (for example, There should only be a button for Verify or Reject)
 [-][by pol] There Must be A notification for Almost all activity in the Website.
 [/][by pol] There Must be Age limit when registering Birth Date.
