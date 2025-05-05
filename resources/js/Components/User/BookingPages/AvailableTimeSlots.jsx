@@ -26,13 +26,19 @@ export default function AvailableTimeSlots({
 
     // Calculate total duration for selected services - SUM not MAX
     const calculateTotalDuration = (serviceIds) => {
-        if (!Array.isArray(serviceIds) || serviceIds.length === 0) return 30; // Default minimum
+        // Use shop's minimum duration setting or fall back to 30 minutes
+        const minimumDuration = shop?.settings?.minimum_duration_minutes || 30;
+        
+        if (!Array.isArray(serviceIds) || serviceIds.length === 0) return minimumDuration;
 
-        return serviceIds.reduce((total, id) => {
+        const calculatedDuration = serviceIds.reduce((total, id) => {
             const service = shopServiceCategories.find(s => s.id === id);
             if (!service) return total;
             return total + ((service.duration_hour * 60) + service.duration_minute);
         }, 0);
+        
+        // Ensure the duration is at least the minimum
+        return Math.max(minimumDuration, calculatedDuration);
     };
 
     // State for service duration explanation
@@ -171,7 +177,6 @@ if (isToday) {
         // First check if the time is in the past
         if (isTimeSlotInPast(time)) return false;
         
-        // Check if the appointment would extend beyond shop closing hours
         const currentMinutes = parseTimeToMinutes(time);
         const serviceEndMinutes = currentMinutes + totalServiceDuration;
         const bufferEndMinutes = serviceEndMinutes + BUFFER_TIME_MINUTES;
@@ -179,15 +184,18 @@ if (isToday) {
         // Get closing time in minutes
         const closingTimeMinutes = parseTimeToMinutes(closingTime);
         
-        // If the service (including buffer) would end after closing time, mark as unavailable
+        // If the service would end after closing time, mark as unavailable
         if (bufferEndMinutes > closingTimeMinutes) return false;
-        
+
+        // Check existing appointments (including pending)
         const staffAppointments = shopStaff[staffIndex]?.appointments || [];
+        
+        // Check ALL types of active appointments - including pending ones
         const bookedRanges = staffAppointments
             .filter(appointment =>
                 new Date(appointment.appointment.date).toLocaleDateString() ===
                 new Date(selectedDate).toLocaleDateString() &&
-                appointment.appointment.status === "upcoming"
+                ['pending', 'upcoming', 'started'].includes(appointment.appointment.status)
             )
             .map(appointment => {
                 const serviceDurations = appointment.appointment.appointment_services.map(svc => {
@@ -197,18 +205,68 @@ if (isToday) {
                 });
 
                 const totalDuration = serviceDurations.reduce((sum, duration) => sum + duration, 0);
-
                 const durationWithBuffer = totalDuration + BUFFER_TIME_MINUTES;
                 const startMinutes = parseTimeToMinutes(appointment.appointment.time);
                 const endMinutes = startMinutes + durationWithBuffer;
-                return [startMinutes, endMinutes];
+                
+                // Include appointment status for potential UI differentiation
+                return {
+                    startMinutes,
+                    endMinutes,
+                    status: appointment.appointment.status
+                };
             });
 
-        return !bookedRanges.some(([startM, endM]) =>
-            (currentMinutes >= startM && currentMinutes < endM) ||
-            (bufferEndMinutes > startM && currentMinutes < endM) ||
-            (currentMinutes <= startM && bufferEndMinutes >= endM)
+        // Check if the current time slot overlaps with any booked range
+        return !bookedRanges.some(range => 
+            (currentMinutes >= range.startMinutes && currentMinutes < range.endMinutes) ||
+            (bufferEndMinutes > range.startMinutes && currentMinutes < range.endMinutes) ||
+            (currentMinutes <= range.startMinutes && bufferEndMinutes >= range.endMinutes)
         );
+    };
+
+    // New helper function to determine if a slot has a pending appointment
+    const getPendingAppointmentInfo = (time, staffIndex) => {
+        if (!shopStaff[staffIndex]?.appointments) return null;
+        
+        const currentMinutes = parseTimeToMinutes(time);
+        const serviceEndMinutes = currentMinutes + totalServiceDuration;
+        const bufferEndMinutes = serviceEndMinutes + BUFFER_TIME_MINUTES;
+        
+        const staffAppointments = shopStaff[staffIndex].appointments;
+        
+        // Find pending appointments that overlap with this time slot
+        const pendingAppointments = staffAppointments
+            .filter(appointment => 
+                new Date(appointment.appointment.date).toLocaleDateString() === 
+                new Date(selectedDate).toLocaleDateString() && 
+                appointment.appointment.status === 'pending'
+            )
+            .map(appointment => {
+                const serviceDurations = appointment.appointment.appointment_services.map(svc => {
+                    const serviceInfo = shopServiceCategories.find(s => s.id === svc.service_id);
+                    if (!serviceInfo) return 0;
+                    return serviceInfo.duration_hour * 60 + serviceInfo.duration_minute;
+                });
+
+                const totalDuration = serviceDurations.reduce((sum, duration) => sum + duration, 0);
+                const durationWithBuffer = totalDuration + BUFFER_TIME_MINUTES;
+                const startMinutes = parseTimeToMinutes(appointment.appointment.time);
+                const endMinutes = startMinutes + durationWithBuffer;
+                
+                return {
+                    startMinutes,
+                    endMinutes,
+                    id: appointment.appointment.id
+                };
+            })
+            .filter(appt => 
+                (currentMinutes >= appt.startMinutes && currentMinutes < appt.endMinutes) ||
+                (bufferEndMinutes > appt.startMinutes && currentMinutes < appt.endMinutes) ||
+                (currentMinutes <= appt.startMinutes && bufferEndMinutes >= appt.endMinutes)
+            );
+            
+        return pendingAppointments.length > 0 ? pendingAppointments[0] : null;
     };
 
     // Get the next available time for a staff
@@ -236,7 +294,10 @@ if (isToday) {
         const startTime = new Date();
         startTime.setHours(hours, minutes, seconds);
 
+        // Calculate when service ends (start time + service duration)
         const endTime = new Date(startTime.getTime() + totalServiceDuration * 60000);
+        
+        // Calculate when buffer ends (service end time + buffer time)
         const bufferEndTime = new Date(endTime.getTime() + BUFFER_TIME_MINUTES * 60000);
 
         return {
@@ -286,6 +347,7 @@ if (isToday) {
                     <React.Fragment key={`chunk-${chunkIndex}`}>
                         {chunk.map((time, index) => {
                             const isAvailable = selectedStaff !== null && isTimeSlotAvailable(time, selectedStaff);
+                            const pendingInfo = selectedStaff !== null ? getPendingAppointmentInfo(time, selectedStaff) : null;
                             const formattedTime = new Date(`2021-01-01T${time}`).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
 
                             const { serviceEnd, bufferEnd } = calculateEndTimes(time);
@@ -298,7 +360,9 @@ if (isToday) {
                             
                             const unavailableReason = wouldEndAfterHours 
                                 ? 'Would end after closing time' 
-                                : '(Unavailable)';
+                                : pendingInfo 
+                                    ? 'Has pending appointment'
+                                    : '(Unavailable)';
 
                             return (
                                 <div key={`${chunkIndex}-${index}`} className="space-y-1">
@@ -307,17 +371,23 @@ if (isToday) {
                                         aria-label={`Select ${formattedTime}`}
                                         className={`block w-full text-left pl-6 h-auto py-2 font-bold 
                                                 data-[state=on]:bg-foreground data-[state=on]:text-background
-                                                ${!isAvailable ? 'bg-secondary text-muted-foreground' : ''}`}
-                                        disabled={selectedStaff === null || !isAvailable}
+                                                ${!isAvailable ? 'bg-secondary text-muted-foreground' : ''}
+                                                ${pendingInfo ? 'bg-amber-100 text-amber-800 border-amber-300' : ''}`}
+                                        disabled={selectedStaff === null || !isAvailable || !!pendingInfo}
                                     >
                                         <div className="flex flex-col">
                                             <div className="flex items-center justify-between px-2">
                                                 <span>{formattedTime}</span>
                                                 <span>
-                                                    {isAvailable ? serviceEnd : unavailableReason}
+                                                    {isAvailable && !pendingInfo ? serviceEnd : unavailableReason}
                                                 </span>
                                             </div>
-                                            {isAvailable && (
+                                            {pendingInfo && (
+                                                <div className="text-xs text-amber-700 px-2 mt-1">
+                                                    <span className="font-medium">Pending Appointment</span>
+                                                </div>
+                                            )}
+                                            {isAvailable && !pendingInfo && (
                                                 <div className="flex items-center text-xs mt-1 text-muted-foreground">
                                                     <div className="w-full px-2">
                                                         <div className="flex justify-between">

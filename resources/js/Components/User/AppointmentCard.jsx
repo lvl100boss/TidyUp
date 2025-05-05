@@ -16,20 +16,37 @@ const AppointmentCard = ({ appointment, onReviewClick, onViewReview }) => {
         month: "short",
         day: "2-digit",
     });
-    const time = new Date(`1970-01-01T${appointment.time}`).toLocaleTimeString(
-        "en-US",
-        {
-            hour: "2-digit",
-            minute: "2-digit",
-            hour12: true,
-        }
-    );
 
     // Calculate service end time
+    
+    // Format the time string properly using a fixed date to avoid timezone issues
+    const formatTime = (timeString) => {
+        if (!timeString) return "";
+        try {
+            // Use 1970-01-01 as a fixed base date to avoid timezone issues
+            return new Date(`1970-01-01T${timeString}`).toLocaleTimeString(
+                "en-US",
+                {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    hour12: true,
+                }
+            );
+        } catch (error) {
+            console.error("Error formatting time:", error);
+            return timeString;
+        }
+    };
+    
+    const time = formatTime(appointment.time);
+
+    // Calculate service end time with consistent format
     const calculateEndTime = () => {
         try {
-            // Parse the time
-            const [hours, minutes] = appointment.time.split(':');
+            if (!appointment.time) return null;
+            
+            // Parse the time using a fixed date
+            const baseTime = new Date(`1970-01-01T${appointment.time}`);
             
             // Get total duration from all services
             let totalDuration = 0;
@@ -40,32 +57,34 @@ const AppointmentCard = ({ appointment, onReviewClick, onViewReview }) => {
                 }
             });
 
-            // Use 30 min as minimum duration or use the appointment's buffer time if available
-            const bufferTime = appointment.buffer_time_minutes || 30;
+            // Use 30 min as minimum duration
             totalDuration = Math.max(30, totalDuration);
             
-            const startTime = new Date();
-            startTime.setHours(hours, minutes, 0);
-            
-            const endTime = new Date(startTime.getTime() + totalDuration * 60000);
+            // Create end time by adding duration to start time
+            const endTime = new Date(baseTime.getTime() + totalDuration * 60000);
             
             return endTime.toLocaleTimeString('en-US', {
                 hour: '2-digit',
                 minute: '2-digit',
                 hour12: true
             });
-        } catch {
+        } catch (error) {
+            console.error("Error calculating end time:", error);
             return null;
         }
     };
     
     const endTime = calculateEndTime();
     
-    // Get buffer time end (service end time + buffer time)
+    // Calculate buffer end time with consistent format
     const calculateBufferEndTime = () => {
         try {
-            const [hours, minutes] = appointment.time.split(':');
+            if (!appointment.time) return null;
             
+            // Parse the time using a fixed date
+            const baseTime = new Date(`1970-01-01T${appointment.time}`);
+            
+            // Get total duration from all services
             let totalDuration = 0;
             appointment.appointment_services?.forEach(service => {
                 if (service.shop_service) {
@@ -74,21 +93,23 @@ const AppointmentCard = ({ appointment, onReviewClick, onViewReview }) => {
                 }
             });
 
+            // Ensure minimum duration and get buffer time
             const bufferTime = appointment.buffer_time_minutes || 30;
             totalDuration = Math.max(30, totalDuration);
             
-            const startTime = new Date();
-            startTime.setHours(hours, minutes, 0);
+            // Calculate service end time
+            const serviceEndTime = new Date(baseTime.getTime() + totalDuration * 60000);
             
-            const serviceEndTime = new Date(startTime.getTime() + totalDuration * 60000);
-            const bufferEndTime = new Date(serviceEndTime.getTime() + (bufferTime * 60000));
+            // Add buffer time to get buffer end time
+            const bufferEndTime = new Date(serviceEndTime.getTime() + bufferTime * 60000);
             
             return bufferEndTime.toLocaleTimeString('en-US', {
                 hour: '2-digit',
                 minute: '2-digit',
                 hour12: true
             });
-        } catch {
+        } catch (error) {
+            console.error("Error calculating buffer end time:", error);
             return null;
         }
     };
@@ -171,7 +192,8 @@ const AppointmentCard = ({ appointment, onReviewClick, onViewReview }) => {
                                 
                                 <div className="flex items-center">
                                     <Clock className="h-3.5 w-3.5 mr-1" />
-                                    {time}{endTime ? ` - ${endTime}` : ''}{bufferEndTime ? ` (Buffer: ${bufferEndTime})` : ''}
+                                    {time}{endTime ? ` - ${endTime}` : ''}
+                                    {bufferEndTime ? ` (Buffer: ${bufferEndTime})` : ''}
                                 </div>
                             </div>
                             
