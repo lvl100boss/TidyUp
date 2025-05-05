@@ -23,4 +23,7 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/{shop}/booking/3', [BookingController::class, 'stepThree'])->name('booking.step.three');
     Route::post('/{shop}/booking/3', [BookingController::class, 'stepThreeStore'])->name('booking.step.three.store');
+
+    // Thank you page route
+    Route::get('/{shop}/booking/thank-you/{appointment}', [BookingController::class, 'thankYou'])->name('booking.thank-you');
 });
