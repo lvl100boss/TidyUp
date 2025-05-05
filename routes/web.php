@@ -66,6 +66,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/shop/setup', [ShopController::class, 'create'])->name('shop.setup');
         Route::post('/shop/setup', [ShopController::class, 'store'])->name('shop.store');
     });
+
+    // Add the thank you page route
+    Route::get('/{shop}/booking/thank-you/{appointment}', [BookingController::class, 'thankYou'])->name('booking.thank-you');
 });
 
 // Fix the shop detail route pattern to match the links being generated
