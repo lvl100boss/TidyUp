@@ -24,7 +24,7 @@ Minor Revisions:
 [-][by pol] allow user to report an issue for the user confirmation regarding the appointment completion.(should be reflected in admin user support)
 
 Major Revisions:
-[X] Allow Multiple User/Customer for Booking.
+[/] Allow Multiple User/Customer for Booking.
 [X] Something About Time Conflict (Check this if all the items below are checked) 
 Possible Scenarios Need to be handle by the system:
 - What if the Customer Arrives Earlier Than Expected? [ ]
