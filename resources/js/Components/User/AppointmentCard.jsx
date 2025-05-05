@@ -16,6 +16,7 @@ const AppointmentCard = ({ appointment, onReviewClick, onViewReview }) => {
         month: "short",
         day: "2-digit",
     });
+
     
     // Format the time string properly using a fixed date to avoid timezone issues
     const formatTime = (timeString) => {
@@ -33,6 +34,14 @@ const AppointmentCard = ({ appointment, onReviewClick, onViewReview }) => {
         } catch (error) {
             console.error("Error formatting time:", error);
             return timeString;
+
+    const time = new Date(`1970-01-01T${appointment.time}`).toLocaleTimeString(
+        "en-US",
+        {
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: true,
+
         }
     };
     

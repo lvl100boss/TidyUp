@@ -121,6 +121,50 @@ export default function AvailableTimeSlots({
             return false;
         }
 
+    // Filter time slots to only show those within business hours
+    const businessHourTimeSlots = isOpen ? timeSlots.filter(time => {
+          // Check if time is within business hours
+    const isWithinBusinessHours = time >= openingTime && time <= closingTime;
+    
+    // Check if selected date is today
+    const today = new Date();
+    const isToday = new Date(selectedDate).toDateString() === today.toDateString();
+    
+    // If today, also filter out times that have already passed
+    if (isToday) {
+        const currentHour = today.getHours();
+        const currentMinute = today.getMinutes();
+        const currentTimeString = `${currentHour.toString().padStart(2, '0')}:${currentMinute.toString().padStart(2, '0')}:00`;
+        return isWithinBusinessHours && time > currentTimeString;
+    }
+    
+    // For future dates, just use the business hours filter
+    return isWithinBusinessHours;
+}) : [];
+
+    // Check if a specific time slot is available (not booked)
+    const isTimeSlotAvailable = (time) => {
+// requires user to book 1 hr from now on to prevent oraorada
+const today = new Date();
+const isToday = new Date(selectedDate).toDateString() === today.toDateString();
+
+if (isToday) {
+    // Create a buffer time 1 hour from now
+    const bufferTime = new Date(today);
+    bufferTime.setHours(bufferTime.getHours() + 1);
+    
+    // Convert the time slot to a Date object for comparison
+    const [slotHour, slotMinute] = time.split(':').map(Number);
+    const slotTime = new Date(selectedDate);
+    slotTime.setHours(slotHour, slotMinute, 0, 0);
+    
+    // If the slot is within the next hour, mark as unavailable
+    if (slotTime <= bufferTime) {
+        return false;
+    }
+}
+        
+        const staffAppointments = shopStaff[selectedStaff]?.appointments || [];
         const [hours, minutes] = timeSlot.split(':');
         const slotTime = new Date();
         slotTime.setHours(parseInt(hours), parseInt(minutes), 0);

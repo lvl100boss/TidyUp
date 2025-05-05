@@ -89,6 +89,39 @@ class AppointmentController extends Controller
      */
     public function confirmCompletion(Request $request)
     {
+        $appointmentId = $request->input('appointment_id');
+        $appointment = Appointments::find($appointmentId);
+        
+        if (!$appointment) {
+            return redirect()->back()
+                ->with('message', 'Appointment not found')
+                ->with('success', false);
+        }
+        
+        // Verify the appointment belongs to the authenticated user
+        if ($appointment->user_id !== Auth::id()) {
+            return redirect()->back()
+                ->with('message', 'Unauthorized action')
+                ->with('success', false);
+        }
+        
+        DB::beginTransaction();
+        try {
+            // Update the appointment to confirm it's completed
+            $appointment->is_user_confirmed = true;
+            $appointment->is_successful = true;
+            $appointment->save();
+            
+            DB::commit();
+            
+            return redirect()->route('appointments', ['tab' => 'completed'])
+                ->with('message', 'Appointment has been confirmed as completed')
+                ->with('success', true);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()
+                ->with('message', 'An error occurred while confirming appointment completion: ' . $e->getMessage())
+                ->with('success', false);
         try {
             $appointment = Appointments::findOrFail($request->appointment_id);
             
