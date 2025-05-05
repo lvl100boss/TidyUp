@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { Head, Link } from "@inertiajs/react";
 import { Button } from "@/Components/ui/button";
-import { ChevronLeft, LogOut } from "lucide-react";
+import { ChevronLeft, LogOut, AlertCircle } from "lucide-react";
 import StepsIndicator from "@/Components/User/BookingPages/StepsIndicator";
 import UserLayout from "@/Layouts/UserLayout";
 import {
@@ -24,7 +24,6 @@ import {
 import { Checkbox } from "@/Components/ui/checkbox";
 import { Label } from "@/Components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { AlertCircle } from "lucide-react";
 import {
     Alert,
     AlertDescription,
@@ -36,6 +35,7 @@ export default function BookingStepFour({ shop, staffList, data }) {
     const [validationStatus, setValidationStatus] = useState({ isValid: false, errors: {} });
     const [isInitializing, setIsInitializing] = useState(true);
     const [initializedData, setInitializedData] = useState(false);
+    const [groupedServices, setGroupedServices] = useState({});
     
     const bufferTimeMinutes = data?.buffer_time_minutes || shop?.settings?.buffer_time_minutes || 30;
     
@@ -45,6 +45,24 @@ export default function BookingStepFour({ shop, staffList, data }) {
     });
     
     const BUFFER_TIME_MINUTES = formData.buffer_time_minutes;
+
+    useEffect(() => {
+        if (shop?.shop_service_categories) {
+            const grouped = {};
+            
+            shop.shop_service_categories.forEach(service => {
+                const category = service.service_categories?.name || 'Other';
+                
+                if (!grouped[category]) {
+                    grouped[category] = [];
+                }
+                
+                grouped[category].push(service);
+            });
+            
+            setGroupedServices(grouped);
+        }
+    }, [shop]);
 
     function initializeAttendeeServices() {
         try {
@@ -73,6 +91,189 @@ export default function BookingStepFour({ shop, staffList, data }) {
             return [];
         }
     }
+
+    const isStaffAssignedToOther = (staffId, currentAttendeeIndex) => {
+        if (!formData.attendee_services || !Array.isArray(formData.attendee_services)) {
+            return false;
+        }
+        
+        return formData.attendee_services.some((service, index) => 
+            index !== currentAttendeeIndex && service.staff_id === staffId
+        );
+    };
+
+    const isStaffAssignedToMultipleAttendees = (staffId) => {
+        if (!formData.attendee_services || !Array.isArray(formData.attendee_services)) {
+            return false;
+        }
+        
+        const assignedCount = formData.attendee_services.filter(service => 
+            service.staff_id === staffId
+        ).length;
+        
+        return assignedCount > 1;
+    };
+
+    const wouldStaffHaveConflicts = (staffId) => {
+        if (!staffId || !formData.attendee_services || !Array.isArray(formData.attendee_services)) {
+            return false;
+        }
+        
+        const staffServices = [];
+        
+        formData.attendee_services.forEach(service => {
+            if (service.staff_id === staffId && Array.isArray(service.services)) {
+                staffServices.push(...service.services);
+            }
+        });
+        
+        const totalDuration = calculateTotalDurationForStaff(staffId, staffServices);
+        
+        const totalWithBuffer = totalDuration + BUFFER_TIME_MINUTES;
+        
+        return totalWithBuffer > 120;
+    };
+
+    const calculateTotalDurationForStaff = useMemo(() => (staffId, serviceIds) => {
+        if (!serviceIds || !Array.isArray(serviceIds) || serviceIds.length === 0) {
+            return 0;
+        }
+        
+        if (!shop?.shop_service_categories) {
+            return 0;
+        }
+        
+        let totalDuration = 0;
+        
+        serviceIds.forEach(serviceId => {
+            const service = shop.shop_service_categories.find(s => s.id === serviceId);
+            if (service) {
+                totalDuration += (service.duration_hour * 60) + service.duration_minute;
+            }
+        });
+        
+        return Math.max(30, totalDuration);
+    }, [shop?.shop_service_categories]);
+
+    const getStaffConflicts = useMemo(() => {
+        const conflicts = {};
+        
+        if (!formData.attendee_services || !Array.isArray(formData.attendee_services)) {
+            return conflicts;
+        }
+        
+        const staffServiceMap = {};
+        
+        formData.attendee_services.forEach(attendeeService => {
+            const staffId = attendeeService.staff_id;
+            if (!staffId || !Array.isArray(attendeeService.services)) return;
+            
+            if (!staffServiceMap[staffId]) {
+                staffServiceMap[staffId] = [];
+            }
+            
+            staffServiceMap[staffId] = [...staffServiceMap[staffId], ...attendeeService.services];
+        });
+        
+        Object.entries(staffServiceMap).forEach(([staffId, services]) => {
+            const duration = calculateTotalDurationForStaff(staffId, services);
+            const totalWithBuffer = duration + BUFFER_TIME_MINUTES;
+            
+            if (totalWithBuffer > 120) {
+                const affectedAttendees = [];
+                
+                formData.attendee_services.forEach((service, index) => {
+                    if (service.staff_id === staffId) {
+                        affectedAttendees.push(index);
+                    }
+                });
+                
+                conflicts[staffId] = {
+                    duration: totalWithBuffer,
+                    attendees: affectedAttendees
+                };
+            }
+        });
+        
+        return conflicts;
+    }, [formData.attendee_services, calculateTotalDurationForStaff, BUFFER_TIME_MINUTES]);
+
+    const calculateStaffDurations = () => {
+        const staffServices = {};
+        
+        if (!formData.attendee_services || !Array.isArray(formData.attendee_services)) {
+            return {};
+        }
+        
+        formData.attendee_services.forEach(attendeeService => {
+            const { staff_id, services } = attendeeService;
+            if (!staff_id || !Array.isArray(services) || services.length === 0) return;
+            
+            if (!staffServices[staff_id]) {
+                staffServices[staff_id] = [];
+            }
+            
+            staffServices[staff_id] = [...staffServices[staff_id], ...services];
+        });
+        
+        const staffDurations = {};
+        Object.entries(staffServices).forEach(([staffId, serviceIds]) => {
+            const totalDuration = calculateTotalDurationForStaff(staffId, serviceIds);
+            staffDurations[staffId] = totalDuration + BUFFER_TIME_MINUTES;
+        });
+        
+        return staffDurations;
+    };
+
+    const getAttendeeError = (attendeeIndex, field) => {
+        return validationStatus.errors[`attendee_${attendeeIndex}_${field}`];
+    };
+
+    const isServiceSelected = (attendeeIndex, serviceId) => {
+        if (!formData.attendee_services || !formData.attendee_services[attendeeIndex]) {
+            return false;
+        }
+        
+        return formData.attendee_services[attendeeIndex].services?.includes(serviceId);
+    };
+
+    const toggleService = (attendeeIndex, serviceId) => {
+        const attendeeServices = [...formData.attendee_services];
+        
+        if (!attendeeServices[attendeeIndex]) {
+            return;
+        }
+        
+        let services = [...(attendeeServices[attendeeIndex].services || [])];
+        
+        if (services.includes(serviceId)) {
+            services = services.filter(id => id !== serviceId);
+        } else {
+            services.push(serviceId);
+        }
+        
+        attendeeServices[attendeeIndex] = {
+            ...attendeeServices[attendeeIndex],
+            services
+        };
+        
+        setData('attendee_services', attendeeServices);
+    };
+
+    const handleStaffSelection = (attendeeIndex, staffId) => {
+        const attendeeServices = [...formData.attendee_services];
+        
+        if (!attendeeServices[attendeeIndex]) {
+            return;
+        }
+        
+        attendeeServices[attendeeIndex] = {
+            ...attendeeServices[attendeeIndex],
+            staff_id: staffId
+        };
+        
+        setData('attendee_services', attendeeServices);
+    };
 
     useEffect(() => {
         if (isInitializing && !initializedData) {
@@ -108,62 +309,6 @@ export default function BookingStepFour({ shop, staffList, data }) {
             return () => clearTimeout(timer);
         }
     }, [data, initializedData, isInitializing]);
-
-    const calculateMaxDuration = (serviceIds) => {
-        if (!serviceIds || !Array.isArray(serviceIds) || serviceIds.length === 0) return 0;
-        if (!shop?.shop_service_categories) return 0;
-        
-        const serviceDurations = serviceIds.map(serviceId => {
-            const service = shop.shop_service_categories.find(s => s.id === serviceId);
-            if (!service) return 0;
-            return (service.duration_hour * 60) + service.duration_minute;
-        });
-        
-        return serviceDurations.length > 0 ? Math.max(...serviceDurations) : 30;
-    };
-
-    const calculateTotalDurationForStaff = (staffId, serviceIds) => {
-        if (!serviceIds || !Array.isArray(serviceIds) || serviceIds.length === 0) return 0;
-        if (!shop?.shop_service_categories) return 0;
-        
-        const totalDuration = serviceIds.reduce((total, serviceId) => {
-            const service = shop.shop_service_categories.find(s => s.id === serviceId);
-            if (!service) return total;
-            
-            const serviceDuration = (service.duration_hour * 60) + service.duration_minute;
-            return total + serviceDuration;
-        }, 0);
-        
-        return Math.max(30, totalDuration);
-    };
-
-    const calculateStaffDurations = () => {
-        const staffServices = {};
-        
-        if (!formData.attendee_services || !Array.isArray(formData.attendee_services)) {
-            return {};
-        }
-        
-        formData.attendee_services.forEach(attendeeService => {
-            const { staff_id, services } = attendeeService;
-            if (!staff_id || !Array.isArray(services) || services.length === 0) return;
-            
-            if (!staffServices[staff_id]) {
-                staffServices[staff_id] = [];
-            }
-            
-            staffServices[staff_id] = [...staffServices[staff_id], ...services];
-        });
-        
-        const staffDurations = {};
-        Object.entries(staffServices).forEach(([staffId, serviceIds]) => {
-            let totalDuration = calculateTotalDurationForStaff(staffId, serviceIds);
-            totalDuration += BUFFER_TIME_MINUTES;
-            staffDurations[staffId] = totalDuration;
-        });
-        
-        return staffDurations;
-    };
 
     const validateForm = () => {
         if (isInitializing || !initializedData) return false;

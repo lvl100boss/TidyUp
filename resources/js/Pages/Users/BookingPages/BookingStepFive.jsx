@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Head, Link } from "@inertiajs/react";
+import { Head, Link, usePage } from "@inertiajs/react";
 import { Button } from "@/Components/ui/button";
 import { ChevronLeft, LogOut } from "lucide-react";
 import StepsIndicator from "@/Components/User/BookingPages/StepsIndicator";
@@ -11,7 +11,7 @@ import {
     CardFooter,
     CardHeader,
     CardTitle,
-} from "@/components/ui/card"
+} from "@/components/ui/card";
 import { useForm } from "@inertiajs/react";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarImage, AvatarFallback } from '@/Components/ui/avatar';
@@ -20,12 +20,15 @@ import { Badge } from '@/Components/ui/badge';
 import { Alert, AlertTitle, AlertDescription } from '@/Components/ui/alert';
 
 export default function BookingStepFive({ shop, shopStaff, data }) {
-    // Use the buffer time from previous steps or fall back to default
     const BUFFER_TIME_MINUTES = data.buffer_time_minutes || shop?.settings?.buffer_time_minutes || 30;
     const [loading, setLoading] = useState(false);
     const [submitError, setSubmitError] = useState(null);
+    const [serverResponse, setServerResponse] = useState(null);
+    
+    // Check for flash messages from the server
+    const { flash } = usePage().props;
 
-    const { data: formData, setData, post, processing, errors, reset } = useForm({
+    const { data: formData, setData, post, processing, errors } = useForm({
         note: data.note || '',
         buffer_time_minutes: BUFFER_TIME_MINUTES
     });
@@ -41,6 +44,16 @@ export default function BookingStepFive({ shop, shopStaff, data }) {
         }
     }, [data]);
 
+    // Monitor flash messages from server
+    useEffect(() => {
+        if (flash && flash.message) {
+            setServerResponse({
+                message: flash.message,
+                success: flash.success
+            });
+        }
+    }, [flash]);
+
     // Reset loading state when processing state changes to false
     useEffect(() => {
         if (!processing && loading) {
@@ -51,7 +64,6 @@ export default function BookingStepFive({ shop, shopStaff, data }) {
     const handleSubmit = (e) => {
         e.preventDefault();
         
-        // Prevent double submission
         if (processing || loading) {
             return;
         }
@@ -59,10 +71,22 @@ export default function BookingStepFive({ shop, shopStaff, data }) {
         setLoading(true);
         setSubmitError(null);
         
-        post(`/${shop.id}/booking/5`, {
+        // Include all necessary data in the submission
+        const bookingData = {
+            note: formData.note,
+            buffer_time_minutes: BUFFER_TIME_MINUTES,
+            date: data.date,
+            time: data.time,
+            staff_id: data.staff_id,
+            shop_id: shop.id,
+            service_id: data.service_id,
+            total_price: data.total_price || calculateTotalCost(),
+            attendee_services: data.attendee_services || []
+        };
+        
+        post(`/${shop.id}/booking/5`, bookingData, {
             onSuccess: () => {
-                // Will be handled by redirect in controller
-                // No need to do anything here
+                console.log("Booking submission successful");
             },
             onError: (errors) => {
                 setLoading(false);
@@ -71,10 +95,9 @@ export default function BookingStepFive({ shop, shopStaff, data }) {
                 console.error('Booking submission error:', errors);
             },
             onFinish: () => {
-                // Sometimes onSuccess doesn't fire if there's a redirect
-                // This ensures we reset loading state regardless
                 setLoading(false);
-            }
+            },
+            preserveScroll: true
         });
     };
 
@@ -143,16 +166,20 @@ export default function BookingStepFive({ shop, shopStaff, data }) {
     const calculateEndTimeForStaff = (staffId) => {
         if (!data.time || !staffId) return null;
         
+        // Get services specifically assigned to this staff member
         const staffServices = [];
+        
+        // For group bookings with attendee_services
         if (data.attendee_services && Array.isArray(data.attendee_services)) {
+            // Only add services for this specific staff
             data.attendee_services.forEach(attendeeService => {
                 if (attendeeService.staff_id === staffId && Array.isArray(attendeeService.services)) {
                     staffServices.push(...attendeeService.services);
                 }
             });
-        }
-        
-        if (staffServices.length === 0 && staffId === data.staff_id) {
+        } 
+        // For simple bookings (just one person)
+        else if (staffId === data.staff_id) {
             staffServices.push(...(data.service_id || []));
         }
         
@@ -160,13 +187,17 @@ export default function BookingStepFive({ shop, shopStaff, data }) {
         if (totalMinutes === 0) return null;
         
         try {
-            const [hours, minutes, seconds] = data.time.split(':').map(Number);
+            // Parse the time string properly
+            const timeString = data.time.includes(':') ? data.time : `${data.time}:00`;
+            const [hours, minutes, seconds] = timeString.split(':').map(Number);
             
             const startTime = new Date();
-            startTime.setHours(hours, minutes, seconds);
+            startTime.setHours(hours, minutes, seconds || 0);
             
+            // Calculate service end time (start time + service duration)
             const endTime = new Date(startTime.getTime() + totalMinutes * 60000);
             
+            // Add buffer time to get the final end time
             const bufferEndTime = new Date(endTime.getTime() + BUFFER_TIME_MINUTES * 60000);
             
             return {
@@ -209,6 +240,7 @@ export default function BookingStepFive({ shop, shopStaff, data }) {
                             </Link>
                         </Button>
                     </header>
+                    
                     <div className="mt-8 max-w-xl mx-auto">
                         <StepsIndicator step={5} />
                     </div>
@@ -226,45 +258,61 @@ export default function BookingStepFive({ shop, shopStaff, data }) {
                             <AlertDescription>{errors.message}</AlertDescription>
                         </Alert>
                     )}
+                    
+                    {serverResponse && (
+                        <Alert 
+                            variant={serverResponse.success ? "default" : "destructive"} 
+                            className="max-w-4xl mx-auto my-4"
+                        >
+                            <AlertTitle>{serverResponse.success ? "Success" : "Error"}</AlertTitle>
+                            <AlertDescription>{serverResponse.message}</AlertDescription>
+                        </Alert>
+                    )}
 
                     <section>
-                        <h1 className='text-2xl font-bold mb-5'>Confirm your Appointment</h1>
+                        <h1 className="text-2xl font-bold mb-5">Confirm your Appointment</h1>
                         <form onSubmit={handleSubmit} className="grid sm:grid-cols-2 gap-5">
                             <div>
                                 <Card className="overflow-hidden">
-                                    <img className='w-full aspect-video mb-5 object-cover' src={`/${shop.shop_gallery[0].url}`} />
+                                    <img className="w-full aspect-video mb-5 object-cover" src={`/${shop.shop_gallery[0].url}`} />
                                     <CardContent>
                                         <CardTitle>Shop Name</CardTitle>
-                                        <CardDescription className="">
+                                        <CardDescription>
                                             {shop.shop_name}
                                         </CardDescription>
                                     </CardContent>
                                     <CardContent>
                                         <CardTitle>Location</CardTitle>
-                                        <CardDescription className="">
+                                        <CardDescription>
                                             {shop.detailed_address}
                                         </CardDescription>
                                     </CardContent>
                                     <CardContent>
                                         <CardTitle>Schedule</CardTitle>
-                                        <CardDescription className="">
+                                        <CardDescription>
                                             {new Date(data.date).toLocaleDateString('en-US', { weekday: 'short', year: 'numeric', month: 'long', day: 'numeric' })}
                                         </CardDescription>
                                         <div className="space-y-1">
-                                            <CardDescription className="">
-                                                {new Date(`2024-01-01T${data.time}`).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
-                                                {" - "}
-                                                {calculateEndTimeForStaff(
-                                                    data.attendee_services[0]?.staff_id || data.staff_id
-                                                )?.serviceEnd || ""}
-                                            </CardDescription>
+                                            {data.time && (
+                                                <CardDescription>
+                                                    {new Date(`2024-01-01T${data.time}`).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+                                                    {" - "}
+                                                    {(() => {
+                                                        const staffId = data.attendee_services?.[0]?.staff_id || data.staff_id;
+                                                        const endTimes = calculateEndTimeForStaff(staffId);
+                                                        return endTimes?.serviceEnd || "";
+                                                    })()}
+                                                </CardDescription>
+                                            )}
                                             <div className="flex items-center gap-2">
                                                 <div className="w-2 h-2 rounded-full bg-amber-400"></div>
                                                 <p className="text-xs text-muted-foreground">
                                                     {BUFFER_TIME_MINUTES}-minute buffer until{" "}
-                                                    {calculateEndTimeForStaff(
-                                                        data.attendee_services[0]?.staff_id || data.staff_id
-                                                    )?.bufferEnd || ""}
+                                                    {(() => {
+                                                        const staffId = data.attendee_services?.[0]?.staff_id || data.staff_id;
+                                                        const endTimes = calculateEndTimeForStaff(staffId);
+                                                        return endTimes?.bufferEnd || "";
+                                                    })()}
                                                 </p>
                                             </div>
                                         </div>
@@ -286,7 +334,7 @@ export default function BookingStepFive({ shop, shopStaff, data }) {
                             <div>
                                 <Card>
                                     <CardHeader>
-                                        <h1 className='font-bold text-xl'>Services Summary</h1>
+                                        <h1 className="font-bold text-xl">Services Summary</h1>
                                     </CardHeader>
                                     <CardContent className="pb-3">
                                         <CardTitle>Primary Stylist</CardTitle>
@@ -387,12 +435,12 @@ export default function BookingStepFive({ shop, shopStaff, data }) {
                                         />
                                     </CardContent>
 
-                                    <div className='mx-6'>
-                                        <Separator className="" />
+                                    <div className="mx-6">
+                                        <Separator />
                                     </div>
 
-                                    <CardFooter className='w-full pt-3'>
-                                        <div className='flex justify-between items-center w-full'>
+                                    <CardFooter className="w-full pt-3">
+                                        <div className="flex justify-between items-center w-full">
                                             <CardTitle className="text-2xl">Total Cost</CardTitle>
                                             <CardTitle className="text-2xl">
                                                 ₱{calculateTotalCost()}

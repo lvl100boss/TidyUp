@@ -16,10 +16,13 @@ const AppointmentSummaryCard = ({
     selectedDate,
     selectedStaff,
     selectedTime,
-    bookingMembers = []
+    bookingMembers = [],
+    bufferTimeMinutes // Add prop for buffer time
 }) => {
-    // Add buffer time constant (can be moved to shop settings later)
-    const BUFFER_TIME_MINUTES = 15;
+    // Use buffer time from props or fallback to shop settings or default value
+    const BUFFER_TIME_MINUTES = bufferTimeMinutes || 
+                               shop?.settings?.buffer_time_minutes || 
+                               30; // Use 30 as default, consistent with other components
 
     // Calculate total duration for all selected services
     const calculateTotalDuration = (serviceIds = []) => {
@@ -58,7 +61,7 @@ const AppointmentSummaryCard = ({
             // Calculate service end time
             const endTime = new Date(startTime.getTime() + totalDuration * 60000);
             
-            // Calculate buffer end time
+            // Calculate buffer end time - use the prop value
             const bufferEndTime = new Date(endTime.getTime() + BUFFER_TIME_MINUTES * 60000);
             
             return {
@@ -156,7 +159,7 @@ const AppointmentSummaryCard = ({
                         <div className="flex items-center gap-2 mt-3 bg-amber-50 p-2 rounded">
                             <Clock className="h-4 w-4 text-amber-600" />
                             <div className="text-xs text-amber-800">
-                                <span className="font-medium">Buffer time:</span> Until {endTimes?.bufferEnd}
+                                <span className="font-medium">{BUFFER_TIME_MINUTES}min buffer time:</span> Until {endTimes?.bufferEnd}
                             </div>
                         </div>
                     </div>

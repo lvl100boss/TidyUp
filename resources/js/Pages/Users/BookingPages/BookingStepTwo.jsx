@@ -150,6 +150,7 @@ export default function BookingStepTwo({ shop, businessDays, shopStaff, shopServ
                                         selectedStaff={selectedStaff}
                                         selectedTime={selectedTime}
                                         bookingMembers={data.booking_members}
+                                        bufferTimeMinutes={BUFFER_TIME_MINUTES}
                                     />
                                     
                                     <form onSubmit={handleSubmit}>
