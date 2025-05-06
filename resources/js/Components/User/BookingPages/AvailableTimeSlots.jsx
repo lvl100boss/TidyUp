@@ -264,14 +264,14 @@ export default function AvailableTimeSlots({
 
     return (
         <div>
-            <h1 className="font-bold text-2xl mb-4">Select Stylist/Barber</h1>
+            <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-5">Select Stylist/Barber</h2>
             
             {canShowStaffDetails && (
-                <div className="max-w-fit mb-4">
-                    <Card>
-                        <CardHeader>
-                            <div className="flex items-start gap-5">
-                                <div className="overflow-hidden rounded-full aspect-square size-24">
+                <div className="max-w-full mb-5">
+                    <Card className="border-primary/15 bg-card shadow-sm">
+                        <CardHeader className="p-4 sm:p-5">
+                            <div className="flex items-start gap-4 sm:gap-6">
+                                <div className="overflow-hidden rounded-full aspect-square size-20 sm:size-28 border-2 border-primary/25 shadow-sm">
                                     {currentStaff.staff.profile_photo_path ? (
                                         <img
                                             src={`/storage/${currentStaff.staff.profile_photo_path}`}
@@ -279,16 +279,16 @@ export default function AvailableTimeSlots({
                                             alt={currentStaff.staff.first_name}
                                         />
                                     ) : (
-                                        <div className="size-full bg-secondary grid place-items-center uppercase text-3xl">
+                                        <div className="size-full bg-primary/10 grid place-items-center uppercase text-xl sm:text-3xl text-primary">
                                             {currentStaff.staff.first_name[0] + currentStaff.staff.last_name[0]}
                                         </div>
                                     )}
                                 </div>
-                                <div className="pt-3">
-                                    <CardTitle className="text-xl">
+                                <div className="pt-2 sm:pt-3">
+                                    <CardTitle className="text-xl sm:text-2xl mb-1">
                                         {currentStaff.staff.first_name + ' ' + currentStaff.staff.last_name}
                                     </CardTitle>
-                                    <CardDescription>
+                                    <CardDescription className="text-base">
                                         {currentStaff.role[0].toUpperCase() + currentStaff.role.slice(1)}
                                     </CardDescription>
                                 </div>
@@ -299,41 +299,42 @@ export default function AvailableTimeSlots({
             )}
             
             {shopStaff?.length > 0 && (
-                <div>
+                <div className="mb-6">
+                    <h3 className="text-base font-medium mb-3">Choose a staff member:</h3>
                     <ToggleGroup
                         type="single"
                         variant="outline"
                         value={currentStaff?.id?.toString()}
-                        className="flex flex-wrap justify-start gap-3"
+                        className="flex flex-wrap justify-start gap-2 sm:gap-3"
                     >
                         {shopStaff.map((staff, index) => (
                             <ToggleGroupItem
                                 key={staff.id}
                                 value={staff.id.toString()}
                                 aria-label={`Select ${staff.staff.first_name} ${staff.staff.last_name}`}
-                                className="data-[state=on]:bg-foreground data-[state=on]:text-background"
+                                className="data-[state=on]:bg-primary data-[state=on]:text-primary-foreground text-sm sm:text-base px-3 sm:px-5 py-2 sm:py-3"
                                 onClick={() => setSelectedStaff(index)}
                                 data-state={selectedStaff === index ? "on" : "off"}
                             >
-                                <h1 className="font-bold">
+                                <h3 className="font-medium sm:font-bold">
                                     {`${staff.staff.first_name} ${staff.staff.last_name}`}
-                                </h1>
+                                </h3>
                             </ToggleGroupItem>
                         ))}
                     </ToggleGroup>
                 </div>
             )}
             
-            <div className="my-10">
-                <div className="my-4">
-                    <h1 className="font-bold text-2xl">Select Time</h1>
+            <div className="my-8">
+                <div className="mb-5">
+                    <h2 className="text-xl sm:text-2xl font-bold mb-2">Select Time</h2>
                     <p className="text-sm text-muted-foreground">Unavailable time slots are shown in gray</p>
                     <p className="text-sm text-muted-foreground">All appointments include a 30-minute buffer time</p>
                     
                     {isOpen && closingTime && (
-                        <Alert variant="outline" className="mt-4 mb-2 border-amber-200 bg-amber-50 text-amber-900">
-                            <Clock className="h-4 w-4" />
-                            <AlertDescription>
+                        <Alert variant="outline" className="mt-4 mb-4 border-amber-200 bg-amber-50 text-amber-900">
+                            <Clock className="h-5 w-5" />
+                            <AlertDescription className="text-sm">
                                 Your appointment requires {formatDuration(totalTimeNeeded)} total (including buffer). 
                                 Bookings must be made at least 30 minutes in advance and cannot continue after {formattedClosingTime}.
                             </AlertDescription>
@@ -341,13 +342,13 @@ export default function AvailableTimeSlots({
                     )}
                 </div>
                 
-                <ScrollArea className="h-72 w-full rounded-md border pr-2">
+                <ScrollArea className="h-80 sm:h-96 w-full rounded-md border shadow-inner pr-2">
                     {businessHourTimeSlots.length > 0 ? (
                         <ToggleGroup
                             type="single"
                             variant="outline"
                             value={selectedTime || undefined}
-                            className="block space-y-3"
+                            className="block space-y-2 sm:space-y-3 p-1"
                         >
                             {businessHourTimeSlots.map((time, index) => {
                                 const isAvailable = isTimeSlotAvailable(time);
@@ -362,8 +363,8 @@ export default function AvailableTimeSlots({
                                         key={index}
                                         value={time}
                                         aria-label={`Select ${time}`}
-                                        className={`block w-full text-left pl-6 h-14 font-bold 
-                                                  data-[state=on]:bg-foreground data-[state=on]:text-background
+                                        className={`block w-full text-left pl-5 sm:pl-6 h-14 sm:h-16 text-sm sm:text-base font-medium 
+                                                  data-[state=on]:bg-primary data-[state=on]:text-primary-foreground
                                                   ${!isAvailable ? 'bg-secondary text-muted-foreground' : ''}`}
                                         onClick={() => { 
                                             // Force re-check availability in case time elapsed during selection
@@ -373,14 +374,16 @@ export default function AvailableTimeSlots({
                                         }}
                                         disabled={selectedStaff === null || !isAvailable}
                                     >
-                                        <div className="flex justify-between w-full pr-4">
-                                            <div>
-                                                {new Date(`2021-01-01T${time}`).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
-                                                {!isAvailable && <span className="ml-3 text-sm">(Unavailable)</span>}
+                                        <div className="flex justify-between w-full pr-4 sm:pr-5">
+                                            <div className="flex items-center">
+                                                <span className="text-base sm:text-lg">
+                                                    {new Date(`2021-01-01T${time}`).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+                                                </span>
+                                                {!isAvailable && <span className="ml-3 text-sm sm:text-base opacity-70">(Unavailable)</span>}
                                             </div>
                                             {isAvailable && (
                                                 <span className="text-sm text-muted-foreground">
-                                                    ends ~{new Date(`2021-01-01T${endTime}`).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+                                                    ends at {new Date(`2021-01-01T${endTime}`).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
                                                 </span>
                                             )}
                                         </div>
@@ -390,7 +393,7 @@ export default function AvailableTimeSlots({
                         </ToggleGroup>
                     ) : (
                         <div className="flex items-center justify-center h-full">
-                            <p className="text-muted-foreground">
+                            <p className="text-base text-muted-foreground p-6">
                                 {selectedDate && new Date(selectedDate).toDateString() === new Date().toDateString() 
                                     ? "No available time slots for today" 
                                     : "No available time slots for this date"}

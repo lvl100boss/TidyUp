@@ -203,6 +203,8 @@ class BookingController extends Controller
     {
         $validatedData = $request->validate([
             'note' => 'nullable|string',
+            'nickname' => 'required|string|max:50',
+            'booking_for_other' => 'boolean',
         ]);
 
         try {
@@ -229,6 +231,8 @@ class BookingController extends Controller
                 'time' => $formData['time'],
                 'total_price' => $formData['total_price'],
                 'note' => $request->note,
+                'nickname' => $request->nickname, // This is now required
+                'booking_for_other' => $request->booking_for_other ? true : false,
                 'status' => 'pending',
                 'is_successful' => true, // Consider if this should default to true or be set later
             ]);

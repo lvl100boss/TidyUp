@@ -27,10 +27,10 @@ Major Revisions:
 [/] Allow Multiple User/Customer for Booking.
 [X] Something About Time Conflict (Check this if all the items below are checked) 
 Possible Scenarios Need to be handle by the system:
-- What if the Customer Arrives Earlier Than Expected? [ ]
+- What if the Customer Arrives Earlier Than Expected? [/]
     * If the Slot is Available. Offer to Start Early.
     * If not, don't allow the appointment to Start because there is an ongoing appointment
-- What if the customer is Late? [ ]
+- What if the customer is Late? [/]
     * Give them an option the move their Time slot, transfer Stylist, or Continue with the appointment then adjust all appointments for this day based on how minutes the customer was late. 
 - No-Shows
     * Allow Staff to mark them as No Show. [ ]
@@ -38,7 +38,7 @@ Possible Scenarios Need to be handle by the system:
 - Last Minute Cancellation [ ]
     * Cancellation must be atleast 24hrs before the schedule time.
         # if the staff cancelled < 2 h before a Strike Violation will also be added to the staff.
-- Double-Booking Accident [ ]
+- Double-Booking Accident [/]
     * if both customer booked same date and same time or with overlapping time slot, only accept one then the other one will be rejected.
 - Staff Sick / No-Show  [ ]
     * Allow Owner or Manager to tranfer stylist, if no stylist available, then offer rechedule or cancellation fo appointment. 
