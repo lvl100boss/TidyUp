@@ -1,7 +1,7 @@
 import React from 'react';
 import { Head, Link } from "@inertiajs/react";
 import { Button } from "@/Components/ui/button";
-import { CheckCircle, Calendar, Clock } from "lucide-react";
+import { CheckCircle, Calendar, Clock, User } from "lucide-react";
 import UserLayout from "@/Layouts/UserLayout";
 import {
     Card,
@@ -23,34 +23,44 @@ export default function BookingThankYou({ shop, appointment }) {
             <Head title="Booking Confirmed" />
             <UserLayout>
                 <div>
-                    <div className="max-w-2xl mx-auto py-12">
+                    <div className="max-w-2xl mx-auto py-8 sm:py-12 px-4">
                         <Card>
                             <CardHeader className="text-center">
                                 <div className="mb-4 flex justify-center">
-                                    <div className="rounded-full bg-primary/10 p-3">
-                                        <CheckCircle className="h-12 w-12 text-primary" />
+                                    <div className="rounded-full bg-primary/10 p-2 sm:p-3">
+                                        <CheckCircle className="h-8 w-8 sm:h-12 sm:w-12 text-primary" />
                                     </div>
                                 </div>
-                                <CardTitle className="text-3xl">Booking Confirmed!</CardTitle>
-                                <CardDescription className="text-lg">
+                                <CardTitle className="text-2xl sm:text-3xl">Booking Confirmed!</CardTitle>
+                                <CardDescription className="text-base sm:text-lg">
                                     Thank you for booking with {shop.shop_name}
                                 </CardDescription>
                             </CardHeader>
                             
                             <CardContent>
-                                <div className="space-y-4">
-                                    <div className="rounded-md border p-4">
-                                        <div className="mb-3 flex items-center gap-3">
-                                            <Calendar className="h-5 w-5 text-primary" />
+                                <div className="space-y-3 sm:space-y-4">
+                                    <div className="rounded-md border p-3 sm:p-4">
+                                        <div className="mb-2 sm:mb-3 flex items-center gap-2 sm:gap-3">
+                                            <Calendar className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
                                             <span className="font-medium">{formattedDate}</span>
                                         </div>
-                                        <div className="flex items-center gap-3">
-                                            <Clock className="h-5 w-5 text-primary" />
+                                        <div className="flex items-center gap-2 sm:gap-3">
+                                            <Clock className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
                                             <span className="font-medium">{formattedTime}</span>
                                         </div>
+                                        {appointment.nickname && (
+                                            <div className="mt-2 sm:mt-3 flex items-center gap-2 sm:gap-3">
+                                                <User className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
+                                                <span className="font-medium">
+                                                    {appointment.booking_for_other 
+                                                        ? `Service for: ${appointment.nickname}` 
+                                                        : `Booking name: ${appointment.nickname}`}
+                                                </span>
+                                            </div>
+                                        )}
                                     </div>
                                     
-                                    <div className="rounded-md border p-4">
+                                    <div className="rounded-md border p-3 sm:p-4">
                                         <h3 className="mb-2 font-medium">Services:</h3>
                                         <ul className="space-y-2">
                                             {appointment.appointment_services.map(service => (
@@ -60,26 +70,26 @@ export default function BookingThankYou({ shop, appointment }) {
                                                 </li>
                                             ))}
                                         </ul>
-                                        <Separator className="my-4" />
+                                        <Separator className="my-3 sm:my-4" />
                                         <div className="flex justify-between font-medium">
                                             <span>Total</span>
                                             <span>₱{parseFloat(appointment.total_price).toFixed(2)}</span>
                                         </div>
                                     </div>
                                     
-                                    <div className="rounded-md border p-4">
+                                    <div className="rounded-md border p-3 sm:p-4">
                                         <h3 className="mb-2 font-medium">Staff Member:</h3>
                                         <p>{appointment.staff.staff.first_name} {appointment.staff.staff.last_name}</p>
                                     </div>
                                     
-                                    <div className="rounded-md bg-muted/30 p-4 text-sm">
+                                    <div className="rounded-md bg-muted/30 p-3 sm:p-4 text-xs sm:text-sm">
                                         <p>A confirmation with details has been sent to your email. This appointment is pending approval from the shop. You will receive a notification once it's approved.</p>
                                     </div>
                                 </div>
                             </CardContent>
                             
                             <CardFooter>
-                                <div className="flex w-full flex-col gap-4 sm:flex-row sm:justify-between">
+                                <div className="flex w-full flex-col gap-3 sm:flex-row sm:justify-between sm:gap-4">
                                     <Button variant="outline" className="w-full" asChild>
                                         <Link href={`/${shop.id}/booking/1`}>
                                             Book Another Appointment
