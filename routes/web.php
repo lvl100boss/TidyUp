@@ -13,6 +13,7 @@ use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\NewsletterSubscriptionController;
 use App\Http\Controllers\ShopAnalyticsController; // Make sure this is imported
 use App\Http\Controllers\FeedbackController;
+use App\Http\Controllers\SetupShopController;
 use App\Http\Controllers\ViewAppointmentController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Auth;
@@ -64,7 +65,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Add a route for SetupShop with middleware
     Route::middleware(['auth', 'verified', 'shop.creation'])->group(function () {
         Route::get('/shop/setup', [ShopController::class, 'create'])->name('shop.setup');
-        Route::post('/shop/setup', [ShopController::class, 'store'])->name('shop.store');
+        Route::post('/shop/setup', [SetupShopController::class, 'store'])->name('shop.store');
     });
 
     // Add the thank you page route
@@ -85,6 +86,7 @@ Route::get('/{id}/shop', [ShopController::class, 'show'])->where('id', '[0-9]+')
 // Route::post('/reviews', [ReviewController::class, 'store'])->name('reviews.store');
 
 // User appointment routes
+Route::post('/appointments/confirm-completion', [AppointmentController::class, 'confirmCompletion'])->name('appointments.confirm-completion');
 Route::get('/shop/setup', [ShopController::class, 'create'])->name('shop.setup');
 Route::post('/shop/setup', [ShopController::class, 'store'])->name('shop.store');
 
