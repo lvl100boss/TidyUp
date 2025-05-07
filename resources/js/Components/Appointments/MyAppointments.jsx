@@ -5,9 +5,14 @@ import { Button } from "@/components/ui/button";
 import AddAppointmentModal from "./AddAppointmentModal";
 import { Separator } from "@/components/ui/separator"
 
-
-export default function MyAppointments({ appointments, upcomingSchedules, shopBusinessSchedules, rescheduleRequests, shouldHideActionModals }) {
-    console.log("rescheduleRequests", rescheduleRequests);
+export default function MyAppointments({ 
+    appointments, 
+    upcomingSchedules, 
+    shopBusinessSchedules, 
+    rescheduleRequests, 
+    shouldHideActionModals,
+    getAppointmentConstraints 
+}) {
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const statuses = [
         { value: "pending", label: "Pending" },
@@ -22,7 +27,7 @@ export default function MyAppointments({ appointments, upcomingSchedules, shopBu
     // Find the first status that has appointments and use it as default tab
     const defaultTab = statuses.find(status =>
         appointments[status.value] && appointments[status.value].length > 0
-    )?.value || "upcoming";
+    )?.value || "pending";
 
     return (
         <div className="space-y-6">
@@ -56,6 +61,7 @@ export default function MyAppointments({ appointments, upcomingSchedules, shopBu
                                     upcomingSchedules={upcomingSchedules}
                                     shopBusinessSchedules={shopBusinessSchedules}
                                     hideActionModals={shouldHideActionModals ? shouldHideActionModals(appointment) : false}
+                                    constraints={getAppointmentConstraints ? getAppointmentConstraints(appointment) : null}
                                 />
                             ))
                         ) : (
@@ -79,6 +85,7 @@ export default function MyAppointments({ appointments, upcomingSchedules, shopBu
                             upcomingSchedules={upcomingSchedules}
                             shopBusinessSchedules={shopBusinessSchedules}
                             hideActionModals={shouldHideActionModals ? shouldHideActionModals(appointment) : false}
+                            constraints={getAppointmentConstraints ? getAppointmentConstraints(appointment) : null}
                         />
                     ))
                 ) : (

@@ -1,53 +1,69 @@
-import React from 'react';
-import {
-    AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction
+import { useState } from "react";
+import { useForm } from "@inertiajs/react";
+import { 
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
 } from "@/Components/ui/alert-dialog";
 import { Button } from "@/Components/ui/button";
-import { BadgeCheck } from "lucide-react";
-import { useForm } from "@inertiajs/react";
+import { Check, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 export default function ApproveButtonModal({ appointment }) {
-    const { post, processing } = useForm({
-        _method: "PATCH",
+    const [open, setOpen] = useState(false);
+    
+    const { patch, processing } = useForm({
+        appointment_id: appointment.id,
     });
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
-
-        const formData = new FormData();
-        formData.append("_method", "PATCH");
-
-        post(route("shop.appointments.approve", appointment.id), {
-            preserveScroll: true,
-            data: formData,
+    const handleConfirm = () => {
+        patch(route('shop.appointments.approve', appointment.id), {
+            onSuccess: () => {
+                setOpen(false);
+                toast.success("Appointment approved", {
+                    description: "The customer has been notified about the approval."
+                });
+            },
+            onError: (errors) => {
+                setOpen(false);
+                // Display error toast if there's a conflict
+                if (errors.message) {
+                    toast.error("Scheduling Conflict", {
+                        description: errors.message,
+                    });
+                }
+            }
         });
-    }
+    };
 
     return (
-        <AlertDialog>
-            <AlertDialogTrigger>
-                <Button
-                    size="sm"
-                    className="gap-1.5 rounded-lg px-4 font-medium hover:bg-primary/10 hover:text-primary"
-                >
-                    <BadgeCheck className="h-4 w-4" />
-                    Approve
-                </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-                <AlertDialogHeader>
-                    <AlertDialogTitle>Do you want to Approve this Appointment?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                        This will mark the appointment as Upcoming.
-                    </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <form onSubmit={handleSubmit}>
-                        <Button >{processing ? "Approving..." : "Confirm"}</Button>
-                    </form>
-                </AlertDialogFooter>
-            </AlertDialogContent>
-        </AlertDialog>
+        <>
+            <Button onClick={() => setOpen(true)} variant="default" size="default">
+                <Check className="mr-2 h-4 w-4" /> Approve
+            </Button>
+            
+            <AlertDialog open={open} onOpenChange={setOpen}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Confirm Appointment Approval</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Are you sure you want to approve this appointment? This will update the status from "pending" to "upcoming" and notify the customer.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleConfirm} disabled={processing}>
+                            {processing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            {processing ? "Approving..." : "Approve Appointment"}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+        </>
     );
 }

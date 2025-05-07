@@ -35,16 +35,94 @@ class ShopAppointmentsController extends Controller
         ]);
     }
 
+    /**
+     * Check for appointment time conflicts
+     * Returns true if a conflict exists, false otherwise
+     */
+    private function hasTimeConflict($appointment)
+    {
+        // Get the appointment date, time, and staff
+        $date = $appointment->date;
+        $time = $appointment->time;
+        $staffId = $appointment->staff_id;
+        $appointmentId = $appointment->id;
+
+        // Calculate end time for the requested appointment
+        $durationMinutes = 0;
+        foreach ($appointment->appointmentServices as $service) {
+            $durationMinutes += ($service->shopService->duration_hour * 60) + $service->shopService->duration_minute;
+        }
+
+        // Get appointment start time in minutes
+        $startHour = (int)substr($time, 0, 2);
+        $startMinute = (int)substr($time, 3, 2);
+        $startTimeInMinutes = ($startHour * 60) + $startMinute;
+
+        // Calculate end time in minutes
+        $endTimeInMinutes = $startTimeInMinutes + $durationMinutes;
+
+        // Find existing appointments for the same staff on the same date with potential conflicts
+        $conflictingAppointments = Appointments::where('staff_id', $staffId)
+            ->where('id', '!=', $appointmentId) // Exclude the current appointment
+            ->where('date', $date)
+            ->whereIn('status', ['pending', 'upcoming', 'started'])
+            ->with('appointmentServices.shopService')
+            ->get();
+
+        foreach ($conflictingAppointments as $existingAppointment) {
+            // Calculate existing appointment time range
+            $existingStartHour = (int)substr($existingAppointment->time, 0, 2);
+            $existingStartMinute = (int)substr($existingAppointment->time, 3, 2);
+            $existingStartTimeInMinutes = ($existingStartHour * 60) + $existingStartMinute;
+
+            // Calculate existing appointment end time
+            $existingDurationMinutes = 0;
+            foreach ($existingAppointment->appointmentServices as $service) {
+                $existingDurationMinutes += ($service->shopService->duration_hour * 60) + $service->shopService->duration_minute;
+            }
+            $existingEndTimeInMinutes = $existingStartTimeInMinutes + $existingDurationMinutes;
+
+            // Check for overlap:
+            // If the new appointment starts before the existing one ends 
+            // AND the new appointment ends after the existing one starts
+            if (
+                $startTimeInMinutes < $existingEndTimeInMinutes &&
+                $endTimeInMinutes > $existingStartTimeInMinutes
+            ) {
+                // Conflict found
+                return [
+                    'hasConflict' => true,
+                    'conflictingAppointment' => $existingAppointment
+                ];
+            }
+        }
+
+        // No conflicts found
+        return ['hasConflict' => false];
+    }
+
     public function approve(Request $request, $appointment)
     {
         // Eager load the 'user' relationship for notification
-        $targetAppointment = Appointments::with('user')->find($appointment);
+        $targetAppointment = Appointments::with(['user', 'appointmentServices.shopService'])->find($appointment);
 
         if (!$targetAppointment) {
             return redirect()->back()->with('message', 'Appointment not found')->with('success', false);
         }
 
         $currentStaff = ShopStaffs::where('staff_id', Auth::id())->first();
+
+        // Check for appointment time conflicts before approving
+        $conflictCheck = $this->hasTimeConflict($targetAppointment);
+        if ($conflictCheck['hasConflict']) {
+            $conflictTime = date('h:i A', strtotime($conflictCheck['conflictingAppointment']->time));
+            $conflictDate = date('F j, Y', strtotime($conflictCheck['conflictingAppointment']->date));
+
+            return redirect()->back()->with([
+                'message' => "Cannot approve: This appointment conflicts with another booking at {$conflictTime} on {$conflictDate}",
+                'success' => false
+            ]);
+        }
 
         DB::beginTransaction();
         try {
@@ -175,13 +253,13 @@ class ShopAppointmentsController extends Controller
     public function complete(Request $request, $appointment)
     {
         $targetAppointment = Appointments::with('user')->find($appointment);
-    
+
         if (!$targetAppointment) {
             return redirect()->back()->with('message', 'Appointment not found')->with('success', false);
         }
-    
+
         $currentStaff = ShopStaffs::where('staff_id', Auth::id())->first();
-    
+
         DB::beginTransaction();
         try {
             // Change status to 'completed' but mark it as pending user confirmation
@@ -190,15 +268,15 @@ class ShopAppointmentsController extends Controller
             $targetAppointment->completed_at = now();
             $targetAppointment->is_user_confirmed = false; // Add this field to appointments table
             $targetAppointment->save();
-            
+
             // Notify the user about completion and request confirmation
             $user = $targetAppointment->user;
             if ($user) {
                 $user->notify(new AppointmentCompletedNotification($targetAppointment));
             }
-            
+
             DB::commit();
-            
+
             return redirect()->back()->with('message', 'Appointment marked as completed. Waiting for user confirmation.')->with('success', true);
         } catch (\Exception $e) {
             DB::rollBack();

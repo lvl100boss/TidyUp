@@ -180,17 +180,27 @@ export default function BookingStepThree({ shop, shopStaff, data, isPreview = fa
                                             <p className="text-sm font-medium text-muted-foreground">Stylist</p>
                                             <div className="flex items-center gap-3 py-2">
                                                 <Avatar>
-                                                    <AvatarImage src={'/storage/' + shopStaff[data.staff_index].staff.profile_photo_path} />
-                                                    <AvatarFallback>
-                                                        {shopStaff[data.staff_index].staff.first_name[0] + shopStaff[data.staff_index].staff.last_name[0]}
-                                                    </AvatarFallback>
+                                                    {shopStaff && data.staff_index !== undefined && shopStaff[data.staff_index]?.staff?.profile_photo_path ? (
+                                                        <AvatarImage src={'/storage/' + shopStaff[data.staff_index].staff.profile_photo_path} />
+                                                    ) : (
+                                                        <AvatarFallback>
+                                                            {shopStaff && data.staff_index !== undefined && shopStaff[data.staff_index]?.staff ? 
+                                                                (shopStaff[data.staff_index].staff.first_name?.[0] || '') + 
+                                                                (shopStaff[data.staff_index].staff.last_name?.[0] || '') : 
+                                                                'NA'}
+                                                        </AvatarFallback>
+                                                    )}
                                                 </Avatar>
                                                 <div>
                                                     <h3 className="font-medium">
-                                                        {shopStaff[data.staff_index].staff.first_name} {shopStaff[data.staff_index].staff.last_name}
+                                                        {shopStaff && data.staff_index !== undefined && shopStaff[data.staff_index]?.staff ? 
+                                                            `${shopStaff[data.staff_index].staff.first_name || ''} ${shopStaff[data.staff_index].staff.last_name || ''}` : 
+                                                            'Staff not available'}
                                                     </h3>
                                                     <p className="text-sm text-muted-foreground">
-                                                        {shopStaff[data.staff_index].role}
+                                                        {shopStaff && data.staff_index !== undefined && shopStaff[data.staff_index] ? 
+                                                            shopStaff[data.staff_index].role || 'Staff' : 
+                                                            'Role not available'}
                                                     </p>
                                                 </div>
                                             </div>
@@ -254,19 +264,21 @@ export default function BookingStepThree({ shop, shopStaff, data, isPreview = fa
 
                                         <div className="space-y-3">
                                             <h3 className="font-medium">Selected Services</h3>
-                                            {shop.shop_service_categories.map((service) => (
-                                                data.service_id.map((selectedService) => {
-                                                    if (service.id === selectedService) {
-                                                        return (
-                                                            <div key={service.id} className="flex items-center justify-between">
-                                                                <p>{service.service_name}</p>
-                                                                <p className="font-medium">₱{service.cost}</p>
-                                                            </div>
-                                                        )
-                                                    }
-                                                    return null;
-                                                })
-                                            ))}
+                                            {shop.shop_service_categories && Array.isArray(shop.shop_service_categories) ? (
+                                                shop.shop_service_categories.flatMap(category => 
+                                                    category.services ? category.services.filter(service => 
+                                                        Array.isArray(data.service_id) && 
+                                                        data.service_id.includes(service.id)
+                                                    ).map(service => (
+                                                        <div key={service.id} className="flex items-center justify-between">
+                                                            <p>{service.service_name}</p>
+                                                            <p className="font-medium">₱{service.cost}</p>
+                                                        </div>
+                                                    )) : []
+                                                )
+                                            ) : (
+                                                <p className="text-sm text-muted-foreground">No services selected</p>
+                                            )}
                                         </div>
                                     </CardContent>
 

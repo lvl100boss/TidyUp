@@ -18,8 +18,7 @@ import CompleteButtonModal from "@/Components/Appointments/CompleteButtonModal";
 import UndoButtonModal from "@/Components/Appointments/UndoButtonModal";
 import NoShowButtonModal from "@/Components/Appointments/NoShowButtonModal";
 
-
-export default function AppointmentCard({ appointment, upcomingSchedules, shopBusinessSchedules, hideActionModals }) {
+export default function AppointmentCard({ appointment, upcomingSchedules, shopBusinessSchedules, hideActionModals, constraints }) {
     const statusVariants = {
         upcoming: "border-blue-300/30 bg-blue-50/50 text-blue-800 dark:bg-blue-950/50 dark:text-blue-300",
         pending: "border-yellow-300/30 bg-yellow-50/50 text-yellow-800 dark:bg-yellow-950/50 dark:text-yellow-300",
@@ -230,7 +229,10 @@ export default function AppointmentCard({ appointment, upcomingSchedules, shopBu
 
                             {appointment.status === "upcoming" && (
                                 <>
-                                    <StartedButtonModal appointment={appointment} />
+                                    <StartedButtonModal 
+                                        appointment={appointment} 
+                                        constraints={constraints}
+                                    />
                                     <ReschedReqButton
                                         appointment={appointment}
                                         upcomingSchedules={upcomingSchedules}

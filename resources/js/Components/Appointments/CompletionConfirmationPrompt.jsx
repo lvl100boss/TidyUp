@@ -1,5 +1,5 @@
 import React from 'react';
-import { AlertTriangle, CheckCircle } from "lucide-react";
+import { AlertTriangle, CheckCircle, XCircle } from "lucide-react";
 import { useForm } from "@inertiajs/react";
 import { Button } from "@/Components/ui/button";
 import { Alert, AlertTitle, AlertDescription } from "@/Components/ui/alert";
@@ -20,7 +20,7 @@ export default function CompletionConfirmationPrompt({ appointment }) {
 
     return (
         <Alert className="mb-4">
-            <AlertTriangle />
+            <AlertTriangle className="h-4 w-4" />
             <AlertTitle>
                 Appointment Completion Verification
             </AlertTitle>
@@ -38,9 +38,10 @@ export default function CompletionConfirmationPrompt({ appointment }) {
                         Confirm Completion
                     </Button>
                     <Button 
-                        variant="outline"
+                        variant="destructive"
                         onClick={() => window.location.href = route('user.feedback')}
                     >
+                        <XCircle className="mr-2 h-4 w-4" />
                         Report Issue
                     </Button>
                 </div>
