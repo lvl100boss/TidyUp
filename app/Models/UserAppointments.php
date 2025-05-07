@@ -15,7 +15,8 @@ class UserAppointments extends Model
     protected $fillable = [
         'user_id',
         'staff_id',
-        'appointment_id'
+        'appointment_id',
+        'is_staff_booking',
     ];
 
     public function user()

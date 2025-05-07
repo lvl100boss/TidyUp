@@ -199,34 +199,30 @@ class BookingController extends Controller
         ]);
     }
 
+    /**
+     * Process the final booking step and create the appointment
+     */
     public function stepThreeStore(Request $request, Shop $shop)
     {
-        $validatedData = $request->validate([
-            'note' => 'nullable|string',
-            'nickname' => 'required|string|max:50',
-            'booking_for_other' => 'boolean',
-        ]);
-
         try {
-            // Get form data and verify it exists
-            $formData = session()->get('form_data');
-            if (!$formData) {
-                throw new \Exception('Session data is missing. Please start the booking process again.');
-            }
+            // Retrieve all form data from previous steps
+            $formData = session()->get('form_data', []);
 
-            // Check for required fields
-            $requiredFields = ['shop_id', 'staff_id', 'date', 'time', 'service_id', 'total_price'];
-            foreach ($requiredFields as $field) {
-                if (!isset($formData[$field])) {
-                    throw new \Exception("Required field '$field' is missing from session data.");
-                }
-            }
+            // Merge with any additional data from this step
+            $formData = array_merge($formData, $request->all());
 
-            // Create the main appointment record
+            // Determine if this is a staff-booked appointment (walk-in or guest booking)
+            $isStaffBooking = isset($formData['is_walkin']) && $formData['is_walkin'] ||
+                isset($formData['is_guest']) && $formData['is_guest'];
+
+            // Begin transaction
+            DB::beginTransaction();
+
+            // Create the appointment
             $appointment = Appointments::create([
                 'user_id' => Auth::id(),
                 'shop_id' => $formData['shop_id'],
-                'staff_id' => $formData['staff_id'], // Use the staff_id from session
+                'staff_id' => $formData['staff_id'],
                 'date' => $formData['date'],
                 'time' => $formData['time'],
                 'total_price' => $formData['total_price'],
@@ -234,14 +230,16 @@ class BookingController extends Controller
                 'nickname' => $request->nickname, // This is now required
                 'booking_for_other' => $request->booking_for_other ? true : false,
                 'status' => 'pending',
-                'is_successful' => true, // Consider if this should default to true or be set later
+                'is_successful' => true,
+                'staff_booked' => $isStaffBooking, // Flag for staff-booked appointments
             ]);
 
             // Create the user appointment link
             UserAppointments::create([
                 'user_id' => Auth::id(),
                 'appointment_id' => $appointment->id,
-                'staff_id' => $formData['staff_id'], // Use the staff_id from session
+                'staff_id' => $formData['staff_id'],
+                'is_staff_booking' => $isStaffBooking, // Add flag to junction table too
             ]);
 
             // Create appointment services links
@@ -269,6 +267,8 @@ class BookingController extends Controller
             }
             // --- End Notification ---
 
+            DB::commit();
+
             session()->forget('form_data');
 
             // Redirect to the thank you page instead of directly to appointments
@@ -277,6 +277,7 @@ class BookingController extends Controller
                 'appointment' => $appointment->id
             ])->with('success', true);
         } catch (\Exception $e) {
+            DB::rollBack();
             // Log the detailed error for debugging
             Log::error("Booking Step 3 Error: " . $e->getMessage(), ['exception' => $e]);
             // Provide a user-friendly error message

@@ -164,12 +164,12 @@ export default function AppointmentCard({ appointment, upcomingSchedules, shopBu
                     )}
                     {appointment.status === "cancelled" && (
                         appointment.cancel_reason ? (
-                            <div className="mt-6 p-4 bg-muted/30 rounded-xl border border-muted-foreground/10">
-                                <div className="flex items-center gap-2 mb-3 text-muted-foreground">
-                                    <NotebookText className="h-5 w-5 text-primary/80" />
-                                    <h4 className="text-sm font-medium">Cancellation Reason</h4>
+                            <div className="mt-6 p-4 bg-red-50/30 rounded-xl border border-red-300/30">
+                                <div className="flex items-center gap-2 mb-3">
+                                    <NotebookText className="h-5 w-5 text-red-600/80" />
+                                    <h4 className="text-sm font-medium text-red-700">Cancellation Reason</h4>
                                 </div>
-                                <p className="text-sm text-muted-foreground leading-relaxed pl-7">
+                                <p className="text-sm text-red-700/90 leading-relaxed pl-7 font-medium">
                                     {appointment.cancel_reason}
                                 </p>
                             </div>
@@ -187,26 +187,49 @@ export default function AppointmentCard({ appointment, upcomingSchedules, shopBu
                     )}
                     {appointment.status === "declined" && (
                         appointment.decline_reason ? (
-                            <div className="mt-6 p-4 rounded-xl border  border-red-300/30 bg-red-50/50  dark:bg-red-950/50 ">
-                                <div className="flex items-center gap-2 mb-3 text-muted-foreground">
-                                    <NotebookText className="h-5 w-5 stroke-red-800 dark:stroke-red-300" />
-                                    <h4 className="text-sm font-medium text-red-800 dark:text-red-300">Decline Reason</h4>
+                            <div className="mt-6 p-4 rounded-xl border border-red-300/30 bg-red-50/50 dark:bg-red-950/50">
+                                <div className="flex items-center gap-2 mb-3">
+                                    <NotebookText className="h-5 w-5 stroke-red-600 dark:stroke-red-300" />
+                                    <h4 className="text-sm font-medium text-red-700 dark:text-red-300">Rejection Reason</h4>
                                 </div>
-                                <p className="text-sm text-muted-foreground leading-relaxed pl-7 text-red-800 dark:text-red-300">
+                                <p className="text-sm leading-relaxed pl-7 text-red-700 dark:text-red-300 font-medium">
                                     {appointment.decline_reason}
                                 </p>
                             </div>
                         ) : (
-                            <div className="mt-6 p-4 bg-muted/30 rounded-xl border border-muted-foreground/10">
-                                <div className="flex items-center gap-2 mb-3 text-muted-foreground">
-                                    <NotebookText className="h-5 w-5" />
-                                    <h4 className="text-sm font-medium">Decline Reason</h4>
+                            <div className="mt-6 p-4 bg-red-50/30 rounded-xl border border-red-300/30">
+                                <div className="flex items-center gap-2 mb-3">
+                                    <NotebookText className="h-5 w-5 stroke-red-600" />
+                                    <h4 className="text-sm font-medium text-red-700">Rejection Reason</h4>
                                 </div>
-                                <p className="text-sm text-muted-foreground leading-relaxed pl-7">
+                                <p className="text-sm text-red-700/90 leading-relaxed pl-7">
                                     No reason provided.
                                 </p>
                             </div>
                         )
+                    )}
+
+                    {appointment.resched_data && (
+                        <div className="mt-6 p-4 bg-amber-50/50 rounded-xl border border-amber-300/30">
+                            <div className="flex items-center gap-2 mb-3">
+                                <Clock className="h-5 w-5 text-amber-600" />
+                                <h4 className="text-sm font-medium text-amber-700">Reschedule Request</h4>
+                            </div>
+                            <div className="pl-7 space-y-2">
+                                <p className="text-sm text-amber-700/90">
+                                    <span className="font-medium">Requested Date:</span> {format(parseISO(appointment.resched_data.date), "EEEE, MMMM dd, yyyy")}
+                                </p>
+                                <p className="text-sm text-amber-700/90">
+                                    <span className="font-medium">Requested Time:</span> {format(parseISO(`2023-01-01T${appointment.resched_data.time}`), "h:mm a")}
+                                </p>
+                                {appointment.resched_data.resched_reason && (
+                                    <div className="pt-1">
+                                        <p className="text-sm font-medium text-amber-700">Reason:</p>
+                                        <p className="text-sm text-amber-700/90 mt-1">{appointment.resched_data.resched_reason}</p>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
                     )}
                 </CardContent>
 
