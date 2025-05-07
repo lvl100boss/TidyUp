@@ -12,7 +12,7 @@ const ResubmitForm = ({ title, icon, children }) => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.5 }}
-            className='p-4 rounded-lg mb-4 bg-background/80 backdrop-blur-3xl shadow-lg border'
+            className=' rounded-lg mb-4  md:backdrop-blur-3xl md:shadow-lg md:border md:p-4 md:bg-background/80'
         >
             <div className=' border-b border-foreground/50 pb-2 flex gap-1 items-center mb-4'>
                 {IconComponent && <IconComponent size={18} />}

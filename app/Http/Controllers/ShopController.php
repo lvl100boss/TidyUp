@@ -52,8 +52,9 @@ class ShopController extends Controller
         $validatedData = $request->validate([
             'shop_name' => 'required|unique:shops,shop_name',
             'shop_bio' => 'nullable|string',
+
             'email' => 'required|email',
-            'phone' => 'required|numeric',
+            'contact_number' => 'required|numeric',
             'region' => 'required',
             'province' => 'required',
             'city' => 'required',
