@@ -1,5 +1,5 @@
 import UserLayout from "@/Layouts/UserLayout";
-import { Head, Link } from "@inertiajs/react";
+import { Head, Link, usePage } from "@inertiajs/react";
 import { Button } from "@/Components/ui/button";
 import { ChevronLeft, LogOut } from "lucide-react";
 import AppointmentSummaryCard from "@/Components/User/BookingPages/AppointmentSummaryCard";
@@ -8,16 +8,21 @@ import { useState } from "react";
 import { useForm } from "@inertiajs/react";
 import BookingServiceTabs from "@/Components/Shop/ShopPage/BookingServiceTabs";
 
-export default function BookingStepOne({ shop, shopStaff, data }) {
+export default function BookingStepOne({ shop, shopStaff, data, isPreview = false }) {
     const { data: formData, setData, post, processing, errors } = useForm({
         shop_id: shop.id,
-        service_id: [],
-        total_price: 0,
+        service_id: data.service_id || [],
+        total_price: data.total_price || 0,
     });
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        post(`/${shop.id}/booking/1`);
+        // Use the appropriate route based on preview status
+        if (isPreview) {
+            post(`/${shop.id}/preview/booking/1`);
+        } else {
+            post(`/${shop.id}/booking/1`);
+        }
     };
 
     const categories = [
@@ -40,29 +45,37 @@ export default function BookingStepOne({ shop, shopStaff, data }) {
         <>
             <Head title="Choose Services" />
             <UserLayout>
-                <div className="min-h-screen">
-                    <header className="flex justify-center relative ">
-                        <Button className="absolute rounded-none border-b border-foreground left-0" variant="ghost" asChild>
-                            <Link href={`/${shop.id}/shop`}>
-                                <span><ChevronLeft className="mr-2" /></span>
-                                Back
-                            </Link>
-                        </Button>
-                        <h1 className="text-2xl font-bold">Appointment Processing</h1>
-                        <Button className="absolute rounded-none border-b border-foreground right-0" variant="ghost" asChild>
-                            <Link href={`/${shop.id}/shop`}>
-                                Exit
-                                <LogOut className="ml-2" />
-                            </Link>
-                        </Button>
+                <div className="min-h-screen max-w-7xl mx-auto px-4 pb-8 sm:pb-12">
+                    <header className="border-b mb-6 sm:mb-8">
+                        <div className="py-3 sm:py-4 flex items-center justify-between">
+                            <Button variant="ghost" size="sm" asChild>
+                                <Link href={`/${shop.id}/shop`} className="flex items-center">
+                                    <ChevronLeft className="mr-1 sm:mr-2 h-4 w-4 sm:h-5 sm:w-5" />
+                                    <span className="text-sm sm:text-base">Back to Shop</span>
+                                </Link>
+                            </Button>
+                            <h1 className="text-lg sm:text-xl md:text-2xl font-bold">Book an Appointment</h1>
+                            <Button variant="ghost" size="sm" asChild>
+                                <Link href={`/${shop.id}/shop`} className="flex items-center">
+                                    <span className="hidden sm:inline-block mr-2">Cancel</span>
+                                    <LogOut className="h-4 w-4" />
+                                </Link>
+                            </Button>
+                        </div>
                     </header>
-                    <div className="mt-8 max-w-xl mx-auto">
+
+                    <div className="max-w-xl mx-auto mb-6 sm:mb-10">
                         <StepsIndicator step={1} />
                     </div>
-                    <section className="mt-4 flex gap-5">
-                        <div className="flex-1">
-                            <div className="space-y-3">
-                                <h1 className="text-2xl font-bold">Choose Service</h1>
+
+                    <section className="grid grid-cols-1 gap-6 lg:grid-cols-5 lg:gap-8">
+                        {/* Left side: Service selection */}
+                        <div className="lg:col-span-3 order-2 lg:order-1">
+                            <div className="space-y-3 sm:space-y-4">
+                                <h2 className="text-xl sm:text-2xl font-bold">Choose Services</h2>
+                                <p className="text-xs sm:text-sm text-muted-foreground">
+                                    Select one or more services for your appointment at {shop.shop_name}.
+                                </p>
                                 <BookingServiceTabs
                                     categories={categories}
                                     groupedServices={groupedServices}
@@ -70,22 +83,33 @@ export default function BookingStepOne({ shop, shopStaff, data }) {
                                 />
                             </div>
                         </div>
-                        <div>
-                            <div className="sticky top-20 space-y-5">
-                                <AppointmentSummaryCard
-                                    shop={shop}
-                                    shopStaff={shopStaff}
-                                />
+
+                        {/* Right side: Appointment Summary */}
+                        <div className="lg:col-span-2 order-1 lg:order-2">
+                            <div className="sticky top-4 sm:top-8">
+                                <div className="bg-card rounded-lg p-4 sm:p-6 shadow border mb-4">
+                                    <h2 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4">Appointment Summary</h2>
+                                    <AppointmentSummaryCard
+                                        shop={shop}
+                                        shopStaff={shopStaff}
+                                    />
+                                </div>
                                 <form onSubmit={handleSubmit}>
                                     <input type="hidden" name="shop_id" value={formData.shop_id} />
                                     <Button
-                                        className="w-full"
+                                        className="w-full py-4 sm:py-6 text-sm sm:text-base font-medium"
                                         type="submit"
-                                        loading={processing}
+                                        size="lg"
+                                        variant="default"
                                         disabled={!formData.service_id || formData.service_id.length === 0}
                                     >
-                                        Next
+                                        {processing ? "Processing..." : "Continue to Schedule"}
                                     </Button>
+                                    {(!formData.service_id || formData.service_id.length === 0) && (
+                                        <p className="text-center text-xs sm:text-sm text-muted-foreground mt-2">
+                                            Please select at least one service to continue
+                                        </p>
+                                    )}
                                 </form>
                             </div>
                         </div>

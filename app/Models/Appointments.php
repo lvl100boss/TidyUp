@@ -30,11 +30,19 @@ class Appointments extends Model
         'resched_reason',
         'has_review',
         'user_confirmed',
+        'nickname',
+        'status_admin',
+        'completed_by',
+        'completed_at',
+        'is_user_confirmed',
+        'approved_by',
+        'booking_for_other',
     ];
 
     protected $casts = [
         'old_data' => 'array',
         'resched_data' => 'array',
+        'booking_for_other' => 'boolean',
     ];
 
     public function user()

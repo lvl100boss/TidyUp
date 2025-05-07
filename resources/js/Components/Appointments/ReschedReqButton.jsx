@@ -1,5 +1,5 @@
 import React from 'react'
-import { CalendarSync } from 'lucide-react'
+import { CalendarSync, Loader2 } from 'lucide-react'
 import { Button } from '@/Components/ui/button'
 import {
     AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction
@@ -195,10 +195,10 @@ export default function ReschedReqButton({ appointment, upcomingSchedules, shopB
             <AlertDialogTrigger>
                 <Button
                     variant="outline"
-                    size="sm"
-                    className="gap-1.5 rounded-lg px-4 font-medium hover:bg-primary/10 hover:text-primary"
+                    size="default"
+                    className="gap-1.5"
                 >
-                    <CalendarSync className="h-4 w-4" />
+                    <CalendarSync className="mr-2 h-4 w-4" />
                     Reschedule
                 </Button>
             </AlertDialogTrigger >
@@ -270,7 +270,10 @@ export default function ReschedReqButton({ appointment, upcomingSchedules, shopB
                 <AlertDialogFooter>
                     <AlertDialogCancel>Cancel</AlertDialogCancel>
                     <form onSubmit={handleSubmit}>
-                        <Button>Confirm</Button>
+                        <Button type="submit">
+                            {processing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            {processing ? "Processing..." : "Confirm"}
+                        </Button>
                     </form>
                 </AlertDialogFooter>
             </AlertDialogContent>

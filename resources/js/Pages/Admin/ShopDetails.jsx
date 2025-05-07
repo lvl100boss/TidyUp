@@ -48,16 +48,20 @@ import {
   AlertCircle,
   Download,
   Eye,
-  ArrowLeft
+  ArrowLeft,
+  Loader2
 } from "lucide-react";
 import ShopServiceCard from "@/Components/Shop/ShopServiceCard";
 import {
   Dialog,
   DialogContent,
+  DialogFooter,
   DialogHeader,
-  DialogTitle
+  DialogTitle,
+  DialogDescription
 } from "@/Components/ui/dialog";
 import ShopGallery from "@/Components/Shop/ShopGallery";
+import axios from "axios";
 
 // Add this helper function at the top level
 const formatDuration = (hours, minutes) => {
@@ -69,8 +73,10 @@ const formatDuration = (hours, minutes) => {
 
 export default function ShopDetails({ shop, categories, setupData }) {
   const [activeTab, setActiveTab] = useState("overview");
+  const [isVerifyDialogOpen, setIsVerifyDialogOpen] = useState(false);
+  const [isRejectDialogOpen, setIsRejectDialogOpen] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
 
-  // Update useEffect with more detailed logging
   useEffect(() => {
     if (activeTab === "services") {
       console.log("Full Shop Data:", shop);
@@ -88,25 +94,61 @@ export default function ShopDetails({ shop, categories, setupData }) {
     rejection_reason: shop.rejection_reason || '',
   });
 
-  const handleStatusChange = (status) => {
-    setData('status', status);
+  const handleVerify = () => {
+    setIsProcessing(true);
+    
+    // Use Axios directly to handle the request instead of Inertia post
+    axios.post(route('admin.shops.update-status', shop.id), {
+      _method: 'PATCH',
+      status: 'verified',
+    })
+    .then(response => {
+      toast.success("Shop verified successfully!", {
+        description: "The shop is now visible to customers and can receive bookings."
+      });
+      setIsVerifyDialogOpen(false);
+      setIsProcessing(false);
+      
+      // Refresh the page to show updated shop status
+      window.location.reload();
+    })
+    .catch(error => {
+      toast.error("Failed to verify shop.", {
+        description: error?.response?.data?.message || "Please try again or contact support if the issue persists."
+      });
+      setIsProcessing(false);
+    });
   };
 
-  const handleUpdateStatus = (e) => {
-    e.preventDefault();
-
-    const formData = new FormData();
-    formData.append('_method', 'PATCH');
-    formData.append('status', data.status);
-    formData.append('rejection_reason', data.rejection_reason);
-
-    post(route('admin.shops.update-status', shop.id), {
-      preserveScroll: true,
-      data: formData,
-      onSuccess: () => {
-        toast.success('Shop status updated successfully.');
-        reset();
-      },
+  const handleReject = () => {
+    if (!data.rejection_reason.trim()) {
+      toast.error("Please provide a reason for rejection");
+      return;
+    }
+    
+    setIsProcessing(true);
+    
+    // Use Axios directly to handle the request instead of Inertia post
+    axios.post(route('admin.shops.update-status', shop.id), {
+      _method: 'PATCH',
+      status: 'rejected',
+      rejection_reason: data.rejection_reason,
+    })
+    .then(response => {
+      toast.success("Shop rejected successfully", {
+        description: "The shop owner has been notified of the rejection reason."
+      });
+      setIsRejectDialogOpen(false);
+      setIsProcessing(false);
+      
+      // Refresh the page to show updated shop status
+      window.location.reload();
+    })
+    .catch(error => {
+      toast.error("Failed to reject shop.", {
+        description: error?.response?.data?.message || "Please try again or contact support if the issue persists."
+      });
+      setIsProcessing(false);
     });
   };
 
@@ -139,9 +181,7 @@ export default function ShopDetails({ shop, categories, setupData }) {
     });
   };
 
-  // Create a component to display setup data details
   const SetupDetails = ({ data }) => {
-    // Check if data and data.basicInfo exist before rendering
     if (!data || !data.basicInfo) {
       return <p>No setup data available</p>;
     }
@@ -150,7 +190,6 @@ export default function ShopDetails({ shop, categories, setupData }) {
       <div>
         <h3 className="font-semibold mb-3">Setup Information</h3>
         <div className="space-y-4">
-          {/* Basic Info */}
           <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded-md">
             <h4 className="text-sm font-medium text-gray-500 mb-2">Basic Information</h4>
             <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
@@ -169,7 +208,6 @@ export default function ShopDetails({ shop, categories, setupData }) {
             )}
           </div>
 
-          {/* Location */}
           <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded-md">
             <h4 className="text-sm font-medium text-gray-500 mb-2">Location</h4>
             <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
@@ -186,7 +224,6 @@ export default function ShopDetails({ shop, categories, setupData }) {
             </dl>
           </div>
 
-          {/* Categories */}
           <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded-md">
             <h4 className="text-sm font-medium text-gray-500 mb-2">Selected Categories</h4>
             {data.categories.length > 0 ? (
@@ -202,7 +239,6 @@ export default function ShopDetails({ shop, categories, setupData }) {
             )}
           </div>
 
-          {/* Operating Hours */}
           <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded-md">
             <h4 className="text-sm font-medium text-gray-500 mb-2">Operating Hours</h4>
             <dl className="space-y-1 text-sm">
@@ -227,7 +263,6 @@ export default function ShopDetails({ shop, categories, setupData }) {
     );
   };
 
-  // Update services section to use correct property name
   const renderServices = () => (
     <div className="space-y-4">
       <h3 className="text-lg font-bold">Service Catalog</h3>
@@ -289,7 +324,7 @@ export default function ShopDetails({ shop, categories, setupData }) {
       <Toaster />
 
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div className="space-y-1">
             <Link
               href={route('admin.shops')}
@@ -300,10 +335,11 @@ export default function ShopDetails({ shop, categories, setupData }) {
             </Link>
             <h1 className="text-2xl font-bold">{shop.shop_name}</h1>
           </div>
-          {getStatusBadge(shop.status)}
+          <div className="flex items-center">
+            {getStatusBadge(shop.status)}
+          </div>
         </div>
 
-        {/* Status info cards - New addition to show detailed status information */}
         {shop.status === 'verified' && (
           <Card className="mb-6 bg-green-50 border-green-200">
             <CardContent className="pt-6">
@@ -354,6 +390,25 @@ export default function ShopDetails({ shop, categories, setupData }) {
           </Card>
         )}
 
+        {shop.status === 'processing' && (
+          <div className="flex flex-col sm:flex-row gap-3 mb-6">
+            <Button 
+              className="bg-green-600 hover:bg-green-700 text-white"
+              onClick={() => setIsVerifyDialogOpen(true)}
+            >
+              <CheckCircle className="mr-2 h-4 w-4" />
+              Verify Shop
+            </Button>
+            <Button 
+              variant="destructive"
+              onClick={() => setIsRejectDialogOpen(true)}
+            >
+              <XCircle className="mr-2 h-4 w-4" />
+              Reject Shop
+            </Button>
+          </div>
+        )}
+
         <Card>
           <CardHeader>
             <div className="flex justify-between items-center">
@@ -361,71 +416,12 @@ export default function ShopDetails({ shop, categories, setupData }) {
                 <CardTitle>Shop Details</CardTitle>
                 <CardDescription>ID: {shop.id} | Created: {formatDate(shop.created_at)}</CardDescription>
               </div>
-
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button>Update Status</Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <form onSubmit={handleUpdateStatus}>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Update Shop Status</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        Change the verification status of this shop.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-
-                    <div className="py-4 space-y-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="status">Status</Label>
-                        <Select
-                          value={data.status}
-                          onValueChange={handleStatusChange}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select Status" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="processing">Processing</SelectItem>
-                            <SelectItem value="verified">Verified</SelectItem>
-                            <SelectItem value="rejected">Rejected</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      {data.status === 'rejected' && (
-                        <div className="space-y-2">
-                          <Label htmlFor="rejection_reason">Rejection Reason</Label>
-                          <Textarea
-                            id="rejection_reason"
-                            value={data.rejection_reason}
-                            onChange={(e) => setData('rejection_reason', e.target.value)}
-                            placeholder="Enter reason for rejection"
-                            required
-                          />
-                        </div>
-                      )}
-                    </div>
-
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <Button
-                        type="submit"
-                        disabled={processing}
-                        variant={data.status === 'rejected' ? 'destructive' : 'default'}
-                      >
-                        Update Status
-                      </Button>
-                    </AlertDialogFooter>
-                  </form>
-                </AlertDialogContent>
-              </AlertDialog>
             </div>
           </CardHeader>
 
           <CardContent>
             <Tabs defaultValue="overview" value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="grid grid-cols-5 mb-8">
+              <TabsList className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 mb-8">
                 <TabsTrigger value="overview">Overview</TabsTrigger>
                 <TabsTrigger value="setup">Setup Info</TabsTrigger>
                 <TabsTrigger value="services">Services</TabsTrigger>
@@ -504,8 +500,6 @@ export default function ShopDetails({ shop, categories, setupData }) {
                     </div>
 
                     <ShopGallery shop={shop} />
-
-
                   </div>
                 </div>
               </TabsContent>
@@ -523,7 +517,6 @@ export default function ShopDetails({ shop, categories, setupData }) {
                   <h3 className="text-lg font-bold">Legal Documents</h3>
                   {shop.legalDocuments ? (
                     <div className="grid md:grid-cols-3 gap-6">
-                      {/* Business Permit */}
                       <Card>
                         <CardHeader>
                           <CardTitle className="text-base">Business Permit</CardTitle>
@@ -575,7 +568,6 @@ export default function ShopDetails({ shop, categories, setupData }) {
                         </CardFooter>
                       </Card>
 
-                      {/* DTI Registration */}
                       <Card>
                         <CardHeader>
                           <CardTitle className="text-base">DTI Registration</CardTitle>
@@ -632,7 +624,6 @@ export default function ShopDetails({ shop, categories, setupData }) {
                         </CardFooter>
                       </Card>
 
-                      {/* Valid ID */}
                       <Card>
                         <CardHeader>
                           <CardTitle className="text-base">Valid ID</CardTitle>
@@ -702,7 +693,6 @@ export default function ShopDetails({ shop, categories, setupData }) {
                 <div className="space-y-4">
                   <h3 className="text-lg font-bold">Staff & Management</h3>
                   <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {/* Always show shop owner first */}
                     {shop.user && (
                       <Card className="border-blue-200 bg-blue-50/50">
                         <CardHeader>
@@ -741,7 +731,6 @@ export default function ShopDetails({ shop, categories, setupData }) {
                       </Card>
                     )}
 
-                    {/* Show other staff members */}
                     {shop.shopStaffs?.filter(staff => staff.staff_id !== shop.user.id).map((staffMember) => (
                       <Card key={staffMember.id} className={staffMember.role === 'Shop Owner' ? 'border-blue-200' : ''}>
                         <CardHeader className={staffMember.role === 'Shop Owner' ? 'bg-blue-50' : ''}>
@@ -802,6 +791,91 @@ export default function ShopDetails({ shop, categories, setupData }) {
           </CardContent>
         </Card>
       </div>
+
+      <Dialog open={isVerifyDialogOpen} onOpenChange={(open) => {
+        // Only allow closing the dialog if not processing
+        if (!isProcessing) setIsVerifyDialogOpen(open);
+      }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Verify Shop</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to verify this shop? This will make it visible to all users and cannot be reversed.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsVerifyDialogOpen(false)}
+              disabled={isProcessing}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleVerify}
+              disabled={isProcessing}
+            >
+              {isProcessing ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Processing...
+                </>
+              ) : (
+                "Confirm Verification"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isRejectDialogOpen} onOpenChange={(open) => {
+        // Only allow closing the dialog if not processing
+        if (!isProcessing) setIsRejectDialogOpen(open);
+      }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Reject Shop</DialogTitle>
+            <DialogDescription>
+              Please provide a reason for rejecting this shop. This will be shown to the shop owner.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <Label htmlFor="rejection_reason">Rejection Reason</Label>
+            <Textarea
+              id="rejection_reason"
+              value={data.rejection_reason}
+              onChange={(e) => setData('rejection_reason', e.target.value)}
+              placeholder="Enter reason for rejection..."
+              className="mt-2"
+              rows={4}
+              disabled={isProcessing}
+            />
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsRejectDialogOpen(false)}
+              disabled={isProcessing}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleReject}
+              disabled={isProcessing || !data.rejection_reason.trim()}
+            >
+              {isProcessing ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Processing...
+                </>
+              ) : (
+                "Reject Shop"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </AdminLayout>
   );
 }

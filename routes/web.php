@@ -67,6 +67,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/shop/setup', [ShopController::class, 'create'])->name('shop.setup');
         Route::post('/shop/setup', [SetupShopController::class, 'store'])->name('shop.store');
     });
+
+    // Add the thank you page route
+    Route::get('/{shop}/booking/thank-you/{appointment}', [BookingController::class, 'thankYou'])->name('booking.thank-you');
+
+    // Review and appointment confirmation routes
+    Route::post('/appointments/review', [ReviewController::class, 'store'])->name('appointments.review');
+    Route::get('/appointments/{appointmentId}/review', [ReviewController::class, 'showForAppointment'])->name('appointments.show-review');
+    Route::post('/appointments/confirm-completion', [AppointmentController::class, 'confirmCompletion'])->name('appointments.confirm-completion');
 });
 
 // Fix the shop detail route pattern to match the links being generated
@@ -74,13 +82,13 @@ Route::get('/shop/{id}', [ShopController::class, 'show'])->where('id', '[0-9]+')
 // Add a compatibility route for links that might be using the /{id}/shop pattern
 Route::get('/{id}/shop', [ShopController::class, 'show'])->where('id', '[0-9]+');
 
-Route::post('/reviews', [ReviewController::class, 'store'])->name('reviews.store');
+// Remove duplicate route
+// Route::post('/reviews', [ReviewController::class, 'store'])->name('reviews.store');
 
 // User appointment routes
 Route::post('/appointments/confirm-completion', [AppointmentController::class, 'confirmCompletion'])->name('appointments.confirm-completion');
-
-// Route::get('/shop/setup', [ShopController::class, 'create'])->name('shop.setup');
-// Route::post('/shop/setup', [ShopController::class, 'store'])->name('shop.store');
+Route::get('/shop/setup', [ShopController::class, 'create'])->name('shop.setup');
+Route::post('/shop/setup', [ShopController::class, 'store'])->name('shop.store');
 
 // Admin routes
 Route::prefix('admin')->name('admin.')->middleware(['auth', 'web'])->group(function () {

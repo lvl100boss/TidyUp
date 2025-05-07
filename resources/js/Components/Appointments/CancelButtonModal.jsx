@@ -2,7 +2,7 @@ import React from 'react';
 import {
     AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction
 } from "@/Components/ui/alert-dialog";
-import { Ban } from "lucide-react";
+import { Ban, Loader2 } from "lucide-react";
 import { useForm } from "@inertiajs/react";
 import { Button } from "@/Components/ui/button";
 import { Label } from "@/Components/ui/label";
@@ -32,11 +32,10 @@ export default function CancelButtonModal({ appointment }) {
             <AlertDialogTrigger>
                 <Button
                     variant="destructive"
-                    size="sm"
-                    className="gap-1.5 rounded-lg px-4 font-medium hover:bg-primary/10 hover:text-primary"
+                    size="default"
+                    className="gap-1.5"
                 >
-                    <Ban className="h-4 w-4" />
-
+                    <Ban className="mr-2 h-4 w-4" />
                     Cancel
                 </Button>
             </AlertDialogTrigger>
@@ -64,7 +63,10 @@ export default function CancelButtonModal({ appointment }) {
                 <AlertDialogFooter>
                     <AlertDialogCancel>Cancel</AlertDialogCancel>
                     <form onSubmit={handleSubmit}>
-                        <Button type="submit" variant="destructive">{processing ? "Cancelling..." : "Confirm"}</Button>
+                        <Button type="submit" variant="destructive">
+                            {processing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            {processing ? "Cancelling..." : "Confirm"}
+                        </Button>
                     </form>
                 </AlertDialogFooter>
             </AlertDialogContent>

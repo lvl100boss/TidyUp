@@ -70,7 +70,9 @@ export default function Appointments({
         upcoming: upcomingAppointments,
         completed: completedAppointments,
         started: startedAppointments,
-
+        cancelled: cancelledAppointments,
+        "no-show": noShowAppointments,
+        declined: declinedAppointments
     };
 
     const { data, setData, post, processing, errors, reset } = useForm({
@@ -118,17 +120,38 @@ export default function Appointments({
 
     const submitReview = (e) => {
         e.preventDefault();
-        post(route('appointments.review'), {
+        
+        const formData = new FormData();
+        formData.append('appointment_id', appointmentToReview.id);
+        formData.append('user_id', auth.user.id);
+        formData.append('shop_id', appointmentToReview.shop_id);
+        formData.append('service_rating', serviceRating);
+        formData.append('staff_rating', staffRating);
+        formData.append('comment', data.comment || '');
+        formData.append('confirm_completion', data.confirm_completion ? '1' : '0');
+        
+        post(route('appointments.review'), formData, {
+            forceFormData: true,
             preserveScroll: true,
             onSuccess: () => {
                 setIsReviewDialogOpen(false);
                 if (!data.confirm_completion) {
                     setShowConfirmationDialog(true);
                     confirmCompletionForm.setData('appointment_id', appointmentToReview.id);
+                } else {
+                    window.location.reload();
                 }
                 reset();
                 setServiceRating(0);
                 setStaffRating(0);
+            },
+            onError: (errors) => {
+                // Alert the user if there's an error
+                if (errors.message) {
+                    alert(errors.message);
+                } else {
+                    alert('There was an error submitting your review. Please try again later.');
+                }
             }
         });
     };
@@ -166,7 +189,8 @@ export default function Appointments({
     const getAppointmentContent = (type) => {
         const appointments = appointmentData[type];
         return (
-            <TabsContent value={type} className="grid gap-5 mt-0 w-full">
+            <TabsContent value={type}
+            className="grid gap-5 mt-0 w-full">
                 {appointments && appointments.length > 0 ? (
                     appointments
                         .filter(
@@ -199,9 +223,8 @@ export default function Appointments({
                 defaultValue={activeTab}
                 value={activeTab}
                 onValueChange={setActiveTab}
-                className="overflow-x-auto whitespace-nowrap mb-20"
             >
-                <div className="sm:hidden w-full">
+                <div className="sm:hidden">
                     <Select value={activeTab} onValueChange={setActiveTab}>
                         <SelectTrigger>
                             <SelectValue placeholder="Select a tab" />
@@ -209,7 +232,7 @@ export default function Appointments({
                         <SelectContent>
                             {appointmentTypes.map((type) => (
                                 <SelectItem key={type} value={type}>
-                                    {type}
+                                    {type.charAt(0).toUpperCase() + type.slice(1)}
                                 </SelectItem>
                             ))}
                         </SelectContent>
@@ -217,9 +240,12 @@ export default function Appointments({
                 </div>
 
                 <div className="hidden sm:block">
-                    <TabsList className="mb-5 block md:inline-flex w-min mx-autolg:mx-0 ">
+                <TabsList 
+                className="mb-5 block md:inline-flex w-min mx-autolg:mx-0 ">
                         {appointmentTypes.map((type) => (
-                            <TabsTrigger key={type} value={type} className="capitalize">{type}</TabsTrigger>
+                            <TabsTrigger key={type} value={type}>
+                                {type.charAt(0).toUpperCase() + type.slice(1)}
+                            </TabsTrigger>
                         ))}
                     </TabsList>
                 </div>
@@ -234,7 +260,7 @@ export default function Appointments({
                     setIsReviewDialogOpen(false);
                 }
             }}>
-                <DialogContent className="sm:max-w-[425px]">
+               <DialogContent className="sm:max-w-[425px]">
                     <DialogHeader>
                         <DialogTitle>Rate Your Experience</DialogTitle>
                         <DialogDescription>
@@ -244,11 +270,12 @@ export default function Appointments({
                         </DialogDescription>
                     </DialogHeader>
                     <form onSubmit={submitReview}>
-                        <div className="grid gap-4 py-4">
-                            <div className="space-y-4">
+                    <div className="grid gap-4 py-4">
+                    <div className="space-y-4">
                                 <div>
-                                    <h3 className="text-sm font-medium mb-2">Service Quality</h3>
-                                    <div className="flex items-center justify-center space-x-1 mb-2">
+                                <h3 className="text-sm font-medium mb-2">Service Quality</h3>
+                                    <div 
+                                    className="flex items-center justify-center space-x-1 mb-2">
                                         {[1, 2, 3, 4, 5].map((star) => (
                                             <Star
                                                 key={star}
@@ -262,16 +289,18 @@ export default function Appointments({
                                             />
                                         ))}
                                     </div>
-                                    {errors.service_rating && <p className="text-red-500 text-sm text-center">{errors.service_rating}</p>}
+        
+                                    {errors.service_rating &&
+                                    <p className="text-red-500 text-sm text-center">
+                                        {errors.service_rating}</p>}
                                 </div>
 
                                 <div>
-                                    <h3 className="text-sm font-medium mb-2">Staff Performance</h3>
-                                    <div className="flex items-center justify-center space-x-1 mb-2">
+                                    <h3>Staff Performance</h3>
+                                    <div>
                                         {[1, 2, 3, 4, 5].map((star) => (
                                             <Star
                                                 key={star}
-                                                className={`${appointmentToReview?.review ? "" : "cursor-pointer"} h-8 w-8 ${star <= staffRating ? "fill-yellow-400 text-yellow-400" : "text-gray-300"}`}
                                                 onClick={() => {
                                                     if (!appointmentToReview?.review) {
                                                         setStaffRating(star);
@@ -281,7 +310,7 @@ export default function Appointments({
                                             />
                                         ))}
                                     </div>
-                                    {errors.staff_rating && <p className="text-red-500 text-sm text-center">{errors.staff_rating}</p>}
+                                    {errors.staff_rating && <p>{errors.staff_rating}</p>}
                                 </div>
                             </div>
 
@@ -293,11 +322,11 @@ export default function Appointments({
                                     rows={4}
                                     disabled={appointmentToReview?.review}
                                 />
-                                {errors.comment && <p className="text-red-500 text-sm">{errors.comment}</p>}
+                                {errors.comment && <p>{errors.comment}</p>}
                             </div>
 
                             {!appointmentToReview?.review && appointmentToReview?.status === "started" && (
-                                <div className="flex items-center space-x-2">
+                                <div>
                                     <Checkbox
                                         id="confirm_completion"
                                         checked={data.confirm_completion}
@@ -351,7 +380,7 @@ export default function Appointments({
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                         <AlertDialogCancel>Not Now</AlertDialogCancel>
-                        <AlertDialogAction onClick={confirmCompletion} className="bg-primary">
+                        <AlertDialogAction onClick={confirmCompletion}>
                             <CheckCircle className="mr-2 h-4 w-4" />
                             Confirm Completion
                         </AlertDialogAction>
