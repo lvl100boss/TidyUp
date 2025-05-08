@@ -22,101 +22,101 @@ use Illuminate\Validation\ValidationException;
 
 class BookingController extends Controller
 {
-// Add these methods to your BookingController class
+    // Add these methods to your BookingController class
 
-/**
- * Show preview of booking step one for unauthenticated users
- */
-public function previewStepOne(Shop $shop)
-{
-    $shop->load(['shopGallery', 'shopServiceCategories.serviceCategories', 'shopOperationHours']);
-    $shopStaff = ShopStaffs::with('appointments.appointment.appointmentServices.shopService', 'staff')
-        ->where('shop_id', $shop->id)
-        ->where('is_active', 1)
-        ->get();
+    /**
+     * Show preview of booking step one for unauthenticated users
+     */
+    public function previewStepOne(Shop $shop)
+    {
+        $shop->load(['shopGallery', 'shopServiceCategories.serviceCategories', 'shopOperationHours']);
+        $shopStaff = ShopStaffs::with('appointments.appointment.appointmentServices.shopService', 'staff')
+            ->where('shop_id', $shop->id)
+            ->where('is_active', 1)
+            ->get();
 
-    $data = session()->get('preview_form_data', []);
-    return Inertia::render('Users/BookingPages/BookingStepOne', [
-        'shop' => $shop,
-        'shopStaff' => $shopStaff,
-        'data' => $data,
-        'isPreview' => true
-    ]);
-}
+        $data = session()->get('preview_form_data', []);
+        return Inertia::render('Users/BookingPages/BookingStepOne', [
+            'shop' => $shop,
+            'shopStaff' => $shopStaff,
+            'data' => $data,
+            'isPreview' => true
+        ]);
+    }
 
-/**
- * Store preview data for step one
- */
-public function previewStepOneStore(Request $request, Shop $shop)
-{
-    $validatedData = $request->validate([
-        'service_id' => 'required|array',
-        'service_id.*' => 'exists:shop_service_categories,id',
-        'total_price' => 'required',
-    ]);
-    session()->put('preview_form_data', array_merge(session()->get('preview_form_data', []), $validatedData));
-    return redirect()->route('booking.preview.step.two', $shop);
-}
+    /**
+     * Store preview data for step one
+     */
+    public function previewStepOneStore(Request $request, Shop $shop)
+    {
+        $validatedData = $request->validate([
+            'service_id' => 'required|array',
+            'service_id.*' => 'exists:shop_service_categories,id',
+            'total_price' => 'required',
+        ]);
+        session()->put('preview_form_data', array_merge(session()->get('preview_form_data', []), $validatedData));
+        return redirect()->route('booking.preview.step.two', $shop);
+    }
 
-/**
- * Show preview of booking step two
- */
-public function previewStepTwo(Shop $shop)
-{
-    $data = session()->get('preview_form_data', []);
-    $shop->load(['shopGallery', 'shopServiceCategories.serviceCategories', 'shopOperationHours']);
-    $shopStaff = ShopStaffs::with('appointments.appointment.appointmentServices.shopService', 'staff')
-        ->where('shop_id', $shop->id)
-        ->where('is_active', 1)
-        ->get();
-    $business_days = $shop->shopOperationHours->where('is_open', 1)->pluck('day')->toArray();
-    $shopServiceCategories = ShopServiceCategories::with('serviceCategories')->where('shop_id', $shop->id)->get();
-    
-    return Inertia::render('Users/BookingPages/BookingStepTwo', [
-        'shop' => $shop,
-        'businessDays' => $business_days,
-        'shopStaff' => $shopStaff,
-        'shopServiceCategories' => $shopServiceCategories,
-        'data' => $data,
-        'isPreview' => true
-    ]);
-}
+    /**
+     * Show preview of booking step two
+     */
+    public function previewStepTwo(Shop $shop)
+    {
+        $data = session()->get('preview_form_data', []);
+        $shop->load(['shopGallery', 'shopServiceCategories.serviceCategories', 'shopOperationHours']);
+        $shopStaff = ShopStaffs::with('appointments.appointment.appointmentServices.shopService', 'staff')
+            ->where('shop_id', $shop->id)
+            ->where('is_active', 1)
+            ->get();
+        $business_days = $shop->shopOperationHours->where('is_open', 1)->pluck('day')->toArray();
+        $shopServiceCategories = ShopServiceCategories::with('serviceCategories')->where('shop_id', $shop->id)->get();
 
-/**
- * Store preview data for step two
- */
-public function previewStepTwoStore(Request $request, Shop $shop)
-{
-    $validatedData = $request->validate([
-        'shop_id' => 'required|exists:shops,id',
-        'staff_id' => 'required|exists:shop_staffs,id',
-        'staff_index' => 'required',
-        'date' => 'required|date',
-        'time' => 'required',
-    ]);
-    session()->put('preview_form_data', array_merge(session()->get('preview_form_data', []), $validatedData));
-    return redirect()->route('booking.preview.step.three', $shop);
-}
+        return Inertia::render('Users/BookingPages/BookingStepTwo', [
+            'shop' => $shop,
+            'businessDays' => $business_days,
+            'shopStaff' => $shopStaff,
+            'shopServiceCategories' => $shopServiceCategories,
+            'data' => $data,
+            'isPreview' => true
+        ]);
+    }
 
-/**
- * Show preview of booking step three (final step)
- */
-public function previewStepThree(Shop $shop)
-{
-    $data = session()->get('preview_form_data', []);
-    $shop->load(['shopGallery', 'shopServiceCategories.serviceCategories', 'shopOperationHours']);
-    $shopStaff = ShopStaffs::with('appointments.appointment.appointmentServices.shopService', 'staff')
-        ->where('shop_id', $shop->id)
-        ->where('is_active', 1)
-        ->get();
-    
-    return Inertia::render('Users/BookingPages/BookingStepThree', [
-        'shop' => $shop,
-        'shopStaff' => $shopStaff,
-        'data' => $data,
-        'isPreview' => true
-    ]);
-}
+    /**
+     * Store preview data for step two
+     */
+    public function previewStepTwoStore(Request $request, Shop $shop)
+    {
+        $validatedData = $request->validate([
+            'shop_id' => 'required|exists:shops,id',
+            'staff_id' => 'required|exists:shop_staffs,id',
+            'staff_index' => 'required',
+            'date' => 'required|date',
+            'time' => 'required',
+        ]);
+        session()->put('preview_form_data', array_merge(session()->get('preview_form_data', []), $validatedData));
+        return redirect()->route('booking.preview.step.three', $shop);
+    }
+
+    /**
+     * Show preview of booking step three (final step)
+     */
+    public function previewStepThree(Shop $shop)
+    {
+        $data = session()->get('preview_form_data', []);
+        $shop->load(['shopGallery', 'shopServiceCategories.serviceCategories', 'shopOperationHours']);
+        $shopStaff = ShopStaffs::with('appointments.appointment.appointmentServices.shopService', 'staff')
+            ->where('shop_id', $shop->id)
+            ->where('is_active', 1)
+            ->get();
+
+        return Inertia::render('Users/BookingPages/BookingStepThree', [
+            'shop' => $shop,
+            'shopStaff' => $shopStaff,
+            'data' => $data,
+            'isPreview' => true
+        ]);
+    }
 
 
 
@@ -199,45 +199,47 @@ public function previewStepThree(Shop $shop)
         ]);
     }
 
+    /**
+     * Process the final booking step and create the appointment
+     */
     public function stepThreeStore(Request $request, Shop $shop)
     {
-        $validatedData = $request->validate([
-            'note' => 'nullable|string',
-        ]);
-
         try {
-            // Get form data and verify it exists
-            $formData = session()->get('form_data');
-            if (!$formData) {
-                throw new \Exception('Session data is missing. Please start the booking process again.');
-            }
+            // Retrieve all form data from previous steps
+            $formData = session()->get('form_data', []);
 
-            // Check for required fields
-            $requiredFields = ['shop_id', 'staff_id', 'date', 'time', 'service_id', 'total_price'];
-            foreach ($requiredFields as $field) {
-                if (!isset($formData[$field])) {
-                    throw new \Exception("Required field '$field' is missing from session data.");
-                }
-            }
+            // Merge with any additional data from this step
+            $formData = array_merge($formData, $request->all());
 
-            // Create the main appointment record
+            // Determine if this is a staff-booked appointment (walk-in or guest booking)
+            $isStaffBooking = isset($formData['is_walkin']) && $formData['is_walkin'] ||
+                isset($formData['is_guest']) && $formData['is_guest'];
+
+            // Begin transaction
+            DB::beginTransaction();
+
+            // Create the appointment
             $appointment = Appointments::create([
                 'user_id' => Auth::id(),
                 'shop_id' => $formData['shop_id'],
-                'staff_id' => $formData['staff_id'], // Use the staff_id from session
+                'staff_id' => $formData['staff_id'],
                 'date' => $formData['date'],
                 'time' => $formData['time'],
                 'total_price' => $formData['total_price'],
                 'note' => $request->note,
+                'nickname' => $request->nickname, // This is now required
+                'booking_for_other' => $request->booking_for_other ? true : false,
                 'status' => 'pending',
-                'is_successful' => true, // Consider if this should default to true or be set later
+                'is_successful' => true,
+                'staff_booked' => $isStaffBooking, // Flag for staff-booked appointments
             ]);
 
             // Create the user appointment link
             UserAppointments::create([
                 'user_id' => Auth::id(),
                 'appointment_id' => $appointment->id,
-                'staff_id' => $formData['staff_id'], // Use the staff_id from session
+                'staff_id' => $formData['staff_id'],
+                'is_staff_booking' => $isStaffBooking, // Add flag to junction table too
             ]);
 
             // Create appointment services links
@@ -265,13 +267,37 @@ public function previewStepThree(Shop $shop)
             }
             // --- End Notification ---
 
+            DB::commit();
+
             session()->forget('form_data');
-            return redirect()->route('appointments')->with('message', 'Appointment has been booked successfully')->with('success', true);
+
+            // Redirect to the thank you page instead of directly to appointments
+            return redirect()->route('booking.thank-you', [
+                'shop' => $shop->id,
+                'appointment' => $appointment->id
+            ])->with('success', true);
         } catch (\Exception $e) {
+            DB::rollBack();
             // Log the detailed error for debugging
             Log::error("Booking Step 3 Error: " . $e->getMessage(), ['exception' => $e]);
             // Provide a user-friendly error message
             return redirect()->back()->with('message', 'Error: Could not complete booking. Please try again or contact support.')->with('success', false);
         }
+    }
+
+    /**
+     * Show the thank you page after successful booking
+     */
+    public function thankYou(Shop $shop, Appointments $appointment)
+    {
+        // Ensure the appointment belongs to the authenticated user
+        if ($appointment->user_id !== Auth::id()) {
+            return redirect()->route('appointments');
+        }
+
+        return Inertia::render('Users/BookingPages/BookingThankYou', [
+            'shop' => $shop,
+            'appointment' => $appointment->load(['appointmentServices.shopService', 'staff.staff']),
+        ]);
     }
 }

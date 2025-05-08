@@ -52,8 +52,9 @@ class ShopController extends Controller
         $validatedData = $request->validate([
             'shop_name' => 'required|unique:shops,shop_name',
             'shop_bio' => 'nullable|string',
+
             'email' => 'required|email',
-            'phone' => 'required|numeric',
+            'contact_number' => 'required|numeric',
             'region' => 'required',
             'province' => 'required',
             'city' => 'required',
@@ -282,6 +283,29 @@ class ShopController extends Controller
         return Inertia::render('Shops/SetupShop', [
             'categories' => $categories,
             'serviceCategories' => $serviceCategories
+        ]);
+    }
+
+    /**
+       * Redirect to booking step one for walk-in appointments
+     *
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function redirectToWalkinBooking()
+    {
+        // Get the shop associated with the authenticated staff member
+        $shopStaff = auth()->user()->shopStaff()->first();
+
+        if (!$shopStaff || !$shopStaff->shop) {
+            return redirect()->route('shop.appointments')->with('error', 'No shop found for this staff member.');
+        }
+
+        $shop = $shopStaff->shop;
+
+        // Redirect to booking step one with the shop ID and walk-in flag
+        return redirect()->route('booking.step.one', [
+            'shop' => $shop->id,
+            'walkin' => true
         ]);
     }
 }

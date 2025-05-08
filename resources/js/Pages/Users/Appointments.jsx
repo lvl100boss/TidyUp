@@ -44,7 +44,6 @@ import {
     SelectValue,
 } from "@/components/ui/select"
 import FlashMessageWrapper from "@/Components/FlashMessageWrapper"
-import CompletionConfirmationModal from "@/Components/Appointments/CompletionConfirmationModal"
 
 export default function Appointments({
     pendingAppointments,
@@ -63,10 +62,6 @@ export default function Appointments({
     const [serviceRating, setServiceRating] = useState(0);
     const [staffRating, setStaffRating] = useState(0);
     const [showConfirmationDialog, setShowConfirmationDialog] = useState(false);
-    
-    // Added states for completion confirmation modal
-    const [completionModalOpen, setCompletionModalOpen] = useState(false);
-    const [appointmentToConfirm, setAppointmentToConfirm] = useState(null);
 
     const appointmentTypes = ["pending", "upcoming", "started", "completed", "cancelled", "declined", "no-show"];
 
@@ -107,44 +102,6 @@ export default function Appointments({
         }
     }, [flash.message]);
 
-    // Add effect to check for appointments needing confirmation
-    useEffect(() => {
-        // Find the first appointment that needs confirmation
-        const needsConfirmation = completedAppointments?.find(
-            app => app.status === 'completed' && !app.is_user_confirmed
-        );
-        
-        if (needsConfirmation) {
-            setAppointmentToConfirm(needsConfirmation);
-            setCompletionModalOpen(true);
-        }
-    }, [completedAppointments]);
-
-// Update the useEffect hook that handles sessionStorage
-useEffect(() => {
-    // Check if there's a stored appointment ID from notification click
-    const storedAppointmentId = sessionStorage.getItem('showCompletionModalForAppointment');
-    
-    if (storedAppointmentId) {
-        // Clear the storage so it doesn't trigger again on refresh
-        sessionStorage.removeItem('showCompletionModalForAppointment');
-        
-        // Find the appointment in completed appointments
-        // Add check for is_user_confirmed to prevent showing the modal if already confirmed
-        const appointmentToShow = completedAppointments?.find(
-            app => app.id === parseInt(storedAppointmentId, 10) && 
-                  app.status === 'completed' && 
-                  !app.is_user_confirmed
-        );
-        
-        if (appointmentToShow) {
-            setAppointmentToConfirm(appointmentToShow);
-            setCompletionModalOpen(true);
-            setActiveTab("completed");
-        }
-    }
-}, [completedAppointments]);
-
     const handleReviewClick = (appointment) => {
         setAppointmentToReview(appointment);
         setIsReviewDialogOpen(true);
@@ -163,17 +120,38 @@ useEffect(() => {
 
     const submitReview = (e) => {
         e.preventDefault();
-        post(route('appointments.review'), {
+        
+        const formData = new FormData();
+        formData.append('appointment_id', appointmentToReview.id);
+        formData.append('user_id', auth.user.id);
+        formData.append('shop_id', appointmentToReview.shop_id);
+        formData.append('service_rating', serviceRating);
+        formData.append('staff_rating', staffRating);
+        formData.append('comment', data.comment || '');
+        formData.append('confirm_completion', data.confirm_completion ? '1' : '0');
+        
+        post(route('appointments.review'), formData, {
+            forceFormData: true,
             preserveScroll: true,
             onSuccess: () => {
                 setIsReviewDialogOpen(false);
                 if (!data.confirm_completion) {
                     setShowConfirmationDialog(true);
                     confirmCompletionForm.setData('appointment_id', appointmentToReview.id);
+                } else {
+                    window.location.reload();
                 }
                 reset();
                 setServiceRating(0);
                 setStaffRating(0);
+            },
+            onError: (errors) => {
+                // Alert the user if there's an error
+                if (errors.message) {
+                    alert(errors.message);
+                } else {
+                    alert('There was an error submitting your review. Please try again later.');
+                }
             }
         });
     };
@@ -276,15 +254,6 @@ useEffect(() => {
                     {appointmentTypes.map((type) => getAppointmentContent(type))}
                 </div>
             </Tabs>
-
-            {/* Appointment Completion Confirmation Modal */}
-            {appointmentToConfirm && (
-                <CompletionConfirmationModal
-                    appointment={appointmentToConfirm}
-                    open={completionModalOpen}
-                    onOpenChange={setCompletionModalOpen}
-                />
-            )}
 
             <Dialog open={isReviewDialogOpen} onOpenChange={(open) => {
                 if (!open && appointmentToReview?.review) {

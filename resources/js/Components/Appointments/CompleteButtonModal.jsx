@@ -3,7 +3,7 @@ import {
     AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction
 } from "@/Components/ui/alert-dialog";
 import { Button } from "@/Components/ui/button";
-import { CalendarCheck } from "lucide-react";
+import { CalendarCheck, Loader2 } from "lucide-react";
 import { useForm } from "@inertiajs/react";
 
 export default function CompleteButtonModal({ appointment }) {
@@ -27,10 +27,11 @@ export default function CompleteButtonModal({ appointment }) {
         <AlertDialog>
             <AlertDialogTrigger>
                 <Button
-                    size="sm"
-                    className="gap-1.5 rounded-lg px-4 font-medium hover:bg-primary/10 hover:text-primary"
+                    size="default"
+                    variant="default"
+                    className="gap-1.5"
                 >
-                    <CalendarCheck className="h-4 w-4" />
+                    <CalendarCheck className="mr-2 h-4 w-4" />
                     Complete
                 </Button>
             </AlertDialogTrigger>
@@ -44,7 +45,10 @@ export default function CompleteButtonModal({ appointment }) {
                 <AlertDialogFooter>
                     <AlertDialogCancel>Cancel</AlertDialogCancel>
                     <form onSubmit={handleSubmit}>
-                        <Button >{processing ? "Marking as Completed..." : "Confirm"}</Button>
+                        <Button type="submit">
+                            {processing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            {processing ? "Marking as Completed..." : "Confirm"}
+                        </Button>
                     </form>
                 </AlertDialogFooter>
             </AlertDialogContent>
