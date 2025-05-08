@@ -14,6 +14,7 @@ use App\Http\Controllers\NewsletterSubscriptionController;
 use App\Http\Controllers\ShopAnalyticsController; // Make sure this is imported
 use App\Http\Controllers\FeedbackController;
 use App\Http\Controllers\SetupShopController;
+use App\Http\Controllers\BookingController;
 use App\Http\Controllers\ViewAppointmentController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Auth;
@@ -65,7 +66,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Add a route for SetupShop with middleware
     Route::middleware(['auth', 'verified', 'shop.creation'])->group(function () {
         Route::get('/shop/setup', [ShopController::class, 'create'])->name('shop.setup');
-        Route::post('/shop/setup', [SetupShopController::class, 'store'])->name('shop.store');
+        Route::post('/shop/setup', [ShopController::class, 'store'])->name('shop.store');
     });
 
     // Add the thank you page route

@@ -10,6 +10,7 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/Components/ui/dialog";
+import imageCompression from 'browser-image-compression'; // Import the library
 
 // Document types we need to collect
 const requiredDocuments = ['business_permit', 'dti_registration', 'valid_id'];
@@ -36,25 +37,58 @@ const LegalDocumentsPartial = ({ data, setData, errors }) => {
             .join(' ');
     };
 
-    const handleFileChange = (e, documentType) => {
+    const handleFileChange = async (e, documentType) => {
         const file = e.target.files[0];
         if (!file) return;
 
-        const reader = new FileReader();
-        reader.onloadend = () => {
+        // Basic check for image type (optional, but good practice)
+        if (!file.type.startsWith('image/')) {
+            console.error("Selected file is not an image.");
+            e.target.value = null;
+            setData(prevData => ({
+                ...prevData,
+                legal_documents: {
+                    ...prevData.legal_documents,
+                    [documentType]: null
+                }
+            }));
+            return;
+        }
+
+        const options = {
+            maxSizeMB: 1,
+            maxWidthOrHeight: 1920,
+            useWebWorker: true,
+        };
+
+        try {
+            console.log(`Original file size: ${file.size / 1024 / 1024} MB`);
+            const compressedFile = await imageCompression(file, options);
+            console.log(`Compressed file size: ${compressedFile.size / 1024 / 1024} MB`);
+
+            const previewUrl = URL.createObjectURL(compressedFile);
+
             setData(prevData => ({
                 ...prevData,
                 legal_documents: {
                     ...prevData.legal_documents,
                     [documentType]: {
-                        file,
-                        preview: reader.result,
-                        name: file.name
+                        file: compressedFile,
+                        preview: previewUrl,
+                        name: compressedFile.name
                     }
                 }
             }));
-        };
-        reader.readAsDataURL(file);
+        } catch (error) {
+            console.error("Image compression error:", error);
+            setData(prevData => ({
+                ...prevData,
+                legal_documents: {
+                    ...prevData.legal_documents,
+                    [documentType]: null
+                }
+            }));
+        }
         e.target.value = null;
     };
 

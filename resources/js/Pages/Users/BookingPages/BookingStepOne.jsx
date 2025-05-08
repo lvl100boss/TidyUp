@@ -11,19 +11,19 @@ import BookingServiceTabs from "@/Components/Shop/ShopPage/BookingServiceTabs";
 export default function BookingStepOne({ shop, shopStaff, data, isPreview = false }) {
     // Safely get URL parameters with fallbacks
     const pageProps = usePage().props;
-    
+
     // Extract query parameters safely
     const getQueryParam = (paramName, defaultValue = 'false') => {
         // Check if we have ziggy and query in the props
         if (pageProps && pageProps.ziggy && pageProps.ziggy.query) {
             return pageProps.ziggy.query[paramName] || defaultValue;
         }
-        
+
         // Fallback to manually parsing URL if ziggy.query is unavailable
         const url = new URL(window.location.href);
         return url.searchParams.get(paramName) || defaultValue;
     };
-    
+
     // Get query parameters with safe fallbacks
     const isWalkin = getQueryParam('walkin') === 'true';
     const isGuestBooking = getQueryParam('guest') === 'true';
@@ -99,7 +99,7 @@ export default function BookingStepOne({ shop, shopStaff, data, isPreview = fals
                     {isWalkin && (
                         <div className="max-w-xl mx-auto mb-4 bg-muted p-3 rounded-md">
                             <p className="text-center text-sm font-medium">
-                                {isGuestBooking 
+                                {isGuestBooking
                                     ? "You are booking an appointment for a guest customer (no account)"
                                     : "You are booking a walk-in appointment"}
                             </p>

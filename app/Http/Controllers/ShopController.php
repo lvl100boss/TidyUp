@@ -46,46 +46,48 @@ class ShopController extends Controller
             'request_data' => $request->except(['shop_photo', 'shop_gallery', 'business_permit', 'dti_registration', 'valid_id'])
         ]);
 
-
         // Validate basic fields first
-
-        $validatedData = $request->validate([
-            'shop_name' => 'required|unique:shops,shop_name',
-            'shop_bio' => 'nullable|string',
-
-            'email' => 'required|email',
-            'contact_number' => 'required|numeric',
-            'region' => 'required',
-            'province' => 'required',
-            'city' => 'required',
-            'barangay' => 'required',
-            'detailed_address' => 'required',
-            'categories' => 'required|array|min:1',
-            'categories.*' => 'exists:categories,id',
-            'operation_hours' => 'required|array',
-            'catalog_items' => 'required|array',
-            'shop_photo' => 'required|image',
-            'shop_gallery' => 'required|array',
-            'shop_gallery.*' => 'image',
-
-            'business_permit' => 'required|image',
-            'dti_registration' => 'required|image',
-            'valid_id' => 'required|image',
-        ]);
-        // Validate structure of catalog items
-        foreach ($request->catalog_items as $index => $item) {
-            $request->validate([
-                "catalog_items.{$index}.service_name" => 'required|string',
-                "catalog_items.{$index}.cost" => 'required|numeric',
-                "catalog_items.{$index}.duration_hour" => 'required|integer|min:0',
-                "catalog_items.{$index}.duration_minute" => 'required|integer|min:0|max:59',
-                "catalog_items.{$index}.category_id" => 'required|exists:service_categories,id',
-            ]);
-        }
-
-        DB::beginTransaction();
-
+        // dd($request->all());
         try {
+            $validatedData = $request->validate([
+                'shop_name' => 'required|unique:shops,shop_name',
+                'shop_bio' => 'nullable|string',
+
+                'email' => 'required|email',
+                'phone' => 'required',
+                'region' => 'required',
+                'province' => 'required',
+                'city' => 'required',
+                'barangay' => 'required',
+                'detailed_address' => 'required',
+                'categories' => 'required|array|min:1',
+                'categories.*' => 'exists:categories,id',
+                'operation_hours' => 'required|array',
+                'catalog_items' => 'required|array',
+                'shop_photo' => 'required|image',
+                'shop_gallery' => 'required|array',
+                'shop_gallery.*' => 'image',
+
+                'business_permit' => 'required|image',
+                'dti_registration' => 'required|image',
+                'valid_id' => 'required|image',
+            ]);
+            //show the errors of the validatedData
+
+            // Validate structure of catalog items
+            foreach ($request->catalog_items as $index => $item) {
+                $request->validate([
+                    "catalog_items.{$index}.service_name" => 'required|string',
+                    "catalog_items.{$index}.cost" => 'required|numeric',
+                    "catalog_items.{$index}.duration_hour" => 'required|integer|min:0',
+                    "catalog_items.{$index}.duration_minute" => 'required|integer|min:0|max:59',
+                    "catalog_items.{$index}.category_id" => 'required|exists:service_categories,id',
+                ]);
+            }
+
+            DB::beginTransaction();
+
+
             // Store shop photo
             $shopPhotoPath = $request->file('shop_photo')->store('shop_photos', 'public');
 
@@ -287,7 +289,7 @@ class ShopController extends Controller
     }
 
     /**
-       * Redirect to booking step one for walk-in appointments
+     * Redirect to booking step one for walk-in appointments
      *
      * @return \Illuminate\Http\RedirectResponse
      */

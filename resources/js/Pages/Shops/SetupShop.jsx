@@ -1,204 +1,419 @@
 import React, { useState, useEffect } from "react";
 import { Head, useForm } from "@inertiajs/react";
-import { Toaster, toast } from "sonner";
-import Header from "@/Components/User/Header";
-import GradientBackground from "@/Components/GradientBackground";
-import SetupShopHeader from "./SetupShopPartials/SetupShopHeader";
-import BasicDetails from "./SetupShopPartials/BasicDetails";
-import LocationDetails from "./SetupShopPartials/LocationDetails";
-import BusinessHours from "./SetupShopPartials/BusinessHours";
-import ShopServices from "./SetupShopPartials/ShopServices";
-import LazyLoadSection from "@/Components/LazyLoadSection";
-import LegalDocumentsPartial from "./SetupShopPartials/LegalDocumentsPartial";
-import ShopGalleryPartial from "./SetupShopPartials/ShopGalleryPartial";
 import { Button } from "@/Components/ui/button";
+import Header from "@/Components/User/Header";
+import StepIndicator from "@/Components/ShopSetup/StepIndicator";
+import ShopInfo from "@/Components/ShopSetup/ShopInfo";
+import Categories from "@/Components/ShopSetup/Categories";
+import Contact from "@/Components/ShopSetup/Contact";
+import Location from "@/Components/ShopSetup/Location";
+import OperationHours from "@/Components/ShopSetup/OperationHours";
+import Catalog from "@/Components/ShopSetup/Catalog";
+import BusinessPermit from "@/Components/ShopSetup/BusinessPermit";
+import Gallery from "@/Components/ShopSetup/Gallery";
+import Summary from "@/Components/ShopSetup/Summary";
+import Success from "@/Components/ShopSetup/Success";
+import GradientBackground from "@/Components/GradientBackground";
 
-const SetupShop = ({ serviceCategories }) => {
+const STEPS = {
+    SHOP_INFO: 0,
+    CATEGORIES: 1,
+    CONTACT: 2,
+    LOCATION: 3,
+    OPERATION_HOURS: 4,
+    CATALOG: 5,
+    BUSINESS_PERMIT: 6,
+    GALLERY: 7,
+    SUMMARY: 8,
+    SUCCESS: 9,
+};
 
-    const { data, setData, errors, post, processing } = useForm({
+const INITIAL_OPERATION_HOURS = [
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+    "Sunday",
+].reduce(
+    (acc, day) => ({
+        ...acc,
+        [day]: {
+            isOpen: false,
+            openTime: "9:00 AM",
+            closeTime: "5:00 PM",
+        },
+    }),
+    {}
+);
+
+export default function SetupShop({ categories, serviceCategories }) {
+    const [isDarkTheme, setIsDarkTheme] = useState(false);
+    const [currentStep, setCurrentStep] = useState(STEPS.SHOP_INFO);
+    const [previewMainImage, setPreviewMainImage] = useState(null);
+    const [previewGalleryImages, setPreviewGalleryImages] = useState([]);
+    const [previewPermitImage, setPreviewPermitImage] = useState(null);
+    const [previewDtiRegistrationImage, setPreviewDtiRegistrationImage] =
+        useState(null);
+    const [previewValidIdImage, setPreviewValidIdImage] = useState(null);
+    const [isSubmitted, setIsSubmitted] = useState(false);
+    const [allFieldsFilled, setAllFieldsFilled] = useState(false);
+
+    const { data, setData, post, processing, errors } = useForm({
         shop_name: "",
         bio: "",
         email: "",
-        contact_number: "",
-        shop_categories: [],
+        phone: "",
         region: "",
         province: "",
         city: "",
         barangay: "",
         detailed_address: "",
-        business_hours: null,
-        shop_services: [],
-        legal_documents: null,
-        shop_gallery: null,
+        categories: [],
+        shop_photo: null,
+        shop_gallery: [],
+        operation_hours: INITIAL_OPERATION_HOURS,
+        catalog_items: [],
+        business_permit: null,
+        dti_registration: null,
+        valid_id: null,
+        _CSRF_TOKEN: window.csrf_token,
     });
 
-    // Simple form submission - let Laravel handle validation
-    const handleSubmit = (e) => {
+    const handleMainImageChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            setData("shop_photo", file);
+            setPreviewMainImage(URL.createObjectURL(file));
+        }
+    };
+
+    const handleGalleryImagesChange = (e) => {
+        const files = Array.from(e.target.files);
+        setData("shop_gallery", [...data.shop_gallery, ...files]);
+        const newPreviews = files.map((file) => URL.createObjectURL(file));
+        setPreviewGalleryImages((prev) => [...prev, ...newPreviews]);
+    };
+
+    const handlePermitImageChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            setData("business_permit", file);
+            setPreviewPermitImage(URL.createObjectURL(file));
+        }
+    };
+
+    const handleValidIdImageChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            setData("valid_id", file);
+            setPreviewValidIdImage(URL.createObjectURL(file));
+        }
+    };
+
+    const handleDtiRegistrationImageChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            setData("dti_registration", file);
+            setPreviewDtiRegistrationImage(URL.createObjectURL(file));
+        }
+    };
+
+    const removeGalleryImage = (index) => {
+        const newGalleryImages = [...data.shop_gallery];
+        newGalleryImages.splice(index, 1);
+        setData("shop_gallery", newGalleryImages);
+
+        const newPreviews = [...previewGalleryImages];
+        URL.revokeObjectURL(newPreviews[index]);
+        newPreviews.splice(index, 1);
+        setPreviewGalleryImages(newPreviews);
+    };
+
+    const handleOperationHoursChange = (day, field, value) => {
+        setData("operation_hours", {
+            ...data.operation_hours,
+            [day]: {
+                ...data.operation_hours[day],
+                [field]: value,
+            },
+        });
+    };
+
+    const handleCategoryChange = (values) => {
+        setData("categories", values);
+    };
+
+    const handleLocationChange = (locationData) => {
+        setData({
+            ...data,
+            region: locationData.region.name,
+            province: locationData.province.name,
+            city: locationData.city.name,
+            barangay: locationData.barangay.name,
+        });
+    };
+
+    const submitForm = (e) => {
         e.preventDefault();
 
-        // Create FormData for file uploads
         const formData = new FormData();
 
-        // Add basic shop details
+        // Append basic text fields
         formData.append('shop_name', data.shop_name);
-        formData.append('bio', data.bio || '');
+        formData.append('shop_bio', data.bio);
         formData.append('email', data.email);
-        formData.append('contact_number', data.contact_number);
-
-        // Add address details
+        formData.append('phone', data.phone);
         formData.append('region', data.region);
         formData.append('province', data.province);
         formData.append('city', data.city);
         formData.append('barangay', data.barangay);
         formData.append('detailed_address', data.detailed_address);
 
-        // Add shop categories
-        if (data.shop_categories && data.shop_categories.length > 0) {
-            data.shop_categories.forEach((categoryId, index) => {
-                formData.append(`shop_categories[${index}]`, categoryId);
+        // Append files
+        if (data.shop_photo) formData.append('shop_photo', data.shop_photo);
+        if (data.business_permit) formData.append('business_permit', data.business_permit);
+        if (data.dti_registration) formData.append('dti_registration', data.dti_registration);
+        if (data.valid_id) formData.append('valid_id', data.valid_id);
+
+        // Append gallery images
+        if (data.shop_gallery?.length > 0) {
+            data.shop_gallery.forEach((file, index) => {
+                formData.append(`shop_gallery[${index}]`, file);
             });
         }
 
-        // Format business hours
-        if (data.business_hours && typeof data.business_hours === 'object') {
-            const businessHoursArray = Object.values(data.business_hours)
-                .filter(day => day && typeof day === 'object');
+        // Append arrays and objects as JSON strings
+        formData.append('categories', JSON.stringify(data.categories));
+        formData.append('operation_hours', JSON.stringify(data.operation_hours));
+        formData.append('catalog_items', JSON.stringify(data.catalog_items));
 
-            businessHoursArray.forEach((hours, index) => {
-                formData.append(`business_hours[${index}][day]`, hours.day);
-                formData.append(`business_hours[${index}][is_open]`, hours.is_open ? 1 : 0);
-                formData.append(`business_hours[${index}][open_time]`, hours.is_open ? hours.open_time : null);
-                formData.append(`business_hours[${index}][close_time]`, hours.is_open ? hours.close_time : null);
-            });
-        }
-
-        // Add shop services
-        if (data.shop_services && data.shop_services.length > 0) {
-            data.shop_services.forEach((service, index) => {
-                formData.append(`shop_services[${index}][service_name]`, service.service_name);
-                formData.append(`shop_services[${index}][cost]`, service.cost);
-                formData.append(`shop_services[${index}][duration_hour]`, service.duration_hour);
-                formData.append(`shop_services[${index}][duration_minute]`, service.duration_minute);
-                formData.append(`shop_services[${index}][service_category_id]`, service.service_category_id);
-            });
-        }
-
-        // Add legal documents
-        if (data.legal_documents) {
-            if (data.legal_documents.business_permit && data.legal_documents.business_permit.file) {
-                formData.append('legal_documents[business_permit][file]', data.legal_documents.business_permit.file);
-            }
-
-            if (data.legal_documents.dti_registration && data.legal_documents.dti_registration.file) {
-                formData.append('legal_documents[dti_registration][file]', data.legal_documents.dti_registration.file);
-            }
-
-            if (data.legal_documents.valid_id && data.legal_documents.valid_id.file) {
-                formData.append('legal_documents[valid_id][file]', data.legal_documents.valid_id.file);
-            }
-        }
-
-        // Add shop gallery
-        if (data.shop_gallery) {
-            // Main photo
-            if (data.shop_gallery.main_photo && data.shop_gallery.main_photo.file) {
-                formData.append('shop_gallery[main_photo][file]', data.shop_gallery.main_photo.file);
-            }
-
-            // Gallery photos
-            if (data.shop_gallery.gallery_photos && data.shop_gallery.gallery_photos.length > 0) {
-                data.shop_gallery.gallery_photos.forEach((photo, index) => {
-                    if (photo.file) {
-                        formData.append(`shop_gallery[gallery_photos][${index}][file]`, photo.file);
-                    }
-                });
-            }
-        }
-
-        // Log the FormData keys for debugging
-        console.log("Form data keys:", [...formData.entries()].map(entry => entry[0]));
-
-        // Submit the form
         post(route('shop.store'), formData, {
-            forceFormData: true,
             preserveScroll: true,
+            forceFormData: true,
             onSuccess: () => {
-                toast.success("Shop created successfully!");
+                setIsSubmitted(true);
+                setCurrentStep(STEPS.SUCCESS);
             },
             onError: (errors) => {
-                toast.error("Please correct the errors in the form");
-                console.error("Form validation errors:", errors);
+                console.error('Submission errors:', errors);
+            },
+            // Add this option to properly handle the response
+            onFinish: () => {
+                // If we've gotten to this point without triggering success,
+                // manually progress to success state
+                if (!isSubmitted) {
+                    setIsSubmitted(true);
+                    setCurrentStep(STEPS.SUCCESS);
+                }
             }
         });
     };
 
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        if (currentStep === STEPS.SUMMARY) {
+            submitForm(e);
+        } else {
+            nextStep();
+        }
+    };
+
+    const nextStep = () => {
+        setCurrentStep((prev) => Math.min(prev + 1, 9));
+    };
+
+    const prevStep = () => {
+        setCurrentStep((prev) => Math.max(prev - 1, 0));
+    };
+
+    useEffect(() => {
+        const savedTheme = localStorage.getItem("theme");
+        if (savedTheme === "dark") {
+            document.body.classList.add("dark");
+            setIsDarkTheme(true);
+        }
+    }, []);
+
+    const toggleTheme = () => {
+        if (isDarkTheme) {
+            document.body.classList.remove("dark");
+            localStorage.setItem("theme", "light");
+        } else {
+            document.body.classList.add("dark");
+            localStorage.setItem("theme", "dark");
+        }
+        setIsDarkTheme(!isDarkTheme);
+    };
+
+    const renderStepContent = () => {
+        switch (currentStep) {
+            case STEPS.SHOP_INFO:
+                return (
+                    <ShopInfo
+                        setData={setData}
+                        data={data}
+                        errors={errors}
+                        allFieldsFilled={allFieldsFilled}
+                        setAllFieldsFilled={setAllFieldsFilled}
+                    />
+                );
+            case STEPS.CATEGORIES:
+                return (
+                    <Categories
+                        data={data}
+                        handleCategoryChange={handleCategoryChange}
+                        categories={categories}
+                        allFieldsFilled={allFieldsFilled}
+                        setAllFieldsFilled={setAllFieldsFilled}
+                    />
+                );
+            case STEPS.CONTACT:
+                return (
+                    <Contact
+                        data={data}
+                        setData={setData}
+                        errors={errors}
+                        allFieldsFilled={allFieldsFilled}
+                        setAllFieldsFilled={setAllFieldsFilled}
+                    />
+                );
+            case STEPS.LOCATION:
+                return (
+                    <Location
+                        data={data}
+                        setData={setData}
+                        handleLocationChange={handleLocationChange}
+                        errors={errors}
+                        allFieldsFilled={allFieldsFilled}
+                        setAllFieldsFilled={setAllFieldsFilled}
+                    />
+                );
+            case STEPS.OPERATION_HOURS:
+                return (
+                    <OperationHours
+                        data={data}
+                        handleOperationHoursChange={handleOperationHoursChange}
+                        allFieldsFilled={allFieldsFilled}
+                        setAllFieldsFilled={setAllFieldsFilled}
+                    />
+                );
+            case STEPS.CATALOG:
+                return (
+                    <Catalog
+                        serviceCategories={serviceCategories}
+                        data={data}
+                        setData={setData}
+                        allFieldsFilled={allFieldsFilled}
+                        setAllFieldsFilled={setAllFieldsFilled}
+                    />
+                );
+            case STEPS.BUSINESS_PERMIT:
+                return (
+                    <BusinessPermit
+                        handlePermitImageChange={handlePermitImageChange}
+                        handleDtiRegistrationImageChange={
+                            handleDtiRegistrationImageChange
+                        }
+                        handleValidIdImageChange={handleValidIdImageChange}
+                        previewPermitImage={previewPermitImage}
+                        previewDtiRegistrationImage={
+                            previewDtiRegistrationImage
+                        }
+                        previewValidIdImage={previewValidIdImage}
+                        errors={errors}
+                        allFieldsFilled={allFieldsFilled}
+                        setAllFieldsFilled={setAllFieldsFilled}
+                        data={data}
+                    />
+                );
+            case STEPS.GALLERY:
+                return (
+                    <Gallery
+                        data={data}
+                        handleMainImageChange={handleMainImageChange}
+                        handleGalleryImagesChange={handleGalleryImagesChange}
+                        removeGalleryImage={removeGalleryImage}
+                        previewMainImage={previewMainImage}
+                        previewGalleryImages={previewGalleryImages}
+                        allFieldsFilled={allFieldsFilled}
+                        setAllFieldsFilled={setAllFieldsFilled}
+                        errors={errors}
+                    />
+                );
+            case STEPS.SUMMARY:
+                return <Summary data={data} categories={categories} />;
+            // return <Success />;
+            case STEPS.SUCCESS:
+                return <Success />;
+            default:
+                return null;
+        }
+    };
+
     return (
         <>
-            <Head title="Setup Shop" />
-            <Toaster richColors />
-            <Header />
             <GradientBackground />
+            <Head title="Shop Setup" />
             <section className="py-24 px-5 relative min-h-screen pb-40">
+                <Header onClick={toggleTheme} isDarkTheme={isDarkTheme} />
                 <div className="max-w-screen-md mx-auto">
-                    <SetupShopHeader />
-                    <form onSubmit={handleSubmit}>
-                        <LazyLoadSection minHeight="300px">
-                            <BasicDetails
-                                data={data}
-                                setData={setData}
-                                errors={errors}
-                            />
-                        </LazyLoadSection>
-
-                        <LazyLoadSection minHeight="300px">
-                            <LocationDetails
-                                data={data}
-                                setData={setData}
-                                errors={errors}
-                            />
-                        </LazyLoadSection>
-
-                        <LazyLoadSection minHeight="300px">
-                            <BusinessHours
-                                data={data}
-                                setData={setData}
-                                errors={errors}
-                            />
-                        </LazyLoadSection>
-
-                        <LazyLoadSection minHeight="300px">
-                            <ShopServices
-                                data={data}
-                                setData={setData}
-                                errors={errors}
-                                serviceCategories={serviceCategories}
-                            />
-                        </LazyLoadSection>
-
-                        <LazyLoadSection minHeight="300px">
-                            <LegalDocumentsPartial
-                                data={data}
-                                setData={setData}
-                                errors={errors}
-                            />
-                        </LazyLoadSection>
-
-                        <LazyLoadSection minHeight="300px">
-                            <ShopGalleryPartial
-                                data={data}
-                                setData={setData}
-                                errors={errors}
-                            />
-                        </LazyLoadSection>
-
-                        <Button type="submit" className="w-full" disabled={processing}>
-                            {processing ? "Submitting..." : "Submit"}
-                        </Button>
-                    </form>
+                    <div>
+                        <div className="mb-5">
+                            <h1 className="font-semibold text-2xl">
+                                Register your Shop
+                            </h1>
+                            <p className="text-muted-foreground">
+                                Fill up your Shop's Information
+                            </p>
+                        </div>
+                        <form onSubmit={handleSubmit}>
+                            {currentStep !== STEPS.SUCCESS && (
+                                <StepIndicator
+                                    currentStep={currentStep}
+                                    totalSteps={9}
+                                />
+                            )}
+                            {renderStepContent()}
+                            {currentStep !== STEPS.SUCCESS && (
+                                <div className="mt-6 flex justify-between">
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        onClick={prevStep}
+                                        disabled={
+                                            currentStep === STEPS.SHOP_INFO
+                                        }
+                                    >
+                                        Previous
+                                    </Button>
+                                    {currentStep === STEPS.SUMMARY ? (
+                                        <Button
+                                            type="button"
+                                            onClick={handleSubmit}
+                                            disabled={processing}
+                                            className="figtree-semibold"
+                                        >
+                                            {processing
+                                                ? "Submitting..."
+                                                : "Submit Application"}
+                                        </Button>
+                                    ) : (
+                                        <Button
+                                            type="submit"
+                                            className="figtree-semibold"
+                                            disabled={!allFieldsFilled}
+                                        >
+                                            Next
+                                        </Button>
+                                    )}
+                                </div>
+                            )}
+                        </form>
+                    </div>
                 </div>
             </section>
         </>
     );
-};
-
-export default SetupShop;
+}
