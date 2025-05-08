@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 
 class ShopAppointmentsController extends Controller
@@ -296,6 +297,37 @@ class ShopAppointmentsController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
             return redirect()->back()->with('message', 'Failed to complete appointment')->with('success', false);
+        }
+    }
+
+    /**
+     * Redirect to booking step one for walk-in customers
+     *
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function redirectToWalkinBooking()
+    {
+        try {
+            // Get the shop associated with the authenticated staff
+            $shopStaff = auth()->user()->shopStaff()->with('shop')->first();
+
+            if (!$shopStaff || !$shopStaff->shop) {
+                Log::error('No shop found for staff member: ' . auth()->id());
+                return redirect()->route('shop.appointments')->with('error', 'No shop found for this staff member.');
+            }
+
+            $shop = $shopStaff->shop;
+
+            // Build the URL manually instead of using the route helper
+            $url = "/{$shop->id}/booking/1?walkin=true";
+            Log::info('Redirecting to walk-in booking', ['url' => $url]);
+
+            return redirect($url);
+        } catch (\Exception $e) {
+            Log::error('Error redirecting to walk-in booking: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
+            return redirect()->route('shop.appointments')->with('error', 'An error occurred while redirecting to the booking page.');
         }
     }
 }

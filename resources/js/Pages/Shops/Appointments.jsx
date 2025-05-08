@@ -6,6 +6,8 @@ import AllAppointments from "@/Components/Appointments/AllAppointments";
 import { Toaster } from "@/Components/ui/sonner"
 import { toast } from "sonner"
 import { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { CalendarPlus } from "lucide-react";
 
 export default function Appointments({ myAppointments, upcomingSchedules, shopBusinessSchedules, shopAppointments, rescheduleRequests }) {
 
@@ -303,6 +305,26 @@ export default function Appointments({ myAppointments, upcomingSchedules, shopBu
         return getAppointmentStartConstraints(appointment);
     };
 
+    // Function to navigate to the walk-in booking page for guest customers
+    const handleBookWalkIn = () => {
+        const { staffData } = usePage().props;
+        try {
+            // Get shop ID directly from staffData
+            const shopId = staffData?.shop_id;
+            
+            if (shopId) {
+                // Navigate directly to booking step one with walkin and guest parameters
+                window.location.href = `/${shopId}/booking/1?walkin=true&guest=true`;
+            } else {
+                console.error("Could not find shop ID in staff data");
+                toast.error("Could not determine shop ID. Please try again.");
+            }
+        } catch (error) {
+            console.error("Error navigating to walk-in booking:", error);
+            toast.error("An error occurred when trying to book a walk-in appointment.");
+        }
+    };
+
     useEffect(() => {
         if (flash.message) {
             if (flash.success) {
@@ -322,9 +344,7 @@ export default function Appointments({ myAppointments, upcomingSchedules, shopBu
     return (
         <ShopsLayout>
             <Head title="Appointments" />
-            <div className="mb-6">
-                <h1 className="text-3xl font-semibold tracking-tight">Appointments</h1>
-            </div>
+
             <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
                 <TabsList className="mb-4">
                     <TabsTrigger value="myAppointments">My Appointments</TabsTrigger>

@@ -11,7 +11,7 @@ import {
     AlertDialogTitle,
 } from "@/Components/ui/alert-dialog";
 import { Button } from "@/Components/ui/button";
-import { Check, Loader2 } from "lucide-react";
+import { Check, Loader2, AlertCircle, Clock } from "lucide-react";
 import { toast } from "sonner";
 
 export default function ApproveButtonModal({ appointment }) {
@@ -23,18 +23,40 @@ export default function ApproveButtonModal({ appointment }) {
 
     const handleConfirm = () => {
         patch(route('shop.appointments.approve', appointment.id), {
+            preserveState: false, // Don't preserve state to ensure fresh data is loaded
+            preserveScroll: true, // Keep scroll position
             onSuccess: () => {
                 setOpen(false);
-                toast.success("Appointment approved", {
-                    description: "The customer has been notified about the approval."
+                toast.success("Appointment Approved", {
+                    description: `The appointment has been successfully approved and the customer has been notified.`,
+                    duration: 5000,
                 });
+                // Force reload page after a short delay to ensure updated data
+                setTimeout(() => window.location.reload(), 500);
             },
             onError: (errors) => {
                 setOpen(false);
-                // Display error toast if there's a conflict
+                // Display error toast if there's a conflict or other error
                 if (errors.message) {
-                    toast.error("Scheduling Conflict", {
-                        description: errors.message,
+                    // Check if the error is a scheduling conflict
+                    if (errors.message.includes("conflict")) {
+                        toast.error("Scheduling Conflict Detected", {
+                            description: errors.message,
+                            duration: 8000,
+                            icon: <Clock className="h-5 w-5 text-destructive" />,
+                        });
+                    } else {
+                        toast.error("Approval Error", {
+                            description: errors.message,
+                            duration: 5000,
+                            icon: <AlertCircle className="h-5 w-5 text-destructive" />,
+                        });
+                    }
+                } else {
+                    toast.error("System Error", {
+                        description: "There was a problem processing this appointment. Please try again or contact support.",
+                        duration: 5000,
+                        icon: <AlertCircle className="h-5 w-5 text-destructive" />,
                     });
                 }
             }
