@@ -1,8 +1,10 @@
 import React from "react";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
+import { AlertCircle } from "lucide-react";
+import { Alert, AlertDescription } from "../ui/alert";
 
-const Summary = ({ data, categories, onSubmit, isSubmitting }) => {
+const Summary = ({ data, categories, onSubmit, isSubmitting, errors }) => {
     const formatOperationHours = (hours) => {
         return Object.entries(hours)
             .filter(([_, value]) => value.isOpen)
@@ -13,11 +15,36 @@ const Summary = ({ data, categories, onSubmit, isSubmitting }) => {
             .join("\n");
     };
 
+    // Check for the specific email duplication error
+    const hasEmailDuplicationError = errors && errors.email && errors.email.includes('already registered');
+    
+    // Check if we have any submission errors to display
+    const hasErrors = errors && Object.keys(errors).length > 0;
+
     return (
         <div className="space-y-6">
             <h2 className="text-xl font-semibold mb-4">
                 Review Your Shop Information
             </h2>
+
+            {hasEmailDuplicationError && (
+                <Alert variant="destructive">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription>
+                        {errors.email}
+                    </AlertDescription>
+                </Alert>
+            )}
+
+            {hasErrors && !hasEmailDuplicationError && (
+                <Alert variant="destructive">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription>
+                        There was a problem submitting your shop information. 
+                        Please check the information and try again.
+                    </AlertDescription>
+                </Alert>
+            )}
 
             <div className="grid gap-4 p-6 border rounded-lg">
                 <div>
@@ -29,17 +56,22 @@ const Summary = ({ data, categories, onSubmit, isSubmitting }) => {
                         <p>{data.email}</p>
                         <p className="text-muted-foreground">Phone:</p>
                         <p>{data.phone}</p>
+                        <p className="text-muted-foreground">Bio:</p>
+                        <p className="truncate">{data.bio}</p>
                     </div>
                 </div>
 
                 <div className="border-t pt-4">
                     <h3 className="font-semibold mb-2">Shop Categories</h3>
                     <div className="flex flex-wrap gap-2">
-                        {data.categories.map((category, index) => (
-                            <Badge key={index} variant={"secondary"}>
-                                {categories[index].name}
-                            </Badge>
-                        ))}
+                        {data.categories.map((categoryId) => {
+                            const category = categories.find(c => c.id.toString() === categoryId.toString());
+                            return (
+                                <Badge key={categoryId} variant={"secondary"}>
+                                    {category?.name || categoryId}
+                                </Badge>
+                            );
+                        })}
                     </div>
                 </div>
 
@@ -84,6 +116,17 @@ const Summary = ({ data, categories, onSubmit, isSubmitting }) => {
                         ))}
                     </div>
                 </div>
+                
+                {hasErrors && (
+                    <div className="border-t pt-4">
+                        <h3 className="font-semibold text-destructive mb-2">Submission Errors</h3>
+                        <ul className="text-sm list-disc pl-5 text-destructive">
+                            {Object.entries(errors).map(([field, message]) => (
+                                <li key={field}>{typeof message === 'string' ? `${field}: ${message}` : `${field}: Please fix this field`}</li>
+                            ))}
+                        </ul>
+                    </div>
+                )}
             </div>
         </div>
     );

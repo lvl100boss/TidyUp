@@ -286,7 +286,7 @@ class ShopController extends Controller
     }
 
     /**
-       * Redirect to booking step one for walk-in appointments
+     * Redirect to booking step one for walk-in appointments
      *
      * @return \Illuminate\Http\RedirectResponse
      */
@@ -305,6 +305,25 @@ class ShopController extends Controller
         return redirect()->route('booking.step.one', [
             'shop' => $shop->id,
             'walkin' => true
+        ]);
+    }
+
+    /**
+     * Check if a shop email already exists in the database
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function checkEmailExists(Request $request)
+    {
+        $validated = $request->validate([
+            'email' => 'required|email',
+        ]);
+
+        $exists = Shop::where('email', $validated['email'])->exists();
+
+        return response()->json([
+            'exists' => $exists,
         ]);
     }
 }

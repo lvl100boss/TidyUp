@@ -12,12 +12,10 @@ import {
 } from "@/Components/ui/alert-dialog";
 import { Button } from "@/Components/ui/button";
 import { Play, AlertCircle, Clock, Loader2 } from "lucide-react";
-import { Alert, AlertDescription, AlertTitle } from "@/Components/ui/alert";
 import { toast } from "sonner";
 
 export default function StartedButtonModal({ appointment, constraints }) {
     const [open, setOpen] = useState(false);
-    const [showError, setShowError] = useState(false);
     
     const { post, processing } = useForm({
         appointment_id: appointment.id,
@@ -27,15 +25,24 @@ export default function StartedButtonModal({ appointment, constraints }) {
     const handleStartClick = () => {
         // Check if there are any constraints that would prevent starting
         if (constraints && !constraints.canStart) {
-            setShowError(true);
+            // Show toast notification instead of in-page alert
+            const icon = getToastIcon();
+            
+            // Format the message if it's a time constraint
+            let message = constraints.reason;
+            
+            if (constraints.type === 'time' && constraints.details?.minutesRemaining) {
+                message = formatTimeConstraintMessage(constraints.details.minutesRemaining);
+            }
+            
+            toast.error("Cannot Start Appointment", {
+                description: message,
+                icon,
+                duration: 5000,
+            });
         } else {
             setOpen(true);
         }
-    };
-    
-    // Dismiss error alert
-    const dismissError = () => {
-        setShowError(false);
     };
 
     // Handle confirm action in dialog
@@ -55,55 +62,43 @@ export default function StartedButtonModal({ appointment, constraints }) {
             }
         });
     };
-
-    // Helper to determine alert variant based on constraint type
-    const getAlertVariant = () => {
-        if (!constraints) return "destructive";
-        
-        switch(constraints.type) {
-            case 'time':
-                return "default"; // Blue for time constraints
-            case 'business-hours':
-                return "destructive"; // Red for business hours constraints
-            case 'conflict':
-                return "destructive"; // Red for conflicts
-            default:
-                return "destructive";
+    
+    // Format time constraint message in a more readable way
+    const formatTimeConstraintMessage = (minutesRemaining) => {
+        if (minutesRemaining < 60) {
+            return `This appointment is scheduled to start in ${minutesRemaining} ${minutesRemaining === 1 ? 'minute' : 'minutes'}.`;
+        } else {
+            const hours = Math.floor(minutesRemaining / 60);
+            const minutes = minutesRemaining % 60;
+            
+            let message = `This appointment is scheduled to start in ${hours} ${hours === 1 ? 'hour' : 'hours'}`;
+            
+            if (minutes > 0) {
+                message += ` and ${minutes} ${minutes === 1 ? 'minute' : 'minutes'}`;
+            }
+            
+            return message + '.';
         }
     };
-    
-    // Helper to get appropriate icon for constraint type
-    const getAlertIcon = () => {
-        if (!constraints) return <AlertCircle className="h-4 w-4" />;
+
+    // Helper to get appropriate icon for toast based on constraint type
+    const getToastIcon = () => {
+        if (!constraints) return <AlertCircle className="h-5 w-5" />;
         
         switch(constraints.type) {
             case 'time':
-                return <Clock className="h-4 w-4" />;
+                return <Clock className="h-5 w-5" />;
+            case 'business-hours':
+                return <AlertCircle className="h-5 w-5" />;
+            case 'conflict':
+                return <AlertCircle className="h-5 w-5" />;
             default:
-                return <AlertCircle className="h-4 w-4" />;
+                return <AlertCircle className="h-5 w-5" />;
         }
     };
 
     return (
         <>
-            {showError && constraints && !constraints.canStart && (
-                <Alert variant={getAlertVariant()} className="mb-4">
-                    {getAlertIcon()}
-                    <AlertTitle>Cannot Start Appointment</AlertTitle>
-                    <AlertDescription>
-                        {constraints.reason}
-                    </AlertDescription>
-                    <Button 
-                        variant="outline" 
-                        size="sm" 
-                        onClick={dismissError}
-                        className="mt-3"
-                    >
-                        Dismiss
-                    </Button>
-                </Alert>
-            )}
-            
             <Button onClick={handleStartClick} variant="default" size="default">
                 <Play className="mr-2 h-4 w-4" /> Start
             </Button>

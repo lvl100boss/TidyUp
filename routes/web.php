@@ -81,6 +81,9 @@ Route::get('/shop/{id}', [ShopController::class, 'show'])->where('id', '[0-9]+')
 // Add a compatibility route for links that might be using the /{id}/shop pattern
 Route::get('/{id}/shop', [ShopController::class, 'show'])->where('id', '[0-9]+');
 
+// Add a route for the email check endpoint
+Route::post('/shop/check-email', [ShopController::class, 'checkEmailExists'])->name('shop.check-email');
+
 // Remove duplicate route
 // Route::post('/reviews', [ReviewController::class, 'store'])->name('reviews.store');
 

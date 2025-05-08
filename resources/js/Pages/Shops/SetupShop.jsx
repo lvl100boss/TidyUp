@@ -156,15 +156,16 @@ export default function SetupShop({ categories, serviceCategories }) {
     };
 
     const submitForm = (e) => {
-        e.preventDefault();
+        if (e) e.preventDefault();
 
+        // Create a proper FormData object
         const formData = new FormData();
 
         // Append basic text fields
         formData.append('shop_name', data.shop_name);
-        formData.append('shop_bio', data.bio);
+        formData.append('bio', data.bio); 
         formData.append('email', data.email);
-        formData.append('phone', data.phone);
+        formData.append('contact_number', data.phone); 
         formData.append('region', data.region);
         formData.append('province', data.province);
         formData.append('city', data.city);
@@ -184,13 +185,29 @@ export default function SetupShop({ categories, serviceCategories }) {
             });
         }
 
-        // Append arrays and objects as JSON strings
-        formData.append('categories', JSON.stringify(data.categories));
-        formData.append('operation_hours', JSON.stringify(data.operation_hours));
-        formData.append('catalog_items', JSON.stringify(data.catalog_items));
+        // Append categories individually
+        if (data.categories?.length > 0) {
+            data.categories.forEach((categoryId, index) => {
+                formData.append(`shop_categories[${index}]`, categoryId);
+            });
+        }
 
+        // Append operation hours - need to properly format for Laravel
+        formData.append('operation_hours', JSON.stringify(data.operation_hours));
+        
+        // Append catalog items
+        if (data.catalog_items?.length > 0) {
+            data.catalog_items.forEach((item, index) => {
+                formData.append(`catalog_items[${index}][service_name]`, item.service_name);
+                formData.append(`catalog_items[${index}][service_category_id]`, item.service_category_id);
+                formData.append(`catalog_items[${index}][cost]`, item.cost);
+                formData.append(`catalog_items[${index}][duration_hour]`, item.duration_hour);
+                formData.append(`catalog_items[${index}][duration_minute]`, item.duration_minute);
+            });
+        }
+
+        // Direct FormData submission
         post(route('shop.store'), formData, {
-            preserveScroll: true,
             forceFormData: true,
             onSuccess: () => {
                 setIsSubmitted(true);
@@ -198,15 +215,19 @@ export default function SetupShop({ categories, serviceCategories }) {
             },
             onError: (errors) => {
                 console.error('Submission errors:', errors);
-            },
-            // Add this option to properly handle the response
-            onFinish: () => {
-                // If we've gotten to this point without triggering success,
-                // manually progress to success state
-                if (!isSubmitted) {
-                    setIsSubmitted(true);
-                    setCurrentStep(STEPS.SUCCESS);
+                
+                // Create custom error object to better display the duplicate email error
+                const customErrors = { ...errors };
+                
+                // Check for the duplicate email error
+                if (errors.error && errors.error.includes('Duplicate entry') && errors.error.includes('shops_email_unique')) {
+                    customErrors.email = 'This email address is already registered with another shop. Please use a different email.';
+                    delete customErrors.error; // Remove the generic error
                 }
+                
+                // Set the errors and stay on summary page
+                setData('submissionErrors', customErrors);
+                setCurrentStep(STEPS.SUMMARY);
             }
         });
     };
@@ -343,8 +364,12 @@ export default function SetupShop({ categories, serviceCategories }) {
                     />
                 );
             case STEPS.SUMMARY:
-                return <Summary data={data} categories={categories} />;
-            // return <Success />;
+                return <Summary 
+                    data={data} 
+                    categories={categories} 
+                    errors={data.submissionErrors || errors} 
+                    processing={processing}
+                />;
             case STEPS.SUCCESS:
                 return <Success />;
             default:
@@ -391,7 +416,7 @@ export default function SetupShop({ categories, serviceCategories }) {
                                     {currentStep === STEPS.SUMMARY ? (
                                         <Button
                                             type="button"
-                                            onClick={handleSubmit}
+                                            onClick={submitForm}
                                             disabled={processing}
                                             className="figtree-semibold"
                                         >
