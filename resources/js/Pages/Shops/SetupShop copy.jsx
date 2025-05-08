@@ -1,35 +1,84 @@
 import React, { useState, useEffect } from "react";
 import { Head, useForm } from "@inertiajs/react";
-import { Toaster, toast } from "sonner";
-import Header from "@/Components/User/Header";
-import GradientBackground from "@/Components/GradientBackground";
-import SetupShopHeader from "./SetupShopPartials/SetupShopHeader";
-import BasicDetails from "./SetupShopPartials/BasicDetails";
-import LocationDetails from "./SetupShopPartials/LocationDetails";
-import BusinessHours from "./SetupShopPartials/BusinessHours";
-import ShopServices from "./SetupShopPartials/ShopServices";
-import LazyLoadSection from "@/Components/LazyLoadSection";
-import LegalDocumentsPartial from "./SetupShopPartials/LegalDocumentsPartial";
-import ShopGalleryPartial from "./SetupShopPartials/ShopGalleryPartial";
 import { Button } from "@/Components/ui/button";
+import Header from "@/Components/User/Header";
+import StepIndicator from "@/Components/ShopSetup/StepIndicator";
+import ShopInfo from "@/Components/ShopSetup/ShopInfo";
+import Categories from "@/Components/ShopSetup/Categories";
+import Contact from "@/Components/ShopSetup/Contact";
+import Location from "@/Components/ShopSetup/Location";
+import OperationHours from "@/Components/ShopSetup/OperationHours";
+import Catalog from "@/Components/ShopSetup/Catalog";
+import BusinessPermit from "@/Components/ShopSetup/BusinessPermit";
+import Gallery from "@/Components/ShopSetup/Gallery";
+import Summary from "@/Components/ShopSetup/Summary";
+import Success from "@/Components/ShopSetup/Success";
+import GradientBackground from "@/Components/GradientBackground";
 
-const SetupShop = ({ serviceCategories }) => {
+const STEPS = {
+    SHOP_INFO: 0,
+    CATEGORIES: 1,
+    CONTACT: 2,
+    LOCATION: 3,
+    OPERATION_HOURS: 4,
+    CATALOG: 5,
+    BUSINESS_PERMIT: 6,
+    GALLERY: 7,
+    SUMMARY: 8,
+    SUCCESS: 9,
+};
 
-    const { data, setData, errors, post, processing } = useForm({
+const INITIAL_OPERATION_HOURS = [
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+    "Sunday",
+].reduce(
+    (acc, day) => ({
+        ...acc,
+        [day]: {
+            isOpen: false,
+            openTime: "9:00 AM",
+            closeTime: "5:00 PM",
+        },
+    }),
+    {}
+);
+
+export default function SetupShop({ categories, serviceCategories }) {
+    const [isDarkTheme, setIsDarkTheme] = useState(false);
+    const [currentStep, setCurrentStep] = useState(STEPS.SHOP_INFO);
+    const [previewMainImage, setPreviewMainImage] = useState(null);
+    const [previewGalleryImages, setPreviewGalleryImages] = useState([]);
+    const [previewPermitImage, setPreviewPermitImage] = useState(null);
+    const [previewDtiRegistrationImage, setPreviewDtiRegistrationImage] =
+        useState(null);
+    const [previewValidIdImage, setPreviewValidIdImage] = useState(null);
+    const [isSubmitted, setIsSubmitted] = useState(false);
+    const [allFieldsFilled, setAllFieldsFilled] = useState(false);
+
+    const { data, setData, post, processing, errors } = useForm({
         shop_name: "",
         bio: "",
         email: "",
-        contact_number: "",
-        shop_categories: [],
+        phone: "",
         region: "",
         province: "",
         city: "",
         barangay: "",
         detailed_address: "",
-        business_hours: null,
-        shop_services: [],
-        legal_documents: null,
-        shop_gallery: null,
+        categories: [],
+        shop_photo: null,
+        shop_gallery: [],
+        operation_hours: INITIAL_OPERATION_HOURS,
+        catalog_items: [],
+        business_permit: null,
+        dti_registration: null,
+        valid_id: null,
+        _CSRF_TOKEN: window.csrf_token,
     });
 
     const handleMainImageChange = (e) => {
@@ -107,151 +156,60 @@ const SetupShop = ({ serviceCategories }) => {
     };
 
     const submitForm = (e) => {
-        if (e) e.preventDefault();
-
-        // Create a proper FormData object
-
-    // Simple form submission - let Laravel handle validation
-    const handleSubmit = (e) => {
         e.preventDefault();
-
-        // Create FormData for file uploads
 
         const formData = new FormData();
 
-        // Add basic shop details
+        // Append basic text fields
         formData.append('shop_name', data.shop_name);
-
-        formData.append('bio', data.bio); 
+        formData.append('shop_bio', data.bio);
         formData.append('email', data.email);
-        formData.append('contact_number', data.phone); 
-        formData.append('bio', data.bio || '');
-        formData.append('email', data.email);
-        formData.append('contact_number', data.contact_number);
-
-        // Add address details
+        formData.append('phone', data.phone);
         formData.append('region', data.region);
         formData.append('province', data.province);
         formData.append('city', data.city);
         formData.append('barangay', data.barangay);
         formData.append('detailed_address', data.detailed_address);
 
-        // Add shop categories
-        if (data.shop_categories && data.shop_categories.length > 0) {
-            data.shop_categories.forEach((categoryId, index) => {
-                formData.append(`shop_categories[${index}]`, categoryId);
+        // Append files
+        if (data.shop_photo) formData.append('shop_photo', data.shop_photo);
+        if (data.business_permit) formData.append('business_permit', data.business_permit);
+        if (data.dti_registration) formData.append('dti_registration', data.dti_registration);
+        if (data.valid_id) formData.append('valid_id', data.valid_id);
+
+        // Append gallery images
+        if (data.shop_gallery?.length > 0) {
+            data.shop_gallery.forEach((file, index) => {
+                formData.append(`shop_gallery[${index}]`, file);
             });
         }
 
-        // Append categories individually
-        if (data.categories?.length > 0) {
-            data.categories.forEach((categoryId, index) => {
-                formData.append(`shop_categories[${index}]`, categoryId);
-            });
-        }
-
-        // Append operation hours - need to properly format for Laravel
+        // Append arrays and objects as JSON strings
+        formData.append('categories', JSON.stringify(data.categories));
         formData.append('operation_hours', JSON.stringify(data.operation_hours));
-        
-        // Append catalog items
-        if (data.catalog_items?.length > 0) {
-            data.catalog_items.forEach((item, index) => {
-                formData.append(`catalog_items[${index}][service_name]`, item.service_name);
-                formData.append(`catalog_items[${index}][service_category_id]`, item.service_category_id);
-                formData.append(`catalog_items[${index}][cost]`, item.cost);
-                formData.append(`catalog_items[${index}][duration_hour]`, item.duration_hour);
-                formData.append(`catalog_items[${index}][duration_minute]`, item.duration_minute);
-            });
-        }
+        formData.append('catalog_items', JSON.stringify(data.catalog_items));
 
-        // Direct FormData submission
-        // Format business hours
-        if (data.business_hours && typeof data.business_hours === 'object') {
-            const businessHoursArray = Object.values(data.business_hours)
-                .filter(day => day && typeof day === 'object');
-
-            businessHoursArray.forEach((hours, index) => {
-                formData.append(`business_hours[${index}][day]`, hours.day);
-                formData.append(`business_hours[${index}][is_open]`, hours.is_open ? 1 : 0);
-                formData.append(`business_hours[${index}][open_time]`, hours.is_open ? hours.open_time : null);
-                formData.append(`business_hours[${index}][close_time]`, hours.is_open ? hours.close_time : null);
-            });
-        }
-
-        // Add shop services
-        if (data.shop_services && data.shop_services.length > 0) {
-            data.shop_services.forEach((service, index) => {
-                formData.append(`shop_services[${index}][service_name]`, service.service_name);
-                formData.append(`shop_services[${index}][cost]`, service.cost);
-                formData.append(`shop_services[${index}][duration_hour]`, service.duration_hour);
-                formData.append(`shop_services[${index}][duration_minute]`, service.duration_minute);
-                formData.append(`shop_services[${index}][service_category_id]`, service.service_category_id);
-            });
-        }
-
-        // Add legal documents
-        if (data.legal_documents) {
-            if (data.legal_documents.business_permit && data.legal_documents.business_permit.file) {
-                formData.append('legal_documents[business_permit][file]', data.legal_documents.business_permit.file);
-            }
-
-            if (data.legal_documents.dti_registration && data.legal_documents.dti_registration.file) {
-                formData.append('legal_documents[dti_registration][file]', data.legal_documents.dti_registration.file);
-            }
-
-            if (data.legal_documents.valid_id && data.legal_documents.valid_id.file) {
-                formData.append('legal_documents[valid_id][file]', data.legal_documents.valid_id.file);
-            }
-        }
-
-        // Add shop gallery
-        if (data.shop_gallery) {
-            // Main photo
-            if (data.shop_gallery.main_photo && data.shop_gallery.main_photo.file) {
-                formData.append('shop_gallery[main_photo][file]', data.shop_gallery.main_photo.file);
-            }
-
-            // Gallery photos
-            if (data.shop_gallery.gallery_photos && data.shop_gallery.gallery_photos.length > 0) {
-                data.shop_gallery.gallery_photos.forEach((photo, index) => {
-                    if (photo.file) {
-                        formData.append(`shop_gallery[gallery_photos][${index}][file]`, photo.file);
-                    }
-                });
-            }
-        }
-
-        // Log the FormData keys for debugging
-        console.log("Form data keys:", [...formData.entries()].map(entry => entry[0]));
-
-        // Submit the form
         post(route('shop.store'), formData, {
-            forceFormData: true,
             preserveScroll: true,
+            forceFormData: true,
             onSuccess: () => {
-                toast.success("Shop created successfully!");
+                setIsSubmitted(true);
+                setCurrentStep(STEPS.SUCCESS);
             },
             onError: (errors) => {
                 console.error('Submission errors:', errors);
-                
-                // Create custom error object to better display the duplicate email error
-                const customErrors = { ...errors };
-                
-                // Check for the duplicate email error
-                if (errors.error && errors.error.includes('Duplicate entry') && errors.error.includes('shops_email_unique')) {
-                    customErrors.email = 'This email address is already registered with another shop. Please use a different email.';
-                    delete customErrors.error; // Remove the generic error
+            },
+            // Add this option to properly handle the response
+            onFinish: () => {
+                // If we've gotten to this point without triggering success,
+                // manually progress to success state
+                if (!isSubmitted) {
+                    setIsSubmitted(true);
+                    setCurrentStep(STEPS.SUCCESS);
                 }
-                
-                // Set the errors and stay on summary page
-                setData('submissionErrors', customErrors);
-                setCurrentStep(STEPS.SUMMARY);
-                toast.error("Please correct the errors in the form");
-                console.error("Form validation errors:", errors);
             }
         });
     };
-
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -385,12 +343,8 @@ const SetupShop = ({ serviceCategories }) => {
                     />
                 );
             case STEPS.SUMMARY:
-                return <Summary 
-                    data={data} 
-                    categories={categories} 
-                    errors={data.submissionErrors || errors} 
-                    processing={processing}
-                />;
+                return <Summary data={data} categories={categories} />;
+            // return <Success />;
             case STEPS.SUCCESS:
                 return <Success />;
             default:
@@ -398,14 +352,12 @@ const SetupShop = ({ serviceCategories }) => {
         }
     };
 
-
     return (
         <>
-            <Head title="Setup Shop" />
-            <Toaster richColors />
-            <Header />
             <GradientBackground />
+            <Head title="Shop Setup" />
             <section className="py-24 px-5 relative min-h-screen pb-40">
+                <Header onClick={toggleTheme} isDarkTheme={isDarkTheme} />
                 <div className="max-w-screen-md mx-auto">
                     <div>
                         <div className="mb-5">
@@ -439,7 +391,7 @@ const SetupShop = ({ serviceCategories }) => {
                                     {currentStep === STEPS.SUMMARY ? (
                                         <Button
                                             type="button"
-                                            onClick={submitForm}
+                                            onClick={handleSubmit}
                                             disabled={processing}
                                             className="figtree-semibold"
                                         >
@@ -464,6 +416,4 @@ const SetupShop = ({ serviceCategories }) => {
             </section>
         </>
     );
-};
-
-export default SetupShop;
+}
