@@ -28,12 +28,20 @@ class AppointmentController extends Controller
                 ->where('status', $status)
                 ->where('is_successful', true)
                 ->where('resched_data', null)
+                ->where('staff_booked', false) // Filter out staff-booked appointments
                 ->values()
                 ->all();
         }
 
         extract($appointmentsByStatus);
-        $requestRescheduleAppointments = $userAppointments->appointments->where('status', 'pending')->where('is_successful', true)->where('resched_data', '!=', null)->values()->all();
+        // Also filter reschedule requests to exclude staff-booked appointments
+        $requestRescheduleAppointments = $userAppointments->appointments
+            ->where('status', 'pending')
+            ->where('is_successful', true)
+            ->where('resched_data', '!=', null)
+            ->where('staff_booked', false)
+            ->values()
+            ->all();
 
         return inertia('Users/Appointments', [
             'pendingAppointments' => $pendingAppointments,
@@ -88,29 +96,29 @@ class AppointmentController extends Controller
     {
         $appointmentId = $request->input('appointment_id');
         $appointment = Appointments::find($appointmentId);
-        
+
         if (!$appointment) {
             return redirect()->back()
                 ->with('message', 'Appointment not found')
                 ->with('success', false);
         }
-        
+
         // Verify the appointment belongs to the authenticated user
         if ($appointment->user_id !== Auth::id()) {
             return redirect()->back()
                 ->with('message', 'Unauthorized action')
                 ->with('success', false);
         }
-        
+
         DB::beginTransaction();
         try {
             // Update the appointment to confirm it's completed
             $appointment->is_user_confirmed = true;
             $appointment->is_successful = true;
             $appointment->save();
-            
+
             DB::commit();
-            
+
             return redirect()->route('appointments', ['tab' => 'completed'])
                 ->with('message', 'Appointment has been confirmed as completed')
                 ->with('success', true);

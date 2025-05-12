@@ -284,4 +284,27 @@ class ShopController extends Controller
             'serviceCategories' => $serviceCategories
         ]);
     }
+
+    /**
+       * Redirect to booking step one for walk-in appointments
+     *
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function redirectToWalkinBooking()
+    {
+        // Get the shop associated with the authenticated staff member
+        $shopStaff = auth()->user()->shopStaff()->first();
+
+        if (!$shopStaff || !$shopStaff->shop) {
+            return redirect()->route('shop.appointments')->with('error', 'No shop found for this staff member.');
+        }
+
+        $shop = $shopStaff->shop;
+
+        // Redirect to booking step one with the shop ID and walk-in flag
+        return redirect()->route('booking.step.one', [
+            'shop' => $shop->id,
+            'walkin' => true
+        ]);
+    }
 }

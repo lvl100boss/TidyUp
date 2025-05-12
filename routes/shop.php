@@ -20,6 +20,10 @@ Route::middleware(['auth', 'verified', 'shop.owner.staff'])->group(function () {
     Route::get('/shop/dashboard', [ShopDashboardController::class, 'index'])->name('shop.dashboard');
     Route::redirect('/shop', '/shop/dashboard');
     Route::get('/shop/profile', [ShopProfileController::class, 'index'])->name('shop.profile');
+
+    // Update the route to use ShopAppointmentsController instead of ShopController
+    Route::get('/shop/booking/walkin', [ShopAppointmentsController::class, 'redirectToWalkinBooking'])->name('shop.booking.walkin');
+
     Route::get('/shop/catalog', [ShopCatalogController::class, 'index'])->name('shop.catalog');
     Route::get('/shop/manage/staff', [ManageStaffController::class, 'index'])->name('shop.manage.staff');
 });

@@ -38,6 +38,7 @@ class Appointments extends Model
         'is_user_confirmed',
         'approved_by',
         'booking_for_other',
+        'staff_booked',
     ];
 
     protected $casts = [
@@ -123,7 +124,7 @@ class Appointments extends Model
 
         // Calculate end time in minutes
         $endTimeInMinutes = $startTimeInMinutes + $durationMinutes;
-        
+
         // Get formatter for end time display
         $endTimeDisplay = Carbon::parse($this->time)
             ->addMinutes($durationMinutes)
@@ -152,7 +153,7 @@ class Appointments extends Model
             });
 
             $existingEndTimeInMinutes = $existingStartTimeInMinutes + $existingDurationMinutes;
-            
+
             // Format end time for existing appointment
             $existingEndTimeDisplay = Carbon::parse($existingAppointment->time)
                 ->addMinutes($existingDurationMinutes)
@@ -163,19 +164,19 @@ class Appointments extends Model
             // AND the new appointment ends after the existing one starts
             if ($startTimeInMinutes < $existingEndTimeInMinutes && $endTimeInMinutes > $existingStartTimeInMinutes) {
                 // Get customer name for better error messages
-                $customerName = $existingAppointment->user ? 
-                    $existingAppointment->user->first_name . ' ' . $existingAppointment->user->last_name : 
+                $customerName = $existingAppointment->user ?
+                    $existingAppointment->user->first_name . ' ' . $existingAppointment->user->last_name :
                     'Another customer';
-                
+
                 // Format date for display in error message
                 $displayDate = Carbon::parse($this->date)->format('F j, Y');
-                
+
                 // Construct detailed error message
                 $message = "Scheduling conflict detected on {$displayDate}. ";
                 $message .= "This appointment ({$appointmentTimeDisplay} - {$endTimeDisplay}) ";
                 $message .= "overlaps with {$customerName}'s {$existingAppointment->status} appointment ";
                 $message .= "({$existingTimeDisplay} - {$existingEndTimeDisplay}).";
-                
+
                 // Conflict found with detailed information
                 return [
                     'hasConflict' => true,
