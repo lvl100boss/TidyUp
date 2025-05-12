@@ -19,16 +19,16 @@ const AppointmentCard = ({ appointment }) => {
     );
 
     return (
-        <div className="card border p-4 rounded-lg flex flex-col md:flex-row gap-4 md:gap-8 md:items-center md:justify-between hover:border-muted-foreground cursor-pointer">
+        <div className="card border p-5 rounded-lg flex flex-col md:flex-row gap-4 md:gap-8 md:items-center md:justify-between hover:border-muted-foreground cursor-pointer transition-all duration-200 hover:shadow-md">
             <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
                 <div className="w-full md:w-[12rem]">
                     <img
-                        className="w-full h-[12rem] md:h-[7rem] object-cover rounded-md"
+                        className="w-full h-[12rem] md:h-[8rem] object-cover rounded-md"
                         src={shopImg}
                         alt={shopName}
                     />
                 </div>
-                <div className="space-y-2 md:space-y-3 w-full md:w-auto">
+                <div className="space-y-3 md:space-y-3 w-full md:w-auto">
                     <h6 className="font-semibold text-lg text-left">{shopName}</h6>
                     <p className="text-sm text-muted-foreground">{location}</p>
                 </div>
@@ -41,7 +41,7 @@ const AppointmentCard = ({ appointment }) => {
                     <p className="text-sm text-muted-foreground">{time}</p>
                 </div>
             </div>
-            <div className="space-y-2 md:space-y-3 w-full md:w-auto hidden md:block text-right">
+            <div className="space-y-3 md:space-y-3 w-full md:w-auto hidden md:block text-right">
                 <h6 className="font-semibold text-lg">Php {totalPrice}</h6>
                 <p className="text-sm text-muted-foreground">{date}</p>
                 <p className="text-sm text-muted-foreground">{time}</p>

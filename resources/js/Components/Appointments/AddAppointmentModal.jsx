@@ -253,10 +253,11 @@ export default function AddAppointmentModal({ isOpen, setIsOpen }) {
                             type="button"
                             variant="outline"
                             onClick={() => setIsOpen(false)}
+                            size="default"
                         >
                             Cancel
                         </Button>
-                        <Button type="submit" disabled={processing}>
+                        <Button type="submit" disabled={processing} size="default">
                             {processing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                             Create Appointment
                         </Button>
